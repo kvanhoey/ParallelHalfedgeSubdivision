@@ -330,7 +330,7 @@ CC_ATOMIC
 						{
 							for (int c=0; c < 3; ++c)
 							{
-								const float increm_creased = 0.25*(V_new[j][c]*Vd[v][c]) ;
+								const float increm_creased = 0.25*(V_new[j][c] + Vd[v][c]) ;
 								float increm_corner = 0.5*Vd[v][c] ;
 								float increm = std::lerp(increm_corner,increm_creased,vx_sharpness) ;
 CC_ATOMIC
