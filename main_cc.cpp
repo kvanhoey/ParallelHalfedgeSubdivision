@@ -9,21 +9,24 @@ typedef std::chrono::duration<float, std::milli> duration;
 
 #include "mesh.h"
 
-//#define TIMING
+#define TIMING
 //#define INPLACE
 #define EXPORT
 #define MAX_VERTICES pow(2,28)
 
 int main(int argc, char* argv[])
 {
-	if (argc < 2)
+	if (argc < 3)
     {
-        std::cout << "Usage: " << argv[0] << " filename.obj" << std::endl ;
+		std::cout << "Usage: " << argv[0] << " <filename>.obj" << " <depth>" << std::endl ;
 		return 0 ;
     }
 
     std::string f_name(argv[1]) ;
-    Mesh_CC S0(f_name) ;
+	Mesh_CC S0(f_name) ;
+
+	uint D = atoi(argv[2]) ;
+
 # ifdef TIMING
     std::cout << "Timings_" << f_name << " = [" ;
 # endif

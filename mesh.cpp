@@ -165,8 +165,8 @@ Mesh::vertex_edge_valence_or_border(int h) const
 	do
 	{
 		n++ ;
+		const int hh_twin = Twin(hh) ;
 
-		int hh_twin = Twin(hh) ;
 		bool is_border = hh_twin < 0 ;
 		if (is_border)
 			return -1 ;

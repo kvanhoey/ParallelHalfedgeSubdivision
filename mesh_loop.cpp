@@ -42,7 +42,7 @@ Mesh_Loop::Next_safe(int h) const
 {
 	if (h < 0)
 		return h ;
-	return h % 3 == 2 ? h - 2 : h + 1 ;
+	return Next(h) ;
 }
 
 int

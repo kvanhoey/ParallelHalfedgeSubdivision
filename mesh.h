@@ -10,8 +10,12 @@
 #include "crease.h"
 #include <array>
 #include <cmath>
+#include <chrono>
+#include <bits/stdc++.h>
 
-//#define ENABLE_PARALLEL
+#include <omp.h>
+
+#define ENABLE_PARALLEL
 
 # ifdef ENABLE_PARALLEL
 #       ifndef CC_ATOMIC
@@ -150,7 +154,7 @@ public:
 	MeshSubdivision(int H, int V, int E, int F): Mesh(H,V,E,F) {}
 	MeshSubdivision(const std::string& filename): Mesh(filename) {}
 
-    virtual void refine_step() final ;
+	virtual void refine_step() final ;
     virtual void refine_step_inplace() final ;
 
 protected:
@@ -160,6 +164,12 @@ protected:
 	virtual void refine_vertices_inplace() = 0 ;
 
 	virtual void refine_creases(crease_buffer&) const  ;
+
+protected:
+	typedef std::chrono::high_resolution_clock timer;
+	typedef std::chrono::duration<float, std::milli> duration;
+public:
+	virtual double bench_refine_step(bool refine_he, bool refine_cr, bool refine_vx, uint repetitions) final ;
 };
 
 class Mesh_CC: public MeshSubdivision
@@ -172,6 +182,12 @@ public:
 	int V(int depth = -1) const ;
 	int F(int depth = -1) const ;
 	int E(int depth = -1) const ;
+
+	// override with analytic versions
+	int Prev(int h) const ;
+	int Next(int h) const ;
+	int Next_safe(int h) const ;
+	int Face(int h) const ;
 
 	static Mesh_CC quad() ;
 	static Mesh_CC cube() ;
