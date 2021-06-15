@@ -68,48 +68,95 @@ Mesh_CC::E(int depth) const
 void
 Mesh_CC::refine_halfedges(halfedge_buffer& new_he) const
 {
+	const int Hd = H(depth) ;
+	const int Vd = V(depth) ;
+	const int Fd = F(depth) ;
+	const int _2Ed = 2 * E(depth) ;
+
 CC_PARALLEL_FOR
-	for (int h = 0; h < H(depth) ; ++h)
+	for (int h = 0; h < Hd ; ++h)
 	{
-		const int h_prime = Prev(h) ;
+		const int _4h0 = 4 * h + 0 ;
+		const int _4h1 = _4h0 + 1 ;
+		const int _4h2 = _4h0 + 2 ;
+		const int _4h3 = _4h0 + 3 ;
 
-		int h0_Twin = 4 * Next_safe(Twin(h)) + 3 ; 
-		int h1_Twin = 4 * Next(h) + 2 ;
-		int h2_Twin = 4 * h_prime + 1 ;
-		int h3_Twin = 4 * Twin(h_prime) + 0 ;
+		const int h_twin = Twin(h) ;
+		const int h_edge = Edge(h) ;
 
-		int h0_Next = 4 * h + 1 ;
-		int h1_Next = 4 * h + 2 ;
-		int h2_Next = 4 * h + 3 ;
-		int h3_Next = 4 * h + 0 ;
+		const int h_prev = Prev(h) ;
+		const int h_prev_twin = Twin(h_prev) ;
+		const int h_prev_edge = Edge(h_prev) ;
 
-		int h0_Prev = 4 * h + 3 ;
-		int h1_Prev = 4 * h + 0 ;
-		int h2_Prev = 4 * h + 1 ;
-		int h3_Prev = 4 * h + 2 ;
+		HalfEdge& h0 = new_he[_4h0] ;
+		HalfEdge& h1 = new_he[_4h1] ;
+		HalfEdge& h2 = new_he[_4h2] ;
+		HalfEdge& h3 = new_he[_4h3] ;
 
-		int h0_Vert = Vert(h) ;
-		int h1_Vert = V(depth) + F(depth) + Edge(h) ;
-		int h2_Vert = V(depth) + Face(h) ;
-		int h3_Vert = V(depth) + F(depth) + Edge(h_prime) ;
+		h0.Twin = 4 * Next_safe(h_twin) + 3 ;
+		h1.Twin = 4 * Next(h) + 2 ;
+		h2.Twin = 4 * h_prev + 1 ;
+		h3.Twin = 4 * h_prev_twin + 0 ;
 
-		int h0_Edge = 2*Edge(h) + (int(h) > Twin(h) ? 0 : 1)  ;
-		int h1_Edge = 2*E(depth) + h ;
-		int h2_Edge = 2*E(depth) + h_prime ;
-		int h3_Edge = 2*Edge(h_prime) + (int(h_prime) > Twin(h_prime) ? 1 : 0) ;
+		h0.Next = _4h1 ;
+		h1.Next = _4h2 ;
+		h2.Next = _4h3 ;
+		h3.Next = _4h0 ;
 
-		int h0_Face = h ;
-		int h1_Face = h ;
-		int h2_Face = h ;
-		int h3_Face = h ;
+		h0.Prev = _4h3 ;
+		h1.Prev = _4h0 ;
+		h2.Prev = _4h1 ;
+		h3.Prev = _4h2 ;
 
-		new_he[4*h + 0] = HalfEdge(h0_Twin,h0_Next,h0_Prev,h0_Vert,h0_Edge,h0_Face) ;
-		new_he[4*h + 1] = HalfEdge(h1_Twin,h1_Next,h1_Prev,h1_Vert,h1_Edge,h1_Face) ;
-		new_he[4*h + 2] = HalfEdge(h2_Twin,h2_Next,h2_Prev,h2_Vert,h2_Edge,h2_Face) ;
-		new_he[4*h + 3] = HalfEdge(h3_Twin,h3_Next,h3_Prev,h3_Vert,h3_Edge,h3_Face) ;
+		h0.Vert = Vert(h) ;
+		h1.Vert = Vd + Fd + h_edge ;
+		h2.Vert = Vd + Face(h) ;
+		h3.Vert = Vd + Fd + h_prev_edge ;
+
+		h0.Edge = 2 * h_edge + (int(h) > h_twin ? 0 : 1) ;
+		h1.Edge = _2Ed + h ;
+		h2.Edge = _2Ed + h_prev ;
+		h3.Edge = 2 * h_prev_edge + (int(h_prev) > h_prev_twin ? 1 : 0) ;
+
+		h0.Face = h ;
+		h1.Face = h ;
+		h2.Face = h ;
+		h3.Face = h ;
+
+//		int h0_Twin = 4 * Next_safe(Twin(h)) + 3 ;
+//		int h1_Twin = 4 * Next(h) + 2 ;
+//		int h2_Twin = 4 * h_prev + 1 ;
+//		int h3_Twin = 4 * Twin(h_prev) + 0 ;
+
+//		int h0_Next = 4 * h + 1 ;
+//		int h1_Next = _4h2 ;
+//		int h2_Next = _4h3 ;
+//		int h3_Next = _4h0 ;
+
+//		int h0_Prev = 4 * h + 3 ;
+//		int h1_Prev = 4 * h + 0 ;
+//		int h2_Prev = 4 * h + 1 ;
+//		int h3_Prev = 4 * h + 2 ;
+
+//		int h0_Vert = Vert(h) ;
+//		int h1_Vert = V(depth) + F(depth) + Edge(h) ;
+//		int h2_Vert = V(depth) + Face(h) ;
+//		int h3_Vert = V(depth) + F(depth) + Edge(h_prev) ;
+
+//		int h0_Edge = 2*Edge(h) + (int(h) > Twin(h) ? 0 : 1)  ;
+//		int h1_Edge = 2*E(depth) + h ;
+//		int h2_Edge = 2*E(depth) + h_prev ;
+//		int h3_Edge = 2*Edge(h_prev) + (int(h_prev) > Twin(h_prev) ? 1 : 0) ;
+
+//		new_he[4*h + 0] = HalfEdge(h0_Twin,h0_Next,h0_Prev,h0_Vert,h0_Edge,h) ;
+//		new_he[4*h + 1] = HalfEdge(h1_Twin,h1_Next,h1_Prev,h1_Vert,h1_Edge,h) ;
+//		new_he[4*h + 2] = HalfEdge(h2_Twin,h2_Next,h2_Prev,h2_Vert,h2_Edge,h) ;
+//		new_he[4*h + 3] = HalfEdge(h3_Twin,h3_Next,h3_Prev,h3_Vert,h3_Edge,h) ;
 	}
 CC_BARRIER
 }
+
+
 
 void
 Mesh_CC::refine_vertices_inplace()
