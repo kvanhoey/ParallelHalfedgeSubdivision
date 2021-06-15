@@ -47,26 +47,31 @@ void
 MeshSubdivision::refine_creases(crease_buffer& C_new) const
 {
 	const int Cd = C(depth) ;
+
 CC_PARALLEL_FOR
 	for (int c = 0; c < Cd; ++c)
 	{
 		if (is_crease_edge(c))
 		{
-			const int sharpness = Sigma(c) ;
 			const int c_next = NextC(c) ;
 			const int c_prev = PrevC(c) ;
+			const bool b1 = c == PrevC(c_next) ;
+			const bool b2 = c == NextC(c_prev) ;
+			const float thisS = 3.0f * Sigma(c) ;
+			const float nextS = Sigma(NextC(c)) ;
+			const float prevS = Sigma(c_prev) ;
 
-			const float c0_Sigma = std::max(0., (Sigma(c_prev) + 3. * sharpness ) / 4. - 1.) ;
-			const float c1_Sigma = std::max(0., (Sigma(NextC(c)) + 3. * sharpness ) / 4. - 1.) ;
+			Crease& c0 = C_new[2*c + 0] ;
+			Crease& c1 = C_new[2*c + 1] ;
 
-			const int c0_Next = 2*c + 1 ;
-			const int c1_Next = 2*c_next + (c == PrevC(c_next) ? 0 : 1.) ;
+			c0.Next = 2 * c + 1 ;
+			c1.Next = 2 * c_next + (b1 ? 0 : 1) ;
 
-			const int c0_Prev = 2*c_prev + (c == NextC(c_prev) ? 1. : 0) ;
-			const int c1_Prev = 2*c ;
+			c0.Prev = 2 * c_prev + (b2 ? 1 : 0) ;
+			c1.Prev = 2 * c + 0 ;
 
-			C_new[2*c + 0] = Crease(c0_Sigma, c0_Next, c0_Prev) ;
-			C_new[2*c + 1] = Crease(c1_Sigma, c1_Next, c1_Prev) ;
+			c0.Sigma = std::max(0.0f, (prevS + thisS ) / 4.0f - 1.0f) ;
+			c1.Sigma = std::max(0.0f, (nextS + thisS ) / 4.0f - 1.0f) ;
 		}
 	}
 CC_BARRIER
@@ -77,9 +82,12 @@ double
 MeshSubdivision::bench_refine_step(bool refine_he, bool refine_cr, bool refine_vx, uint repetitions)
 {
 	duration total_time(0) ;
+	duration min_time(0) ;
 
 	if (refine_he)
 	{
+		duration min_time_he(1e9) ;
+
 		halfedge_buffer H_new ;
 		H_new.resize(H(depth + 1));
 
@@ -89,12 +97,17 @@ MeshSubdivision::bench_refine_step(bool refine_he, bool refine_cr, bool refine_v
 			refine_halfedges(H_new) ;
 			auto stop = timer::now() ;
 
-			total_time += stop - start;
+			duration elapsed = stop - start;
+			total_time += elapsed ;
+			min_time_he = elapsed < min_time_he ? elapsed : min_time_he ;
 		}
+		min_time += min_time_he ;
 	}
 
 	if (refine_cr)
 	{
+		duration min_time_cr(1e9) ;
+
 		crease_buffer C_new ;
 		C_new.resize(C(depth + 1));
 
@@ -104,25 +117,35 @@ MeshSubdivision::bench_refine_step(bool refine_he, bool refine_cr, bool refine_v
 			refine_creases(C_new) ;
 			auto stop = timer::now() ;
 
-			total_time += stop - start;
+			duration elapsed = stop - start;
+			total_time += elapsed ;
+			min_time_cr = elapsed < min_time_cr ? elapsed : min_time_cr ;
 		}
+		min_time += min_time_cr ;
 	}
 
 	if (refine_vx)
 	{
+		duration min_time_vx(1e9) ;
+
 		vertex_buffer V_new ;
 		V_new.resize(V(depth + 1));
 
 		for (uint i = 0 ; i < repetitions; ++i)
 		{
-			std::fill(V_new.begin(), V_new.end(), vec3({0.,0.,0.})); // important: include memset for realtime scenario
 			auto start = timer::now() ;
+			std::fill(V_new.begin(), V_new.end(), vec3({0.,0.,0.})); // important: include memset for realtime scenario
 			refine_vertices_with_creases(V_new) ;
 			auto stop = timer::now() ;
 
-			total_time += stop - start;
+			duration elapsed = stop - start;
+			total_time += elapsed ;
+			min_time_vx = elapsed < min_time_vx ? elapsed : min_time_vx ;
 		}
+		min_time += min_time_vx ;
 	}
 
-	return total_time.count() / double(repetitions) ;
+	const duration mean_time = total_time / double(repetitions) ;
+
+	return min_time.count() ;
 }
