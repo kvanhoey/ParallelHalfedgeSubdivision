@@ -38,31 +38,31 @@ Mesh_CC::E(int depth) const
 	return d == 0 ? E0 : std::pow(2,d-1) * (2*E0 + (std::pow(2,d) - 1)*H0) ;
 }
 
-int
-Mesh_CC::Next(int h) const
-{
-	return h % 4 == 3 ? h - 3 : h + 1 ;
-}
+//int
+//Mesh_CC::Next(int h) const
+//{
+//	return h % 4 == 3 ? h - 3 : h + 1 ;
+//}
 
-int
-Mesh_CC::Next_safe(int h) const
-{
-	if (h < 0)
-		return h ;
-	return Next(h) ;
-}
+//int
+//Mesh_CC::Next_safe(int h) const
+//{
+//	if (h < 0)
+//		return h ;
+//	return Next(h) ;
+//}
 
-int
-Mesh_CC::Prev(int h) const
-{
-	return h % 4 == 0 ? h + 3 : h - 1 ;
-}
+//int
+//Mesh_CC::Prev(int h) const
+//{
+//	return h % 4 == 0 ? h + 3 : h - 1 ;
+//}
 
-int
-Mesh_CC::Face(int h) const
-{
-	return h / 4 ;
-}
+//int
+//Mesh_CC::Face(int h) const
+//{
+//	return h / 4 ;
+//}
 
 
 void

@@ -183,11 +183,11 @@ public:
 	int F(int depth = -1) const ;
 	int E(int depth = -1) const ;
 
-	// override with analytic versions
-	int Prev(int h) const ;
-	int Next(int h) const ;
-	int Next_safe(int h) const ;
-	int Face(int h) const ;
+//	// override with analytic versions
+//	int Prev(int h) const ;
+//	int Next(int h) const ;
+//	int Next_safe(int h) const ;
+//	int Face(int h) const ;
 
 	static Mesh_CC quad() ;
 	static Mesh_CC cube() ;
