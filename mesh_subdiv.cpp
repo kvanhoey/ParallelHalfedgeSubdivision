@@ -60,15 +60,16 @@ CC_PARALLEL_FOR
 			const float thisS = 3.0f * Sigma(c) ;
 			const float nextS = Sigma(NextC(c)) ;
 			const float prevS = Sigma(c_prev) ;
+			const int c2 = 2*c ;
 
-			Crease& c0 = C_new[2*c + 0] ;
-			Crease& c1 = C_new[2*c + 1] ;
+			Crease& c0 = C_new[c2 + 0] ;
+			Crease& c1 = C_new[c2 + 1] ;
 
-			c0.Next = 2 * c + 1 ;
+			c0.Next = c2 + 1 ;
 			c1.Next = 2 * c_next + (b1 ? 0 : 1) ;
 
 			c0.Prev = 2 * c_prev + (b2 ? 1 : 0) ;
-			c1.Prev = 2 * c + 0 ;
+			c1.Prev = c2 + 0 ;
 
 			c0.Sigma = std::max(0.0f, (prevS + thisS ) / 4.0f - 1.0f) ;
 			c1.Sigma = std::max(0.0f, (nextS + thisS ) / 4.0f - 1.0f) ;
