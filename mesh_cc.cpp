@@ -38,31 +38,32 @@ Mesh_CC::E(int depth) const
 	return d == 0 ? E0 : std::pow(2,d-1) * (2*E0 + (std::pow(2,d) - 1)*H0) ;
 }
 
-//int
-//Mesh_CC::Next(int h) const
-//{
-//	return h % 4 == 3 ? h - 3 : h + 1 ;
-//}
+int
+Mesh_CC::Next(int h) const
+{
+	if (depth == 0)
+		return Mesh::Next(h) ;
 
-//int
-//Mesh_CC::Next_safe(int h) const
-//{
-//	if (h < 0)
-//		return h ;
-//	return Next(h) ;
-//}
+	return h % 4 == 3 ? h - 3 : h + 1 ;
+}
 
-//int
-//Mesh_CC::Prev(int h) const
-//{
-//	return h % 4 == 0 ? h + 3 : h - 1 ;
-//}
+int
+Mesh_CC::Prev(int h) const
+{
+	if (depth == 0)
+		return Mesh::Prev(h) ;
 
-//int
-//Mesh_CC::Face(int h) const
-//{
-//	return h / 4 ;
-//}
+	return h % 4 == 0 ? h + 3 : h - 1 ;
+}
+
+int
+Mesh_CC::Face(int h) const
+{
+	if (depth == 0)
+		return Mesh::Face(h) ;
+
+	return h / 4 ;
+}
 
 
 void
@@ -98,7 +99,7 @@ CC_PARALLEL_FOR
 		h2.Twin = 4 * h_prev + 1 ;
 		h3.Twin = 4 * h_prev_twin + 0 ;
 
-		h0.Next = _4h1 ;
+		/*h0.Next = _4h1 ;
 		h1.Next = _4h2 ;
 		h2.Next = _4h3 ;
 		h3.Next = _4h0 ;
@@ -106,7 +107,7 @@ CC_PARALLEL_FOR
 		h0.Prev = _4h3 ;
 		h1.Prev = _4h0 ;
 		h2.Prev = _4h1 ;
-		h3.Prev = _4h2 ;
+		h3.Prev = _4h2 ;*/
 
 		h0.Vert = Vert(h) ;
 		h1.Vert = Vd + Fd + h_edge ;
@@ -118,10 +119,10 @@ CC_PARALLEL_FOR
 		h2.Edge = _2Ed + h_prev ;
 		h3.Edge = 2 * h_prev_edge + (int(h_prev) > h_prev_twin ? 1 : 0) ;
 
-		h0.Face = h ;
+		/*h0.Face = h ;
 		h1.Face = h ;
 		h2.Face = h ;
-		h3.Face = h ;
+		h3.Face = h ;*/
 
 //		int h0_Twin = 4 * Next_safe(Twin(h)) + 3 ;
 //		int h1_Twin = 4 * Next(h) + 2 ;

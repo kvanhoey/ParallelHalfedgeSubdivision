@@ -96,17 +96,17 @@ protected:
 	void alloc_vertex_buffer(int V) ;
 	void alloc_crease_buffer(int E) ;
 
-	int Twin(int h) const ;
-	int Prev(int h) const ;
-	int Next(int h) const ;
-	int Next_safe(int h) const ;
-	int Vert(int h) const ;
-	int Edge(int h) const ;
-	int Face(int h) const ;
+	virtual int Twin(int h) const ;
+	virtual int Prev(int h) const ;
+	virtual int Next(int h) const ;
+	virtual int Next_safe(int h) const ;
+	virtual int Vert(int h) const ;
+	virtual int Edge(int h) const ;
+	virtual int Face(int h) const ;
 
-	float Sigma(int c) const ;
-	int NextC(int c) const ;
-	int PrevC(int c) const ;
+	virtual float Sigma(int c) const ;
+	virtual int NextC(int c) const ;
+	virtual int PrevC(int c) const ;
 
 	/**
 	 * @brief vertex_edge_valence_or_border returns the valence of Vert(h), or -1 if v is a border vertex.
@@ -183,11 +183,10 @@ public:
 	int F(int depth = -1) const ;
 	int E(int depth = -1) const ;
 
-//	// override with analytic versions
-//	int Prev(int h) const ;
-//	int Next(int h) const ;
-//	int Next_safe(int h) const ;
-//	int Face(int h) const ;
+	// override with analytic versions
+	int Prev(int h) const ;
+	int Next(int h) const ;
+	int Face(int h) const ;
 
 	static Mesh_CC quad() ;
 	static Mesh_CC cube() ;
