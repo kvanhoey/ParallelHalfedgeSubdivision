@@ -98,17 +98,17 @@ protected:
 	void alloc_vertex_buffer(int V) ;
 	void alloc_crease_buffer(int E) ;
 
-	virtual int Twin(int h) const ;
+	virtual int Twin(int h) const final ;
 	virtual int Prev(int h) const ;
 	virtual int Next(int h) const ;
-	virtual int Next_safe(int h) const ;
-	virtual int Vert(int h) const ;
-	virtual int Edge(int h) const ;
+	virtual int Next_safe(int h) const final ;
+	virtual int Vert(int h) const final ;
+	virtual int Edge(int h) const final ;
 	virtual int Face(int h) const ;
 
-	virtual float Sigma(int c) const ;
-	virtual int NextC(int c) const ;
-	virtual int PrevC(int c) const ;
+	virtual float Sigma(int c) const final ;
+	virtual int NextC(int c) const final ;
+	virtual int PrevC(int c) const final ;
 
 	/**
 	 * @brief vertex_edge_valence_or_border returns the valence of Vert(h), or -1 if v is a border vertex.
@@ -190,9 +190,9 @@ public:
 	int Next(int h) const ;
 	int Face(int h) const ;
 
-	static Mesh_CC quad() ;
-	static Mesh_CC cube() ;
-	static Mesh_CC fig1_left() ;
+//	static Mesh_CC quad() ;
+//	static Mesh_CC cube() ;
+//	static Mesh_CC fig1_left() ;
 
 private:
 	void refine_halfedges(halfedge_buffer&) const ;
@@ -226,11 +226,10 @@ public:
 	// override with analytic versions
 	int Prev(int h) const ;
 	int Next(int h) const ;
-	int Next_safe(int h) const ;
 	int Face(int h) const ;
 
-	static Mesh_Loop tri() ;
-	static Mesh_Loop polyhedron() ;
+//	static Mesh_Loop tri() ;
+//	static Mesh_Loop polyhedron() ;
 
 private:
 	void refine_halfedges(halfedge_buffer& new_he) const ;

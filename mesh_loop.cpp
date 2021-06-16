@@ -38,14 +38,6 @@ Mesh_Loop::Next(int h) const
 }
 
 int
-Mesh_Loop::Next_safe(int h) const
-{
-	if (h < 0)
-		return h ;
-	return Next(h) ;
-}
-
-int
 Mesh_Loop::Prev(int h) const
 {
 	return h % 3 == 0 ? h + 2 : h - 1 ;
