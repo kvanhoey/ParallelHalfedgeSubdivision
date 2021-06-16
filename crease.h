@@ -6,10 +6,6 @@ struct Crease
 	float Sigma ;
 	int Next ;
 	int Prev ;
-
-	Crease();
-
-	Crease(float Sigma,int Next,int Prev) ;
 };
 
 #endif

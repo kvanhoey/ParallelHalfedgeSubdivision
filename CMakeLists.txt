@@ -16,10 +16,10 @@ if (OPENMP_FOUND)
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
-add_executable(main_cc main_cc.cpp mesh_cc.cpp mesh_subdiv.cpp mesh.cpp halfedge.cpp crease.cpp)
-add_executable(main_loop main_loop.cpp mesh_loop.cpp mesh_subdiv.cpp mesh.cpp halfedge.cpp crease.cpp)
+add_executable(main_cc main_cc.cpp mesh_cc.cpp mesh_subdiv.cpp mesh.cpp)
+add_executable(main_loop main_loop.cpp mesh_loop.cpp mesh_subdiv.cpp mesh.cpp)
 
-add_executable(bench_cc bench_cc.cpp mesh_cc.cpp mesh_subdiv.cpp mesh.cpp halfedge.cpp crease.cpp)
+add_executable(bench_cc bench_cc.cpp mesh_cc.cpp mesh_subdiv.cpp mesh.cpp)
 
 
 

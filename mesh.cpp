@@ -11,6 +11,7 @@ Mesh::Mesh(int H, int V, int E, int F):
 void
 Mesh::alloc_halfedge_buffer(int H)
 {
+	halfedges_cage.resize(H) ;
 	halfedges.resize(H) ;
 }
 
@@ -40,13 +41,13 @@ Mesh::Twin(int idx) const
 int
 Mesh::Prev(int idx) const
 {
-	return halfedges[idx].Prev ;
+	return halfedges_cage[idx].Prev ;
 }
 
 int
 Mesh::Next(int idx) const
 {
-	return halfedges[idx].Next ;
+	return halfedges_cage[idx].Next ;
 }
 
 int
@@ -73,7 +74,7 @@ Mesh::Edge(int idx) const
 int
 Mesh::Face(int idx) const
 {
-	return halfedges[idx].Face ;
+	return halfedges_cage[idx].Face ;
 }
 
 float
@@ -422,6 +423,7 @@ Mesh::read_obj_mesh_size(std::ifstream& file, int& h_count, int& v_count, int& f
 Mesh::crease_buffer
 Mesh::read_obj_data(std::ifstream& file)
 {
+	halfedge_buffer_cage& He_cage = this->halfedges_cage ;
 	halfedge_buffer& He = this->halfedges ;
 	vertex_buffer& Vx = this->vertices ;
 
@@ -475,7 +477,13 @@ Mesh::read_obj_data(std::ifstream& file)
 				int edge = -1 ; // undetermined at this time
 				int face = f ;
 
-				He[h] = HalfEdge(twin,next,prev,vert,edge,face) ;
+				He[h].Twin = twin ;
+				He[h].Vert = vert ;
+				He[h].Edge = edge ;
+				He_cage[h].Next = next ;
+				He_cage[h].Prev = prev ;
+				He_cage[h].Face = face ;
+
 				++h ;
 			}
 			++f ;
@@ -494,7 +502,11 @@ Mesh::read_obj_data(std::ifstream& file)
 				iss >> v0 >> v1 >> sharpness ;
 
 				// temporary storage
-				Cr.push_back(Crease(sharpness,v0,v1)) ;
+				Crease cr ;
+				cr.Sigma = sharpness ;
+				cr.Next = v0 ;
+				cr.Prev = v1 ;
+				Cr.push_back(cr) ;
 			}
 //			else if (type == "corner")
 //			{
@@ -634,7 +646,7 @@ Mesh::compute_and_set_twins()
 int
 Mesh::compute_and_set_edges()
 {
-	halfedge_buffer& He = this->halfedges ;
+	halfedge_buffer& He = this->halfedges;
 
 	int edge_count = 0 ;
 	for (int h_id=0 ; h_id < H0 ; ++h_id)
@@ -699,7 +711,11 @@ Mesh::set_creases(const Mesh::crease_buffer& list_of_creases)
 				if (h >= 0 && Vert(Next(h)) == v1)
 				{
 					const int e_id = Edge(h) ;
-					Cr[e_id] = Crease(sharpness, e_id, e_id) ;
+
+					Crease& cr = Cr[e_id] ;
+					cr.Sigma = sharpness ;
+					cr.Next = e_id ;
+					cr.Prev = e_id ;
 				}
 			}
 		}
@@ -805,7 +821,10 @@ Mesh::set_boundaries_sharp()
 		if (Twin(h) < 0)
 		{
 			const int e = Edge(h) ;
-			creases[e] = Crease(16.0, e, e) ;
+			Crease& c = creases[e] ;
+			c.Sigma = 16.0 ;
+			c.Next = e ;
+			c.Prev = e ;
 		}
 	}
 }

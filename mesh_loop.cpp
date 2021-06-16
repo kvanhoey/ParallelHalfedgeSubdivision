@@ -57,6 +57,12 @@ Mesh_Loop::Face(int h) const
 	return h / 3 ;
 }
 
+int
+Mesh_Loop::n_vertex_of_polygon(int h) const
+{
+	return 3 ;
+}
+
 void
 Mesh_Loop::refine_halfedges(halfedge_buffer& new_he) const
 {
@@ -100,10 +106,11 @@ CC_PARALLEL_FOR
 		int h2_Face = h ;
 		int h3_Face = Hd + Face(h) ;
 
-		new_he[_3h + 0] = HalfEdge(h0_Twin,h0_Next,h0_Prev,h0_Vert,h0_Edge,h0_Face) ;
+/* TODO		new_he[_3h + 0] = HalfEdge(h0_Twin,h0_Next,h0_Prev,h0_Vert,h0_Edge,h0_Face) ;
 		new_he[_3h + 1] = HalfEdge(h1_Twin,h1_Next,h1_Prev,h1_Vert,h1_Edge,h1_Face) ;
 		new_he[_3h + 2] = HalfEdge(h2_Twin,h2_Next,h2_Prev,h2_Vert,h2_Edge,h2_Face) ;
-		new_he[_3Hd + h] = HalfEdge(h3_Twin,h3_Next,h3_Prev,h3_Vert,h3_Edge,h3_Face) ;
+		new_he[_3Hd + h] = HalfEdge(h3_Twin,h3_Next,h3_Prev,h3_Vert,h3_Edge,h3_Face) ;*/
+		assert(false) ;
 	}
 CC_BARRIER
 }
@@ -146,10 +153,11 @@ CC_PARALLEL_FOR
 		int h2_Face = h ;
 		int h3_Face = H(depth) + Face(h) ;
 
-		new_he[4*h + 0] = HalfEdge(h0_Twin,h0_Next,h0_Prev,h0_Vert,h0_Edge,h0_Face) ;
+/* todo 		new_he[4*h + 0] = HalfEdge(h0_Twin,h0_Next,h0_Prev,h0_Vert,h0_Edge,h0_Face) ;
 		new_he[4*h + 1] = HalfEdge(h1_Twin,h1_Next,h1_Prev,h1_Vert,h1_Edge,h1_Face) ;
 		new_he[4*h + 2] = HalfEdge(h2_Twin,h2_Next,h2_Prev,h2_Vert,h2_Edge,h2_Face) ;
-		new_he[4*h + 3] = HalfEdge(h3_Twin,h3_Next,h3_Prev,h3_Vert,h3_Edge,h3_Face) ;
+		new_he[4*h + 3] = HalfEdge(h3_Twin,h3_Next,h3_Prev,h3_Vert,h3_Edge,h3_Face) ;*/
+		assert(false) ;
 	}
 CC_BARRIER
 }
@@ -608,53 +616,53 @@ Mesh_Loop::compute_ngamma(float one_over_n)
 
 
 
-Mesh_Loop
-Mesh_Loop::tri()
-{
-	int H = 3 ;
-	int V = 3 ;
-	int E = 3 ;
-	int F = 1 ;
+//Mesh_Loop
+//Mesh_Loop::tri()
+//{
+//	int H = 3 ;
+//	int V = 3 ;
+//	int E = 3 ;
+//	int F = 1 ;
 
-	Mesh_Loop M(H,V,E,F) ;
-	M.halfedges[0] = HalfEdge(-1,1,2,0,0,0) ;
-	M.halfedges[1] = HalfEdge(-1,2,0,1,1,0) ;
-	M.halfedges[2] = HalfEdge(-1,0,1,2,2,0) ;
+//	Mesh_Loop M(H,V,E,F) ;
+//	M.halfedges[0] = HalfEdge(-1,1,2,0,0,0) ;
+//	M.halfedges[1] = HalfEdge(-1,2,0,1,1,0) ;
+//	M.halfedges[2] = HalfEdge(-1,0,1,2,2,0) ;
 
-	M.vertices[0] = {1,1,0} ;
-	M.vertices[1] = {3,1,0} ;
-	M.vertices[2] = {2,2,0} ;
+//	M.vertices[0] = {1,1,0} ;
+//	M.vertices[1] = {3,1,0} ;
+//	M.vertices[2] = {2,2,0} ;
 
-	return M ;
-}
+//	return M ;
+//}
 
-Mesh_Loop
-Mesh_Loop::polyhedron()
-{
-	int H = 12 ;
-	int V = 4 ;
-	int E = 6 ;
-	int F = 4 ;
+//Mesh_Loop
+//Mesh_Loop::polyhedron()
+//{
+//	int H = 12 ;
+//	int V = 4 ;
+//	int E = 6 ;
+//	int F = 4 ;
 
-	Mesh_Loop M(H,V,E,F) ;
-	M.halfedges[0] = HalfEdge(3,1,2,0,0,0) ;
-	M.halfedges[1] = HalfEdge(6,2,0,1,1,0) ;
-	M.halfedges[2] = HalfEdge(9,0,1,2,2,0) ;
-	M.halfedges[3] = HalfEdge(0,4,5,1,0,1) ;
-	M.halfedges[4] = HalfEdge(11,5,3,0,4,1) ;
-	M.halfedges[5] = HalfEdge(7,3,4,3,3,1) ;
-	M.halfedges[6] = HalfEdge(1,7,8,2,1,2) ;
-	M.halfedges[7] = HalfEdge(5,8,6,1,3,2) ;
-	M.halfedges[8] = HalfEdge(10,6,7,3,5,2) ;
-	M.halfedges[9] = HalfEdge(2,10,11,0,2,3) ;
-	M.halfedges[10] = HalfEdge(8,11,9,2,5,3) ;
-	M.halfedges[11] = HalfEdge(4,9,10,3,4,3) ;
+//	Mesh_Loop M(H,V,E,F) ;
+//	M.halfedges[0] = HalfEdge(3,1,2,0,0,0) ;
+//	M.halfedges[1] = HalfEdge(6,2,0,1,1,0) ;
+//	M.halfedges[2] = HalfEdge(9,0,1,2,2,0) ;
+//	M.halfedges[3] = HalfEdge(0,4,5,1,0,1) ;
+//	M.halfedges[4] = HalfEdge(11,5,3,0,4,1) ;
+//	M.halfedges[5] = HalfEdge(7,3,4,3,3,1) ;
+//	M.halfedges[6] = HalfEdge(1,7,8,2,1,2) ;
+//	M.halfedges[7] = HalfEdge(5,8,6,1,3,2) ;
+//	M.halfedges[8] = HalfEdge(10,6,7,3,5,2) ;
+//	M.halfedges[9] = HalfEdge(2,10,11,0,2,3) ;
+//	M.halfedges[10] = HalfEdge(8,11,9,2,5,3) ;
+//	M.halfedges[11] = HalfEdge(4,9,10,3,4,3) ;
 
-	M.vertices[0] = {8,8,8} ;
-	M.vertices[1] = {24,8,8} ;
-	M.vertices[2] = {16,24,8} ;
-	M.vertices[3] = {16,8,24} ;
+//	M.vertices[0] = {8,8,8} ;
+//	M.vertices[1] = {24,8,8} ;
+//	M.vertices[2] = {16,24,8} ;
+//	M.vertices[3] = {16,8,24} ;
 
-	return M ;
-}
+//	return M ;
+//}
 

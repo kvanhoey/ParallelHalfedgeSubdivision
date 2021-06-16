@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
 		refine_cr_time += S.bench_refine_step(false, true, false, runCount) ;
 		refine_vx_time += S.bench_refine_step(false, false, true, runCount) ;
 
-		S.refine_step() ;
+		S.bench_refine_step(true, true, true, 1, true) ;
 
         S.check() ;
 

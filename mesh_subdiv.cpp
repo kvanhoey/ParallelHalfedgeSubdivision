@@ -80,16 +80,19 @@ CC_BARRIER
 
 
 double
-MeshSubdivision::bench_refine_step(bool refine_he, bool refine_cr, bool refine_vx, uint repetitions)
+MeshSubdivision::bench_refine_step(bool refine_he, bool refine_cr, bool refine_vx, uint repetitions, bool save_result)
 {
 	duration total_time(0) ;
 	duration min_time(0) ;
+
+	halfedge_buffer H_new ;
+	crease_buffer C_new ;
+	vertex_buffer V_new ;
 
 	if (refine_he)
 	{
 		duration min_time_he(1e9) ;
 
-		halfedge_buffer H_new ;
 		H_new.resize(H(depth + 1));
 
 		for (uint i = 0 ; i < repetitions; ++i)
@@ -109,7 +112,6 @@ MeshSubdivision::bench_refine_step(bool refine_he, bool refine_cr, bool refine_v
 	{
 		duration min_time_cr(1e9) ;
 
-		crease_buffer C_new ;
 		C_new.resize(C(depth + 1));
 
 		for (uint i = 0 ; i < repetitions; ++i)
@@ -129,14 +131,13 @@ MeshSubdivision::bench_refine_step(bool refine_he, bool refine_cr, bool refine_v
 	{
 		duration min_time_vx(1e9) ;
 
-		vertex_buffer V_new ;
 		V_new.resize(V(depth + 1));
 
 		for (uint i = 0 ; i < repetitions; ++i)
 		{
 			auto start = timer::now() ;
 			std::fill(V_new.begin(), V_new.end(), vec3({0.,0.,0.})); // important: include memset for realtime scenario
-			refine_vertices_with_creases(V_new) ;
+			refine_vertices(V_new) ;
 			auto stop = timer::now() ;
 
 			duration elapsed = stop - start;
@@ -145,6 +146,16 @@ MeshSubdivision::bench_refine_step(bool refine_he, bool refine_cr, bool refine_v
 		}
 		min_time += min_time_vx ;
 	}
+
+	if (save_result && refine_he)
+		halfedges = H_new ;
+	if (save_result && refine_cr)
+		creases = C_new ;
+	if (save_result)
+		vertices = V_new ;
+
+	if (save_result && refine_he && refine_cr && refine_vx)
+		depth++ ;
 
 	const duration mean_time = total_time / double(repetitions) ;
 

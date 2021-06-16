@@ -38,6 +38,7 @@ class Mesh
 {
 protected:
 	typedef std::array<float,3> vec3 ;
+	typedef std::vector<HalfEdge_cage> halfedge_buffer_cage ;
 	typedef std::vector<HalfEdge> halfedge_buffer ;
 	typedef std::vector<vec3> vertex_buffer ;
 	typedef std::vector<Crease> crease_buffer ;
@@ -53,6 +54,7 @@ public:
 	virtual int E(int depth = -1) const = 0 ;
 	virtual int C(int depth = -1) const final ;
 
+	halfedge_buffer_cage halfedges_cage ;
 	halfedge_buffer halfedges ;
 	vertex_buffer vertices ;
 	crease_buffer creases ;
@@ -144,7 +146,7 @@ protected:
 	bool is_crease_halfedge(int h) const ;
 	bool is_crease_edge(int e) const ;
 
-	int n_vertex_of_polygon(int h) const ;
+	virtual int n_vertex_of_polygon(int h) const ;
 
 };
 
@@ -169,7 +171,7 @@ protected:
 	typedef std::chrono::high_resolution_clock timer;
 	typedef std::chrono::duration<float, std::milli> duration;
 public:
-	virtual double bench_refine_step(bool refine_he, bool refine_cr, bool refine_vx, uint repetitions) final ;
+	virtual double bench_refine_step(bool refine_he, bool refine_cr, bool refine_vx, uint repetitions, bool save_result=false) final ;
 };
 
 class Mesh_CC: public MeshSubdivision
@@ -206,6 +208,8 @@ private:
 	void vertexpoints_inplace() ;
 	void vertexpoints_inplace_pass1() ;
 	void vertexpoints_inplace_pass2() ;
+
+	int n_vertex_of_polygon(int h) const ;
 };
 
 class Mesh_Loop: public MeshSubdivision
@@ -251,4 +255,6 @@ private:
     static float compute_beta(float one_over_n) ;
 	static float compute_gamma(float one_over_n) ;
 	static float compute_ngamma(float one_over_n) ;
+
+	int n_vertex_of_polygon(int h) const ;
 };
