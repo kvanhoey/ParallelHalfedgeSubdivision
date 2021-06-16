@@ -55,7 +55,7 @@ Mesh::Next_safe(int idx) const
 	if (idx < 0)
 		return idx ;
 
-	return halfedges[idx].Next ;
+	return Next(idx) ;
 }
 
 int
@@ -326,7 +326,8 @@ bool
 Mesh::check() const
 {
 	bool valid = true ;
-	for (int h = 0; h < H() ; ++h)
+	const int Hd = H() ;
+	for (int h = 0; h < Hd ; ++h)
 	{
 		bool check_twin = (is_border_halfedge(h) || Twin(Twin(h)) == h) ;
 		if (!check_twin)
@@ -335,16 +336,23 @@ Mesh::check() const
 		valid &= check_twin ;
 
 		bool check_prevnext = (Next(Prev(h)) == h && Prev(Next(h)) == h) ;
+		if (!check_prevnext)
+			std::cerr << "Assert: PrevNext" << std::endl ;
 		assert(check_prevnext) ;
 		valid &= check_prevnext ;
 
 		// two twins have same edge
 		bool check_twinedge = (is_border_halfedge(h) || (Edge(Twin(h)) == Edge(h))) ;
+		if (!check_twinedge)
+			std::cerr << "Assert: TwinEdge" << std::endl ;
 		assert(check_twinedge) ;
 		valid &= check_twinedge ;
 
 		bool check_valid_ids = (Twin(h) < H() && Next(h) < H() && Prev(h) < H() && Vert(h) < V() && Edge(h) < E() && Face(h) < F()) ;
+		if (!check_valid_ids)
+			std::cerr << "Assert: Invalid Ids" << std::endl ;
 		valid &= check_valid_ids ;
+
 		assert(check_valid_ids) ;
 	}
 
