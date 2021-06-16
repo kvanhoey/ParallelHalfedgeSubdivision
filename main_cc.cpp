@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
     {
 		std::cout << "Usage: " << argv[0] << " <filename>.obj" << " <depth>" << std::endl ;
 		return 0 ;
-    }
+	}
 
     std::string f_name(argv[1]) ;
 	Mesh_CC S0(f_name) ;
