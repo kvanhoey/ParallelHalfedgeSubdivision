@@ -15,7 +15,7 @@
 
 #include <omp.h>
 
-//#define ENABLE_PARALLEL
+#define ENABLE_PARALLEL
 
 # ifdef ENABLE_PARALLEL
 #       ifndef CC_ATOMIC
