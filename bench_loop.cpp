@@ -6,7 +6,7 @@
 #include "mesh.h"
 
 //#define INPLACE
-#define EXPORT
+//#define EXPORT
 #define MAX_VERTICES pow(2,28)
 
 int main(int argc, char* argv[])

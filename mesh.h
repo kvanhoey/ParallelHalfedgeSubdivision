@@ -33,6 +33,11 @@
 #		define CC_BARRIER
 # endif
 
+#define _5_o_8 0.625f
+#define _8_o_5 1.6f
+#define _3_o_8 0.375f
+#define _2pi 6.28318530718f
+
 
 class Mesh
 {

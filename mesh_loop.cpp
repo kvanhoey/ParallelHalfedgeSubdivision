@@ -96,53 +96,6 @@ CC_BARRIER
 }
 
 void
-Mesh_Loop::refine_halfedges_old(halfedge_buffer& new_he) const
-{
-CC_PARALLEL_FOR
-	for (int h = 0; h < Hd ; ++h)
-	{
-		const int h_prime = Prev(h) ;
-
-		int h0_Twin = 4 * Next_safe(Twin(h)) + 2 ;
-		int h1_Twin = 4 * h + 3 ;
-		int h2_Twin = 4 * Twin(h_prime) + 0 ;
-		int h3_Twin = 4 * h + 1 ;
-
-		int h0_Next = 4 * h + 1 ;
-		int h1_Next = 4 * h + 2 ;
-		int h2_Next = 4 * h + 0 ;
-		int h3_Next = 4 * Next(h) + 3 ;
-
-		int h0_Prev = 4 * h + 2 ;
-		int h1_Prev = 4 * h + 0 ;
-		int h2_Prev = 4 * h + 1 ;
-		int h3_Prev = 4 * Prev(h) + 3 ;
-
-		int h0_Vert = Vert(h) ;
-		int h1_Vert = Vd + Edge(h) ;
-		int h2_Vert = Vd + Edge(Prev(h)) ;
-		int h3_Vert = h2_Vert ;
-
-		int h0_Edge = 2*Edge(h) + (int(h) > Twin(h) ? 0 : 1)  ;
-		int h1_Edge = 2*Ed + h ;
-		int h2_Edge = 2*Edge(h_prime) + (int(h_prime) > Twin(h_prime) ? 1 : 0) ;
-		int h3_Edge = h1_Edge ;
-
-		int h0_Face = h ;
-		int h1_Face = h ;
-		int h2_Face = h ;
-		int h3_Face = Hd + Face(h) ;
-
-/* todo 		new_he[4*h + 0] = HalfEdge(h0_Twin,h0_Next,h0_Prev,h0_Vert,h0_Edge,h0_Face) ;
-		new_he[4*h + 1] = HalfEdge(h1_Twin,h1_Next,h1_Prev,h1_Vert,h1_Edge,h1_Face) ;
-		new_he[4*h + 2] = HalfEdge(h2_Twin,h2_Next,h2_Prev,h2_Vert,h2_Edge,h2_Face) ;
-		new_he[4*h + 3] = HalfEdge(h3_Twin,h3_Next,h3_Prev,h3_Vert,h3_Edge,h3_Face) ;*/
-		assert(false) ;
-	}
-CC_BARRIER
-}
-
-void
 Mesh_Loop::refine_vertices(vertex_buffer& V_new) const
 {
 	init_vertex_buffer(V_new) ;
@@ -222,6 +175,7 @@ CC_PARALLEL_FOR
 	{
 		const int v = Vert(h) ;
 		const int new_odd_pt_id = Vd + Edge(h) ;
+		vec3& v_new = V_new[new_odd_pt_id] ;
 //		if (is_border_halfedge(h)) // Boundary rule A.1
 //		{
 //			const int vn = Vert(Next(h)) ;
@@ -244,7 +198,7 @@ CC_PARALLEL_FOR
 				const float increm_sharp = 0.5f * (is_border ? V_old[v][c] + V_old[vn][c] : V_old[v][c]) ;
 				float increm = std::lerp(increm_smooth,increm_sharp,sharpness) ;
 CC_ATOMIC
-				V_new[new_odd_pt_id][c] += increm ;
+				v_new[c] += increm ;
 			}
 		}
 	}
@@ -264,6 +218,7 @@ CC_PARALLEL_FOR
 
 		const int n = vertex_edge_valence_or_border(h) ;
 		const int vn = Vert(Next(h)) ;
+		vec3& vn_new = V_new[vn] ;
 
 		if (n < 0) // Boundary rule
 		{
@@ -277,7 +232,7 @@ CC_PARALLEL_FOR
 CC_ATOMIC
 					v_new[c] += incremV ;
 CC_ATOMIC
-					V_new[vn][c] += incremVn ;
+					vn_new[c] += incremVn ;
 				}
 			}
 		}
@@ -288,7 +243,7 @@ CC_ATOMIC
 			const float beta_ = n_ - beta ;
 			for (int c=0; c < 3; ++c)
 			{
-				const float increm = beta_*V_old[v][c] + beta*V_old[vn][c] ;
+				const float increm = beta_ * V_old[v][c] + beta * V_old[vn][c] ;
 CC_ATOMIC
 				v_new[c] += increm ;
 			}
@@ -516,7 +471,7 @@ CC_PARALLEL_FOR
 		if (v_at_border) // boundary case
         {
 			const int vx_halfedge_valence = vertex_halfedge_valence(h) ;
-			const float prod = std::pow( 0.5 , 1./float(vx_halfedge_valence)) ;
+			const float prod = std::pow( 0.5f , 1./float(vx_halfedge_valence)) ;
 			for (int c=0; c < 3; ++c)
 			{
 CC_ATOMIC
@@ -526,8 +481,8 @@ CC_ATOMIC
         else
         {
 			const float n_ = 1./float(n) ;
-			const float prod = std::pow(1.- compute_ngamma(n_), n_) ; // sqrt_n( 1 - gamma )
-            for (int c=0; c < 3; ++c)
+			const float prod = std::pow(1. - compute_ngamma(n_), n_) ; // sqrt_n( 1 - gamma )
+			for (int c = 0 ; c < 3 ; ++c)
             {
 CC_ATOMIC
 				v_new[c] *= prod ;
@@ -592,7 +547,7 @@ CC_BARRIER
 float
 Mesh_Loop::compute_beta(float one_over_n)
 {
-    return (5./8. - std::pow((3./8. + std::cos(2 * M_PI * one_over_n)/4.0),2)) * one_over_n ;
+	return (_5_o_8 - std::pow((_3_o_8 + std::cos(_2pi * one_over_n) * 0.250),2)) * one_over_n ;
 }
 
 float
@@ -604,9 +559,55 @@ Mesh_Loop::compute_gamma(float one_over_n)
 float
 Mesh_Loop::compute_ngamma(float one_over_n)
 {
-	return 1 - 8./5. * std::pow((3./8. + std::cos(2*M_PI * one_over_n)/4.0),2);
+	return 1 - _8_o_5 * std::pow((_3_o_8 + std::cos(_2pi * one_over_n)* 0.250f),2);
 }
 
+void
+Mesh_Loop::refine_halfedges_old(halfedge_buffer& new_he) const
+{
+CC_PARALLEL_FOR
+	for (int h = 0; h < Hd ; ++h)
+	{
+		const int h_prime = Prev(h) ;
+
+		int h0_Twin = 4 * Next_safe(Twin(h)) + 2 ;
+		int h1_Twin = 4 * h + 3 ;
+		int h2_Twin = 4 * Twin(h_prime) + 0 ;
+		int h3_Twin = 4 * h + 1 ;
+
+		int h0_Next = 4 * h + 1 ;
+		int h1_Next = 4 * h + 2 ;
+		int h2_Next = 4 * h + 0 ;
+		int h3_Next = 4 * Next(h) + 3 ;
+
+		int h0_Prev = 4 * h + 2 ;
+		int h1_Prev = 4 * h + 0 ;
+		int h2_Prev = 4 * h + 1 ;
+		int h3_Prev = 4 * Prev(h) + 3 ;
+
+		int h0_Vert = Vert(h) ;
+		int h1_Vert = Vd + Edge(h) ;
+		int h2_Vert = Vd + Edge(Prev(h)) ;
+		int h3_Vert = h2_Vert ;
+
+		int h0_Edge = 2*Edge(h) + (int(h) > Twin(h) ? 0 : 1)  ;
+		int h1_Edge = 2*Ed + h ;
+		int h2_Edge = 2*Edge(h_prime) + (int(h_prime) > Twin(h_prime) ? 1 : 0) ;
+		int h3_Edge = h1_Edge ;
+
+		int h0_Face = h ;
+		int h1_Face = h ;
+		int h2_Face = h ;
+		int h3_Face = Hd + Face(h) ;
+
+/* todo 		new_he[4*h + 0] = HalfEdge(h0_Twin,h0_Next,h0_Prev,h0_Vert,h0_Edge,h0_Face) ;
+		new_he[4*h + 1] = HalfEdge(h1_Twin,h1_Next,h1_Prev,h1_Vert,h1_Edge,h1_Face) ;
+		new_he[4*h + 2] = HalfEdge(h2_Twin,h2_Next,h2_Prev,h2_Vert,h2_Edge,h2_Face) ;
+		new_he[4*h + 3] = HalfEdge(h3_Twin,h3_Next,h3_Prev,h3_Vert,h3_Edge,h3_Face) ;*/
+		assert(false) ;
+	}
+CC_BARRIER
+}
 
 
 //Mesh_Loop
