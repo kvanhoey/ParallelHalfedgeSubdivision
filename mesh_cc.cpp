@@ -3,14 +3,14 @@
 int
 Mesh_CC::H(int depth) const
 {
-	const int& d = depth < 0 ? this->depth : depth ;
+	const int& d = depth < 0 ? this->depth() : depth ;
 	return std::pow(4,d) * H0 ;
 }
 
 int
 Mesh_CC::V(int depth) const
 {	
-	const int& d = depth < 0 ? this->depth : depth ;
+	const int& d = depth < 0 ? this->depth() : depth ;
 	switch(depth)
 	{
 		case (0):
@@ -27,21 +27,21 @@ Mesh_CC::V(int depth) const
 int
 Mesh_CC::F(int depth) const
 {
-	const int& d = depth < 0 ? this->depth : depth ;
+	const int& d = depth < 0 ? this->depth() : depth ;
 	return d == 0 ? F0 : std::pow(4,d - 1) * H0 ;
 }
 
 int
 Mesh_CC::E(int depth) const
 {
-	const int& d = depth < 0 ? this->depth : depth ;
+	const int& d = depth < 0 ? this->depth() : depth ;
 	return d == 0 ? E0 : std::pow(2,d-1) * (2*E0 + (std::pow(2,d) - 1)*H0) ;
 }
 
 int
 Mesh_CC::Next(int h) const
 {
-	if (depth == 0)
+	if (is_cage())
 		return Mesh::Next(h) ;
 
 	return h % 4 == 3 ? h - 3 : h + 1 ;
@@ -50,7 +50,7 @@ Mesh_CC::Next(int h) const
 int
 Mesh_CC::Prev(int h) const
 {
-	if (depth == 0)
+	if (is_cage())
 		return Mesh::Prev(h) ;
 
 	return h % 4 == 0 ? h + 3 : h - 1 ;
@@ -59,7 +59,7 @@ Mesh_CC::Prev(int h) const
 int
 Mesh_CC::Face(int h) const
 {
-	if (depth == 0)
+	if (is_cage())
 		return Mesh::Face(h) ;
 
 	return h / 4 ;
@@ -68,7 +68,7 @@ Mesh_CC::Face(int h) const
 int
 Mesh_CC::n_vertex_of_polygon(int h) const
 {
-	if (depth == 0)
+	if (is_cage())
 		return Mesh::n_vertex_of_polygon(h) ;
 
 	return 4 ;
@@ -78,23 +78,17 @@ Mesh_CC::n_vertex_of_polygon(int h) const
 void
 Mesh_CC::refine_halfedges(halfedge_buffer& new_he) const
 {
-	const int Hd = H(depth) ;
-	const int Vd = V(depth) ;
-	const int Fd = F(depth) ;
-	const int _2Ed = 2 * E(depth) ;
+	const int _2Ed = 2 * Ed ;
 
 CC_PARALLEL_FOR
 	for (int h = 0; h < Hd ; ++h)
 	{
-		const int _4h0 = 4 * h + 0 ;
-		const int _4h1 = _4h0 + 1 ;
-		const int _4h2 = _4h0 + 2 ;
-		const int _4h3 = _4h0 + 3 ;
+		const int _4h = 4 * h + 0 ;
 
-		HalfEdge& h0 = new_he[_4h0] ;
-		HalfEdge& h1 = new_he[_4h1] ;
-		HalfEdge& h2 = new_he[_4h2] ;
-		HalfEdge& h3 = new_he[_4h3] ;
+		HalfEdge& h0 = new_he[_4h + 0] ;
+		HalfEdge& h1 = new_he[_4h + 1] ;
+		HalfEdge& h2 = new_he[_4h + 2] ;
+		HalfEdge& h3 = new_he[_4h + 3] ;
 
 		const int h_twin = Twin(h) ;
 		const int h_edge = Edge(h) ;
@@ -153,8 +147,6 @@ void
 Mesh_CC::facepoints(vertex_buffer& V_new) const
 {
 	const vertex_buffer& V_old = this->vertices ;
-	const int Vd = V(depth) ;
-	const int Hd = H(depth) ;
 
 CC_PARALLEL_FOR
 	for (int h = 0; h < Hd ; ++h)
@@ -177,9 +169,6 @@ void
 Mesh_CC::edgepoints(vertex_buffer& V_new) const
 {
 	const vertex_buffer& V_old = this->vertices ;
-	const int Hd = H(depth) ;
-	const int Vd = V(depth) ;
-	const int Fd = F(depth) ;
 
 CC_PARALLEL_FOR
 	for (int h = 0; h < Hd ; ++h)
@@ -212,9 +201,6 @@ void
 Mesh_CC::edgepoints_with_creases(vertex_buffer& V_new) const
 {
 	const vertex_buffer& V_old = this->vertices ;
-	const int Hd = H(depth) ;
-	const int Vd = V(depth) ;
-	const int Fd = F(depth) ;
 
 CC_PARALLEL_FOR
 	for (int h = 0; h < Hd ; ++h)
@@ -282,9 +268,6 @@ void
 Mesh_CC::vertexpoints(vertex_buffer& V_new) const
 {
 	const vertex_buffer& V_old = this->vertices ;
-	const int Hd = H(depth) ;
-	const int Vd = V(depth) ;
-	const int Fd = F(depth) ;
 
 CC_PARALLEL_FOR
 	for (int h = 0; h < Hd ; ++h)
@@ -323,9 +306,6 @@ void
 Mesh_CC::vertexpoints_with_creases(vertex_buffer& V_new) const
 {
 	const vertex_buffer& V_old = this->vertices ;
-	const int Hd = H(depth) ;
-	const int Vd = V(depth) ;
-	const int Fd = F(depth) ;
 
 CC_PARALLEL_FOR
 	for (int h = 0; h < Hd ; ++h)
@@ -427,7 +407,6 @@ void
 Mesh_CC::vertexpoints_inplace_pass1()
 {
 	vertex_buffer& V_new = this->vertices ;
-	const int Hd = H(depth) ;
 
 CC_PARALLEL_FOR
 	for (int h = 0; h < Hd ; ++h)
@@ -453,9 +432,6 @@ void
 Mesh_CC::vertexpoints_inplace_pass2()
 {
 	vertex_buffer& V_new = this->vertices ;
-	const int Hd = H(depth) ;
-	const int Vd = V(depth) ;
-	const int Fd = F(depth) ;
 
 CC_PARALLEL_FOR
 	for (int h = 0; h < Hd ; ++h)

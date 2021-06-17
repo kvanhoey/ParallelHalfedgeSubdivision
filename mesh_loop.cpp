@@ -3,14 +3,14 @@
 int
 Mesh_Loop::H(int depth) const
 {
-	const int& d = depth < 0 ? this->depth : depth ;
+	const int& d = depth < 0 ? this->depth() : depth ;
 	return std::pow(4,d) * H0 ;
 }
 
 int
 Mesh_Loop::F(int depth) const
 {
-	const int& d = depth < 0 ? this->depth : depth ;
+	const int& d = depth < 0 ? this->depth() : depth ;
 	return std::pow(4,d) * F0 ;
 }
 
@@ -18,7 +18,7 @@ Mesh_Loop::F(int depth) const
 int
 Mesh_Loop::E(int depth) const
 {
-	const int& d = depth < 0 ? this->depth : depth ;
+	const int& d = depth < 0 ? this->depth() : depth ;
 	return pow(2,d)*E0 + 3*(pow(2,2*d-1) - pow(2,d-1))*F0 ;
 }
 
@@ -26,7 +26,7 @@ Mesh_Loop::E(int depth) const
 int
 Mesh_Loop::V(int depth) const
 {
-	const int& d = depth < 0 ? this->depth : depth ;
+	const int& d = depth < 0 ? this->depth() : depth ;
 	return V0 + (pow(2,d) - 1)*E0 + (pow(2,2*d-1) - 3*pow(2,d-1) + 1)*F0 ;
 }
 
@@ -58,51 +58,39 @@ Mesh_Loop::n_vertex_of_polygon(int h) const
 void
 Mesh_Loop::refine_halfedges(halfedge_buffer& new_he) const
 {
-	const int Hd = H(depth) ;
-	const int Vd = V(depth) ;
+	const int _3Hd = 3 * Hd ;
 
 CC_PARALLEL_FOR
 	for (int h = 0; h < Hd ; ++h)
 	{
 		const int _3h = 3 * h ;
-		const int _3Hd = 3 * Hd ;
-		const int h_prime = Prev(h) ;
+		const int _3h_p_1 = _3h + 1 ;
+		const int h_twin = Twin(h) ;
+		const int h_edge = Edge(h) ;
 
-		int h0_Twin = 3 * Next_safe(Twin(h)) + 2 ;
-		int h1_Twin = _3Hd + h ;
-		int h2_Twin = 3 * Twin(h_prime);
-		int h3_Twin = _3h + 1 ;
+		const int h_prev = Prev(h) ;
+		const int h_prev_twin = Twin(h_prev) ;
+		const int h_prev_edge = Edge(h_prev) ;
 
-		int h0_Next = _3h + 1 ;
-		int h1_Next = _3h + 2 ;
-		int h2_Next = _3h + 0 ;
-		int h3_Next = _3Hd + Next(h) ;
+		HalfEdge& h0 = new_he[_3h + 0] ;
+		HalfEdge& h1 = new_he[_3h_p_1] ;
+		HalfEdge& h2 = new_he[_3h + 2] ;
+		HalfEdge& h3 = new_he[_3Hd + h] ;
 
-		int h0_Prev = _3h + 2 ;
-		int h1_Prev = _3h + 0 ;
-		int h2_Prev = _3h + 1 ;
-		int h3_Prev = _3Hd + Prev(h) ;
+		h0.Twin = 3 * Next_safe(h_twin) + 2 ;
+		h1.Twin = _3Hd + h ;
+		h2.Twin = 3 * h_prev_twin ;
+		h3.Twin = _3h_p_1 ;
 
-		int h0_Vert = Vert(h) ;
-		int h1_Vert = Vd + Edge(h) ;
-		int h2_Vert = Vd + Edge(Prev(h)) ;
-		int h3_Vert = Vd + Edge(Prev(h)) ;
+		h0.Vert = Vert(h) ;
+		h1.Vert = Vd + h_edge ;
+		h2.Vert = Vd + h_prev_edge ;
+		h3.Vert = h2.Vert ;
 
-		int h0_Edge = 2*Edge(h) + (int(h) > Twin(h) ? 0 : 1)  ;
-		int h1_Edge = 2*E(depth) + h ;
-		int h2_Edge = 2*Edge(h_prime) + (int(h_prime) > Twin(h_prime) ? 1 : 0) ;
-		int h3_Edge = h1_Edge ;
-
-		int h0_Face = h ;
-		int h1_Face = h ;
-		int h2_Face = h ;
-		int h3_Face = Hd + Face(h) ;
-
-/* TODO		new_he[_3h + 0] = HalfEdge(h0_Twin,h0_Next,h0_Prev,h0_Vert,h0_Edge,h0_Face) ;
-		new_he[_3h + 1] = HalfEdge(h1_Twin,h1_Next,h1_Prev,h1_Vert,h1_Edge,h1_Face) ;
-		new_he[_3h + 2] = HalfEdge(h2_Twin,h2_Next,h2_Prev,h2_Vert,h2_Edge,h2_Face) ;
-		new_he[_3Hd + h] = HalfEdge(h3_Twin,h3_Next,h3_Prev,h3_Vert,h3_Edge,h3_Face) ;*/
-		assert(false) ;
+		h0.Edge = 2 * h_edge + (int(h) > h_twin ? 0 : 1)  ;
+		h1.Edge = 2 * Ed + h ;
+		h2.Edge = 2 * h_prev_edge + (int(h_prev) > h_prev_twin ? 1 : 0) ;
+		h3.Edge = h1.Edge ;
 	}
 CC_BARRIER
 }
@@ -111,7 +99,7 @@ void
 Mesh_Loop::refine_halfedges_old(halfedge_buffer& new_he) const
 {
 CC_PARALLEL_FOR
-	for (int h = 0; h < H(depth) ; ++h)
+	for (int h = 0; h < Hd ; ++h)
 	{
 		const int h_prime = Prev(h) ;
 
@@ -131,19 +119,19 @@ CC_PARALLEL_FOR
 		int h3_Prev = 4 * Prev(h) + 3 ;
 
 		int h0_Vert = Vert(h) ;
-		int h1_Vert = V(depth) + Edge(h) ;
-		int h2_Vert = V(depth) + Edge(Prev(h)) ;
+		int h1_Vert = Vd + Edge(h) ;
+		int h2_Vert = Vd + Edge(Prev(h)) ;
 		int h3_Vert = h2_Vert ;
 
 		int h0_Edge = 2*Edge(h) + (int(h) > Twin(h) ? 0 : 1)  ;
-		int h1_Edge = 2*E(depth) + h ;
+		int h1_Edge = 2*Ed + h ;
 		int h2_Edge = 2*Edge(h_prime) + (int(h_prime) > Twin(h_prime) ? 1 : 0) ;
 		int h3_Edge = h1_Edge ;
 
 		int h0_Face = h ;
 		int h1_Face = h ;
 		int h2_Face = h ;
-		int h3_Face = H(depth) + Face(h) ;
+		int h3_Face = Hd + Face(h) ;
 
 /* todo 		new_he[4*h + 0] = HalfEdge(h0_Twin,h0_Next,h0_Prev,h0_Vert,h0_Edge,h0_Face) ;
 		new_he[4*h + 1] = HalfEdge(h1_Twin,h1_Next,h1_Prev,h1_Vert,h1_Edge,h1_Face) ;
@@ -193,19 +181,19 @@ Mesh_Loop::refine_vertices_inplace()
 void
 Mesh_Loop::edgepoints(vertex_buffer& V_new) const
 {
-	const vertex_buffer& Vd = this->vertices ;
+	const vertex_buffer& V_old = this->vertices ;
 
 CC_PARALLEL_FOR
-	for (int h = 0; h < H(depth) ; ++h)
+	for (int h = 0; h < Hd ; ++h)
 	{
 		const int v = Vert(h) ;
-		const int new_odd_pt_id = V(depth) + Edge(h) ;
+		const int new_odd_pt_id = Vd + Edge(h) ;
 		if (is_border_halfedge(h)) // Boundary rule
 		{
 			const int vn = Vert(Next(h)) ;
 			for (int c = 0; c < 3; ++c)
 			{
-				V_new[new_odd_pt_id][c] = (Vd[v][c] + Vd[vn][c])  / 2. ;
+				V_new[new_odd_pt_id][c] = 0.5f * (V_old[v][c] + V_old[vn][c]) ;
 			}
 		}
 		else
@@ -213,7 +201,7 @@ CC_PARALLEL_FOR
 			const int vp = Vert(Prev(h)) ;
 			for (int c = 0; c < 3; ++c)
 			{
-				const float increm = (3*Vd[v][c] + Vd[vp][c]) / 8 ;
+				const float increm = 0.375f * V_old[v][c] + 0.125f * V_old[vp][c] ;
 CC_ATOMIC
 				V_new[new_odd_pt_id][c] += increm ;
 			}
@@ -225,13 +213,13 @@ CC_BARRIER
 void
 Mesh_Loop::edgepoints_with_creases(vertex_buffer& V_new) const
 {
-	const vertex_buffer& Vd = this->vertices ;
+	const vertex_buffer& V_old = this->vertices ;
 
 CC_PARALLEL_FOR
-	for (int h = 0; h < H(depth) ; ++h)
+	for (int h = 0; h < Hd ; ++h)
 	{
 		const int v = Vert(h) ;
-		const int new_odd_pt_id = V(depth) + Edge(h) ;
+		const int new_odd_pt_id = Vd + Edge(h) ;
 //		if (is_border_halfedge(h)) // Boundary rule A.1
 //		{
 //			const int vn = Vert(Next(h)) ;
@@ -250,8 +238,8 @@ CC_PARALLEL_FOR
 
 			for (int c = 0; c < 3; ++c)
 			{
-				const float increm_smooth = 0.375*Vd[v][c] + 0.125*Vd[vp][c] ;
-				const float increm_sharp = 0.5 * (is_border ? Vd[v][c] + Vd[vn][c] : Vd[v][c]) ;
+				const float increm_smooth = 0.375f * V_old[v][c] + 0.125f * V_old[vp][c] ;
+				const float increm_sharp = 0.5f * (is_border ? V_old[v][c] + V_old[vn][c] : V_old[v][c]) ;
 				float increm = std::lerp(increm_smooth,increm_sharp,sharpness) ;
 CC_ATOMIC
 				V_new[new_odd_pt_id][c] += increm ;
@@ -264,13 +252,15 @@ CC_BARRIER
 void
 Mesh_Loop::vertexpoints(vertex_buffer& V_new) const
 {
-	const vertex_buffer& Vd = this->vertices ;
+	const vertex_buffer& V_old = this->vertices ;
 
 CC_PARALLEL_FOR
-	for (int h = 0; h < H(depth) ; ++h)
+	for (int h = 0; h < Hd ; ++h)
 	{
-		const int n = vertex_edge_valence_or_border(h) ;
 		const int v = Vert(h) ;
+		vec3& v_new = V_new[v] ;
+
+		const int n = vertex_edge_valence_or_border(h) ;
 		const int vn = Vert(Next(h)) ;
 
 		if (n < 0) // Boundary rule
@@ -280,10 +270,10 @@ CC_PARALLEL_FOR
 			{
 				for (int c=0; c < 3; ++c)
 				{
-					const float incremV = Vd[v][c]*3./8. + Vd[vn][c]*1./8. ;
-					const float incremVn = Vd[v][c]*1./8. + Vd[vn][c]*3./8. ;
+					const float incremV  = 0.375f * V_old[v][c] + 0.125f * V_old[vn][c] ;
+					const float incremVn = 0.125f * V_old[v][c] + 0.375f * V_old[vn][c] ;
 CC_ATOMIC
-					V_new[v][c] += incremV ;
+					v_new[c] += incremV ;
 CC_ATOMIC
 					V_new[vn][c] += incremVn ;
 				}
@@ -296,9 +286,9 @@ CC_ATOMIC
 			const float beta_ = n_ - beta ;
 			for (int c=0; c < 3; ++c)
 			{
-				const float increm = beta_*Vd[v][c] + beta*Vd[vn][c] ;
+				const float increm = beta_*V_old[v][c] + beta*V_old[vn][c] ;
 CC_ATOMIC
-                V_new[v][c] += increm ;
+				v_new[c] += increm ;
 			}
 		}
 	}
@@ -308,14 +298,17 @@ CC_BARRIER
 void
 Mesh_Loop::vertexpoints_with_creases(vertex_buffer& V_new) const
 {
-	const vertex_buffer& Vd = this->vertices ;
+	const vertex_buffer& V_old = this->vertices ;
 
 CC_PARALLEL_FOR
-	for (int h = 0; h < H(depth) ; ++h)
+	for (int h = 0; h < Hd ; ++h)
 	{
-		const int n = vertex_edge_valence(h) ;
 		const int v = Vert(h) ;
+		vec3& v_new = V_new[v] ;
+
+		const int n = vertex_edge_valence(h) ;
 		const int vn = Vert(Next(h)) ;
+
 
 //		if (n < 0) // Boundary rule
 //		{
@@ -327,7 +320,7 @@ CC_PARALLEL_FOR
 //					const float incremV = Vd[v][c]*3./8. + Vd[vn][c]*1./8. ;
 //					const float incremVn = Vd[v][c]*1./8. + Vd[vn][c]*3./8. ;
 //CC_ATOMIC
-//					V_new[v][c] += incremV ;
+//					v_new[c] += incremV ;
 //CC_ATOMIC
 //					V_new[vn][c] += incremVn ;
 //				}
@@ -341,9 +334,9 @@ CC_PARALLEL_FOR
 				const int vertex_he_valence = vertex_halfedge_valence(h) ;
 				for (int c=0; c < 3; ++c)
 				{
-					const float increm = Vd[v][c] / vertex_he_valence ;
+					const float increm = V_old[v][c] / vertex_he_valence ;
 CC_ATOMIC
-					V_new[v][c] += increm ;
+					v_new[c] += increm ;
 				}
 			}
 			else
@@ -356,9 +349,9 @@ CC_ATOMIC
 					const float beta_ = n_ - beta ;
 					for (int c=0; c < 3; ++c)
 					{
-						const float increm = beta_*Vd[v][c] + beta*Vd[vn][c] ;
+						const float increm = beta_*V_old[v][c] + beta*V_old[vn][c] ;
 CC_ATOMIC
-						V_new[v][c] += increm ;
+						v_new[c] += increm ;
 					}
 				}
 				else // creased or blend
@@ -397,11 +390,11 @@ CC_ATOMIC
 
 						for (int c=0; c < 3; ++c)
 						{
-							const float increm_corner = increm_corner_factr * Vd[v][c] ;
-							const float increm_sharp = 0.125f*Vd[vn][c] + increm_sharp_factr_vn*Vd[v][c] + increm_sharp_factr_vb*Vd[vb][c] ;
+							const float increm_corner = increm_corner_factr * V_old[v][c] ;
+							const float increm_sharp = 0.125f * V_old[vn][c] + increm_sharp_factr_vn * V_old[v][c] + increm_sharp_factr_vb * V_old[vb][c] ;
 							const float incremV = std::lerp(increm_corner,increm_sharp,interp) ;
 CC_ATOMIC
-							V_new[v][c] += incremV ;
+							v_new[c] += incremV ;
 						}
 
 //						if (vx_sharpness >= 1.0) // sharp
@@ -410,7 +403,7 @@ CC_ATOMIC
 //							{
 //								const float increm = 0.125*Vd[vn][c] + 0.375*Vd[v][c];
 //CC_ATOMIC
-//								V_new[v][c] += increm ;
+//								v_new[c] += increm ;
 //							}
 //						}
 //						else // blend
@@ -420,7 +413,7 @@ CC_ATOMIC
 //								const float increm_corner = 0.5*Vd[v][c] ;
 //								const float increm_sharp = 0.125*Vd[vn][c] + 0.375*Vd[v][c];
 //CC_ATOMIC
-//								V_new[v][c] += std::lerp(increm_corner,increm_sharp,vx_sharpness) ;
+//								v_new[c] += std::lerp(increm_corner,increm_sharp,vx_sharpness) ;
 //							}
 //						}
 					}
@@ -434,27 +427,29 @@ CC_BARRIER
 void
 Mesh_Loop::allpoints(vertex_buffer &V_new) const
 {
-	const vertex_buffer& Vd = this->vertices ;
+	const vertex_buffer& V_old = this->vertices ;
 
 CC_PARALLEL_FOR
-	for (int h = 0; h < H(depth) ; ++h)
+	for (int h = 0; h < Hd ; ++h)
 	{
 		const int v = Vert(h) ;
+		vec3& v_new = V_new[v] ;
+
 		const int vn = Vert(Next(h)) ;
-		const int new_odd_pt_id = V(depth) + Edge(h) ;
+		const int new_odd_pt_id = Vd + Edge(h) ;
 
 		if (is_border_halfedge(h)) // halfedge (thus edge and vertex) is at border
 		{	// apply border rules
 			for (int c = 0; c < 3; ++c)
 			{
 				// edge
-				V_new[new_odd_pt_id][c] = (Vd[v][c] + Vd[vn][c])  / 2. ;
+				V_new[new_odd_pt_id][c] = (V_old[v][c] + V_old[vn][c])  / 2. ;
 
 				// vertex
-				const float incremV = Vd[v][c]*3./8. + Vd[vn][c]*1./8. ;
-				const float incremVn = Vd[v][c]*1./8. + Vd[vn][c]*3./8. ;
+				const float incremV = V_old[v][c]*3./8. + V_old[vn][c]*1./8. ;
+				const float incremVn = V_old[v][c]*1./8. + V_old[vn][c]*3./8. ;
 CC_ATOMIC
-				V_new[v][c] += incremV ;
+				v_new[c] += incremV ;
 CC_ATOMIC
 				V_new[vn][c] += incremVn ;
 			}
@@ -465,7 +460,7 @@ CC_ATOMIC
 				const int vp = Vert(Prev(h)) ;
 				for (int c = 0; c < 3; ++c)
 				{
-					const float increm = (3*Vd[v][c] + Vd[vp][c]) / 8 ;
+					const float increm = (3*V_old[v][c] + V_old[vp][c]) / 8 ;
 CC_ATOMIC
 					V_new[new_odd_pt_id][c] += increm ;
 				}
@@ -479,9 +474,9 @@ CC_ATOMIC
 				const float beta_ = n_ - beta ;
 				for (int c=0; c < 3; ++c)
 				{
-					const float increm = beta_*Vd[v][c] + beta*Vd[vn][c] ;
+					const float increm = beta_*V_old[v][c] + beta*V_old[vn][c] ;
 CC_ATOMIC
-					V_new[v][c] += increm ;
+					v_new[c] += increm ;
 				}
 			}
 		}
@@ -506,14 +501,15 @@ Mesh_Loop::vertexpoints_inplace()
 void
 Mesh_Loop::vertexpoints_inplace_pass1()
 {
-	vertex_buffer& Vd = this->vertices ;
-	vertex_buffer& V_new = Vd ;
+	vertex_buffer& V_new = this->vertices ;
 
 CC_PARALLEL_FOR
-    for (int h = 0; h < H(depth) ; ++h)
+	for (int h = 0; h < Hd ; ++h)
     {
-		int n = vertex_edge_valence_or_border(h) ;
 		const int v = Vert(h) ;
+		vec3& v_new = V_new[v] ;
+
+		int n = vertex_edge_valence_or_border(h) ;
 		const bool v_at_border = n < 0 ;
 		if (v_at_border) // boundary case
         {
@@ -522,7 +518,7 @@ CC_PARALLEL_FOR
 			for (int c=0; c < 3; ++c)
 			{
 CC_ATOMIC
-				V_new[v][c] *= prod ;
+				v_new[c] *= prod ;
 			}
         }
         else
@@ -532,7 +528,7 @@ CC_ATOMIC
             for (int c=0; c < 3; ++c)
             {
 CC_ATOMIC
-                V_new[v][c] *= prod ;
+				v_new[c] *= prod ;
             }
         }
     }
@@ -542,23 +538,24 @@ CC_BARRIER
 void
 Mesh_Loop::vertexpoints_inplace_pass2()
 {
-	vertex_buffer& Vd = this->vertices ;
-	vertex_buffer& V_new = Vd ;
+	vertex_buffer& V_new = this->vertices ;
 
 CC_PARALLEL_FOR
-    for (int h = 0; h < H(depth) ; ++h)
+	for (int h = 0; h < Hd ; ++h)
     {
 		if (is_border_halfedge(h)) // halfedge (and vertex) are at border
 		{
 			// apply border pass2
 			const int v = Vert(h) ;
+			vec3& v_new = V_new[v] ;
+
 			const int vn = Vert(Next(h)) ;
-			const int i = V(depth) + Edge(h) ; // new odd (edge) vertex id
+			const int i = Vd + Edge(h) ; // new odd (edge) vertex id
 			for (int c=0; c < 3; ++c)
 			{
 				const float increm = V_new[i][c] / 4 ;
 CC_ATOMIC
-				V_new[v][c] += increm ;
+				v_new[c] += increm ;
 CC_ATOMIC
 				V_new[vn][c] += increm ;
 			}
@@ -570,15 +567,17 @@ CC_ATOMIC
 			if (n >= 0) // vertex is not at border
 			{
 				const int v = Vert(h) ;
+				vec3& v_new = V_new[v] ;
+
 				const float n_ = 1./float(n) ;
 				const float gamma = compute_gamma(n_) ;
 
-				const int i = V(depth) + Edge(h) ; // new odd (edge) vertex id
+				const int i = Vd + Edge(h) ; // new odd (edge) vertex id
 				for (int c=0; c < 3; ++c)
 				{
 					const float increm = gamma * V_new[i][c] ;
 CC_ATOMIC
-					V_new[v][c] += increm ;
+					v_new[c] += increm ;
 				}
 			}
 

@@ -7,9 +7,9 @@ MeshSubdivision::refine_step()
 	crease_buffer C_new ;
 	vertex_buffer V_new ;
 
-	H_new.resize(H(depth + 1));
-	C_new.resize(C(depth + 1));
-	V_new.resize(V(depth + 1),{0.,0.,0.});
+	H_new.resize(H(depth() + 1));
+	C_new.resize(C(depth() + 1));
+	V_new.resize(V(depth() + 1),{0.,0.,0.});
 
 	refine_halfedges(H_new) ;
 	refine_creases(C_new) ;
@@ -19,7 +19,7 @@ MeshSubdivision::refine_step()
 	creases = C_new ;
 	vertices = V_new ;
 
-	depth++ ;
+	set_depth(depth() + 1);
 }
 
 void
@@ -29,9 +29,9 @@ MeshSubdivision::refine_step_inplace()
 	crease_buffer C_new ;
 	vertex_buffer& V_new = this->vertices ;
 
-	H_new.resize(H(depth + 1));
-	C_new.resize(C(depth + 1));
-	V_new.resize(V(depth + 1),{0.,0.,0.});
+	H_new.resize(H(depth() + 1));
+	C_new.resize(C(depth() + 1));
+	V_new.resize(V(depth() + 1),{0.,0.,0.});
 
 	refine_halfedges(H_new) ;
 	refine_creases(C_new) ;
@@ -40,14 +40,12 @@ MeshSubdivision::refine_step_inplace()
 	halfedges = H_new ;
 	creases = C_new ;
 
-	depth++ ;
+	set_depth(depth() + 1);
 }
 
 void
 MeshSubdivision::refine_creases(crease_buffer& C_new) const
 {
-	const int Cd = C(depth) ;
-
 CC_PARALLEL_FOR
 	for (int c = 0; c < Cd; ++c)
 	{
@@ -93,7 +91,7 @@ MeshSubdivision::bench_refine_step(bool refine_he, bool refine_cr, bool refine_v
 	{
 		duration min_time_he(1e9) ;
 
-		H_new.resize(H(depth + 1));
+		H_new.resize(H(depth() + 1));
 
 		for (uint i = 0 ; i < repetitions; ++i)
 		{
@@ -112,7 +110,7 @@ MeshSubdivision::bench_refine_step(bool refine_he, bool refine_cr, bool refine_v
 	{
 		duration min_time_cr(1e9) ;
 
-		C_new.resize(C(depth + 1));
+		C_new.resize(C(depth() + 1));
 
 		for (uint i = 0 ; i < repetitions; ++i)
 		{
@@ -131,7 +129,7 @@ MeshSubdivision::bench_refine_step(bool refine_he, bool refine_cr, bool refine_v
 	{
 		duration min_time_vx(1e9) ;
 
-		V_new.resize(V(depth + 1));
+		V_new.resize(V(depth() + 1));
 
 		for (uint i = 0 ; i < repetitions; ++i)
 		{
@@ -155,7 +153,7 @@ MeshSubdivision::bench_refine_step(bool refine_he, bool refine_cr, bool refine_v
 		vertices = V_new ;
 
 	if (save_result && refine_he && refine_cr && refine_vx)
-		depth++ ;
+		set_depth(depth() + 1) ;
 
 	const duration mean_time = total_time / double(repetitions) ;
 

@@ -20,6 +20,7 @@ add_executable(main_cc main_cc.cpp mesh_cc.cpp mesh_subdiv.cpp mesh.cpp)
 add_executable(main_loop main_loop.cpp mesh_loop.cpp mesh_subdiv.cpp mesh.cpp)
 
 add_executable(bench_cc bench_cc.cpp mesh_cc.cpp mesh_subdiv.cpp mesh.cpp)
+add_executable(bench_loop bench_loop.cpp mesh_loop.cpp mesh_subdiv.cpp mesh.cpp)
 
 
 

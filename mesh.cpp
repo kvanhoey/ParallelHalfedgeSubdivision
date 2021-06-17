@@ -1,8 +1,9 @@
 #include "mesh.h"
 
 Mesh::Mesh(int H, int V, int E, int F):
-	H0(H), V0(V), E0(E), F0(F), depth(0)
+	H0(H), V0(V), E0(E), F0(F)
 {
+	set_depth(0) ;
 	alloc_halfedge_buffer(H0) ;
 	alloc_vertex_buffer(V0) ;
 	alloc_crease_buffer(E0) ;
@@ -30,6 +31,46 @@ Mesh::alloc_crease_buffer(int E)
 Mesh::Mesh(const std::string& filename)
 {
 	read_from_obj(filename) ;
+}
+
+const int&
+Mesh::depth() const
+{
+	return _depth ;
+}
+
+void
+Mesh::set_depth(int d)
+{
+	if (d == 0)
+		init_depth() ;
+	else
+	{
+		_depth = d ;
+
+		Hd = H(d) ;
+		Vd = V(d) ;
+		Ed = E(d) ;
+		Fd = F(d) ;
+		Cd = C(d) ;
+	}
+}
+
+void
+Mesh::init_depth()
+{
+	_depth = 0 ;
+	Hd = H0 ;
+	Vd = V0 ;
+	Ed = E0 ;
+	Fd = F0 ;
+	Cd = E0 ;
+}
+
+bool
+Mesh::is_cage() const
+{
+	return depth() == 0 ;
 }
 
 int
@@ -80,7 +121,7 @@ Mesh::Face(int idx) const
 float
 Mesh::Sigma(int idx) const
 {
-	return idx > C(depth) ? 0. : creases[idx].Sigma ;
+	return idx > Cd ? 0. : creases[idx].Sigma ;
 }
 
 int
@@ -98,7 +139,7 @@ Mesh::PrevC(int idx) const
 int
 Mesh::C(int depth) const
 {
-	const int& d = depth < 0 ? this->depth : depth ;
+	const int& d = depth < 0 ? this->depth() : depth ;
 	return std::pow(2,d) * E0 ;
 }
 
@@ -529,7 +570,6 @@ Mesh::read_from_obj(const std::string& filename)
 	read_obj_mesh_size(file,h_count,v_count,f_count) ;
 
 	// set constants and alloc
-	this->depth = 0 ;
 	this->H0 = h_count ;
 	this->V0 = v_count ;
 	this->F0 = f_count ;
@@ -556,6 +596,9 @@ Mesh::read_from_obj(const std::string& filename)
 	set_creases(tmp_creases) ;
 	set_boundaries_sharp() ;
 	compute_and_set_crease_neighbors() ;
+
+	// set depth
+	set_depth(0) ;
 }
 
 void
@@ -844,14 +887,13 @@ void
 Mesh::export_to_obj_tri(std::ofstream& file) const
 {
 	//	allocate F x 3
-	const int Fd = F(depth) ;
 	if (Fd >= 1024*1024)
 	{
 		std::cerr << "ERROR Mesh::export_to_obj_tri: mesh size too large" << std::endl ;
 		return ;
 	}
 	int face_buffer[Fd][3] ;
-	for (int h = 0 ; h < H(depth) ; ++h)
+	for (int h = 0 ; h < Hd ; ++h)
 	{
 		face_buffer[Face(h)][0] = 1 + Vert(h) ;
 		face_buffer[Face(h)][1] = 1 + Vert(Next(h)) ;
@@ -859,13 +901,13 @@ Mesh::export_to_obj_tri(std::ofstream& file) const
 	}
 
 	file << "# Vertices" << std::endl ;
-	for (int v = 0 ; v < V(depth) ; ++v)
+	for (int v = 0 ; v < Vd ; ++v)
 	{
 		file << "v " << vertices[v][0] << " " << vertices[v][1] << " " << vertices[v][2] << std::endl ;
 	}
 
 	file << "# Topology" << std::endl ;
-	for (int f = 0 ; f < F(depth) ; ++f)
+	for (int f = 0 ; f < Fd ; ++f)
 	{
 		file << "f " << face_buffer[f][0] << " " << face_buffer[f][1] << " " << face_buffer[f][2] << std::endl ;
 	}
@@ -875,14 +917,14 @@ void
 Mesh::export_to_obj_contig_faces(std::ofstream& file) const
 {
 	file << "# Vertices" << std::endl ;
-	for (int v = 0 ; v < V(depth) ; ++v)
+	for (int v = 0 ; v < Vd ; ++v)
 	{
 		file << "v " << vertices[v][0] << " " << vertices[v][1] << " " << vertices[v][2] << std::endl ;
 	}
 
 	file << "# Topology" ;
 	int f_id_prev = -1 ;
-	for (int h = 0 ; h < H(depth) ; ++h)
+	for (int h = 0 ; h < Hd ; ++h)
 	{
 		const int f_id = Face(h) ;
 		if (f_id != f_id_prev)

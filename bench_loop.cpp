@@ -6,7 +6,7 @@
 #include "mesh.h"
 
 //#define INPLACE
-//#define EXPORT
+#define EXPORT
 #define MAX_VERTICES pow(2,28)
 
 int main(int argc, char* argv[])
@@ -18,7 +18,7 @@ int main(int argc, char* argv[])
     }
 
 	const std::string f_name(argv[1]) ;
-	Mesh_CC S0(f_name) ;
+	Mesh_Loop S0(f_name) ;
 
 	const uint D = atoi(argv[2]) ;
 
@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
     S0.export_to_obj("S0.obj") ;
 # endif
 
-    Mesh_CC S = S0 ;
+	Mesh_Loop S = S0 ;
 	double refine_he_time = 0 ;
 	double refine_cr_time = 0 ;
 	double refine_vx_time = 0 ;

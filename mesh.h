@@ -43,11 +43,16 @@ protected:
 	typedef std::vector<vec3> vertex_buffer ;
 	typedef std::vector<Crease> crease_buffer ;
 
-	int depth ;
-
 public:
 	int H0, V0, E0, F0 ;
+	int Hd, Vd, Ed, Fd, Cd ;
+private:
+	int _depth ;
+	void init_depth() ;
+protected:
+	const int& depth() const ;
 
+public:
 	virtual int H(int depth = -1) const = 0 ;
 	virtual int V(int depth = -1) const = 0 ;
 	virtual int F(int depth = -1) const = 0 ;
@@ -64,6 +69,7 @@ public:
 	virtual ~Mesh() = default ;
 
 	bool check() const ;
+	bool is_cage() const ;
 
 	bool is_tri_only() const ;
 	bool is_quad_only() const ;
@@ -97,6 +103,8 @@ protected:
 	void alloc_halfedge_buffer(int H) ;
 	void alloc_vertex_buffer(int V) ;
 	void alloc_crease_buffer(int E) ;
+
+	virtual void set_depth(int d) ;
 
 	virtual int Twin(int h) const final ;
 	virtual int Prev(int h) const ;
