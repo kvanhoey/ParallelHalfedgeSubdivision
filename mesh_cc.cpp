@@ -121,15 +121,17 @@ CC_BARRIER
 void
 Mesh_CC::refine_vertices_inplace()
 {
-	vertex_buffer& Vd = this->vertices ;
-	facepoints(Vd) ;
-	edgepoints(Vd) ;
+	vertex_buffer& V_new = this->vertices ;
+	init_vertex_buffer(V_new,Vd) ;
+	facepoints(V_new) ;
+	edgepoints(V_new) ;
 	vertexpoints_inplace() ;
 }
 
 void
 Mesh_CC::refine_vertices(vertex_buffer& V_new) const
 {
+	init_vertex_buffer(V_new) ;
 	facepoints(V_new) ;
 	edgepoints(V_new) ;
 	vertexpoints(V_new) ;
@@ -138,6 +140,7 @@ Mesh_CC::refine_vertices(vertex_buffer& V_new) const
 void
 Mesh_CC::refine_vertices_with_creases(vertex_buffer& V_new) const
 {
+	init_vertex_buffer(V_new) ;
 	facepoints(V_new) ;
 	edgepoints_with_creases(V_new) ;
 	vertexpoints_with_creases(V_new) ;

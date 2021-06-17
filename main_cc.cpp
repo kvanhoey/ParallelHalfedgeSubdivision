@@ -10,7 +10,7 @@ typedef std::chrono::duration<float, std::milli> duration;
 #include "mesh.h"
 
 #define TIMING
-//#define INPLACE
+#define INPLACE
 #define EXPORT
 #define MAX_VERTICES pow(2,28)
 

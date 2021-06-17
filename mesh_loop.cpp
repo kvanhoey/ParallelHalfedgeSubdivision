@@ -142,6 +142,29 @@ CC_PARALLEL_FOR
 CC_BARRIER
 }
 
+void
+Mesh_Loop::refine_vertices(vertex_buffer& V_new) const
+{
+	init_vertex_buffer(V_new) ;
+	allpoints(V_new) ;
+}
+
+void
+Mesh_Loop::refine_vertices_with_creases(vertex_buffer& V_new) const
+{
+	init_vertex_buffer(V_new) ;
+//	allpoints_with_creases(V_new) ;
+	refine_vertices_with_creases_twosteps(V_new) ;
+}
+
+void
+Mesh_Loop::refine_vertices_inplace()
+{
+	vertex_buffer& V_old = this->vertices ;
+	init_vertex_buffer(V_old,Vd) ;
+	edgepoints(V_old) ;
+	vertexpoints_inplace() ;
+}
 
 void
 Mesh_Loop::refine_vertices_twosteps(vertex_buffer& V_new) const
@@ -151,31 +174,10 @@ Mesh_Loop::refine_vertices_twosteps(vertex_buffer& V_new) const
 }
 
 void
-Mesh_Loop::refine_vertices(vertex_buffer& V_new) const
-{
-	allpoints(V_new) ;
-}
-
-void
 Mesh_Loop::refine_vertices_with_creases_twosteps(vertex_buffer& V_new) const
 {
 	edgepoints_with_creases(V_new) ;
 	vertexpoints_with_creases(V_new) ;
-}
-
-void
-Mesh_Loop::refine_vertices_with_creases(vertex_buffer& V_new) const
-{
-//	allpoints_with_creases(V_new) ;
-	refine_vertices_with_creases_twosteps(V_new) ;
-}
-
-void
-Mesh_Loop::refine_vertices_inplace()
-{
-	vertex_buffer& Vd = this->vertices ;
-	edgepoints(Vd) ;
-	vertexpoints_inplace() ;
 }
 
 void

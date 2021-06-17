@@ -9,7 +9,7 @@ MeshSubdivision::refine_step()
 
 	H_new.resize(H(depth() + 1));
 	C_new.resize(C(depth() + 1));
-	V_new.resize(V(depth() + 1),{0.,0.,0.});
+	V_new.resize(V(depth() + 1),{0.0f,0.0f,0.0f});
 
 	refine_halfedges(H_new) ;
 	refine_creases(C_new) ;
@@ -31,7 +31,7 @@ MeshSubdivision::refine_step_inplace()
 
 	H_new.resize(H(depth() + 1));
 	C_new.resize(C(depth() + 1));
-	V_new.resize(V(depth() + 1),{0.,0.,0.});
+	V_new.resize(V(depth() + 1));
 
 	refine_halfedges(H_new) ;
 	refine_creases(C_new) ;
@@ -49,6 +49,10 @@ MeshSubdivision::refine_creases(crease_buffer& C_new) const
 CC_PARALLEL_FOR
 	for (int c = 0; c < Cd; ++c)
 	{
+		const int _2c = 2*c ;
+
+		Crease& c0 = C_new[_2c + 0] ;
+		Crease& c1 = C_new[_2c + 1] ;
 		if (is_crease_edge(c))
 		{
 			const int c_next = NextC(c) ;
@@ -58,19 +62,20 @@ CC_PARALLEL_FOR
 			const float thisS = 3.0f * Sigma(c) ;
 			const float nextS = Sigma(NextC(c)) ;
 			const float prevS = Sigma(c_prev) ;
-			const int c2 = 2*c ;
 
-			Crease& c0 = C_new[c2 + 0] ;
-			Crease& c1 = C_new[c2 + 1] ;
-
-			c0.Next = c2 + 1 ;
+			c0.Next = _2c + 1 ;
 			c1.Next = 2 * c_next + (b1 ? 0 : 1) ;
 
 			c0.Prev = 2 * c_prev + (b2 ? 1 : 0) ;
-			c1.Prev = c2 + 0 ;
+			c1.Prev = _2c + 0 ;
 
-			c0.Sigma = std::max(0.0f, (prevS + thisS ) / 4.0f - 1.0f) ;
-			c1.Sigma = std::max(0.0f, (nextS + thisS ) / 4.0f - 1.0f) ;
+			c0.Sigma = std::max(0.0f, 0.250f * (prevS + thisS ) - 1.0f) ;
+			c1.Sigma = std::max(0.0f, 0.250f * (nextS + thisS ) - 1.0f) ;
+		}
+		else
+		{
+			c0.Sigma = 0.0f ;
+			c1.Sigma = 0.0f ;
 		}
 	}
 CC_BARRIER
@@ -134,7 +139,6 @@ MeshSubdivision::bench_refine_step(bool refine_he, bool refine_cr, bool refine_v
 		for (uint i = 0 ; i < repetitions; ++i)
 		{
 			auto start = timer::now() ;
-			std::fill(V_new.begin(), V_new.end(), vec3({0.,0.,0.})); // important: include memset for realtime scenario
 			refine_vertices(V_new) ;
 			auto stop = timer::now() ;
 
@@ -158,4 +162,15 @@ MeshSubdivision::bench_refine_step(bool refine_he, bool refine_cr, bool refine_v
 	const duration mean_time = total_time / double(repetitions) ;
 
 	return min_time.count() ;
+}
+
+void
+MeshSubdivision::init_vertex_buffer(vertex_buffer& V, uint start_index)
+{
+CC_PARALLEL_FOR
+	for (uint k = start_index ; k < V.size() ; ++k)  // important: include memset for realtime scenario
+	{
+		V[k] = vec3({0.0f,0.0f,0.0f}) ;
+	}
+CC_BARRIER
 }

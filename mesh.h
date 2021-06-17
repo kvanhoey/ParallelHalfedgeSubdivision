@@ -15,7 +15,7 @@
 
 #include <omp.h>
 
-#define ENABLE_PARALLEL
+//#define ENABLE_PARALLEL
 
 # ifdef ENABLE_PARALLEL
 #       ifndef CC_ATOMIC
@@ -168,10 +168,13 @@ public:
     virtual void refine_step_inplace() final ;
 
 protected:
+	static void init_vertex_buffer(vertex_buffer& V, uint start_index = 0) ;
+
 	virtual void refine_halfedges(halfedge_buffer&) const = 0 ;
 	virtual void refine_vertices(vertex_buffer&) const = 0 ;
 	virtual void refine_vertices_with_creases(vertex_buffer&) const = 0 ;
 	virtual void refine_vertices_inplace() = 0 ;
+	// virtual void refine_vertices_with_creases_inplace() = 0 ;
 
 	virtual void refine_creases(crease_buffer&) const  ;
 
