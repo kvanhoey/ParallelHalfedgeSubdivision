@@ -159,6 +159,7 @@ protected:
 	bool is_crease_halfedge(int h) const ;
 	bool is_crease_edge(int e) const ;
 
+	int n_vertex_of_polygon_check(int h) const ;
 	virtual int n_vertex_of_polygon(int h) const ;
 
 };

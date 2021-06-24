@@ -353,10 +353,9 @@ Mesh::is_crease_edge(int h) const
 
 
 int
-Mesh::n_vertex_of_polygon(int h) const
+Mesh::n_vertex_of_polygon_check(int h) const
 {
 	int n = 1 ;
-
 	for (int h_fw = Next(h) ; h_fw != h ; h_fw = Next(h_fw))
 	{
 		++n ;
@@ -364,11 +363,22 @@ Mesh::n_vertex_of_polygon(int h) const
 	return n ;
 }
 
+
+int
+Mesh::n_vertex_of_polygon(int h) const
+{
+	return n_vertex_of_polygon_check(h) ;
+}
+
 bool
 Mesh::check() const
 {
 	bool valid = true ;
-	const int Hd = H() ;
+	if (Hd < 2)
+	{
+		std::cerr << "The mesh is empty" << std::endl ;
+	}
+
 	for (int h = 0; h < Hd ; ++h)
 	{
 		bool check_twin = (is_border_halfedge(h) || Twin(Twin(h)) == h) ;
@@ -419,12 +429,12 @@ Mesh::all_faces_are_ngons(int n) const
 {
 	for (int h = 0; h < H0 ; ++h)
 	{
-		bool is_ngon = n_vertex_of_polygon(h) == n ;
+		bool is_ngon = n_vertex_of_polygon_check(h) == n ;
 		if (!is_ngon)
 			return false ;
 	}
 
-	return true ;
+	return H0 > 0 ? true : false ;
 }
 
 void
@@ -874,12 +884,8 @@ Mesh::set_boundaries_sharp()
 
 void Mesh::export_to_obj(const std::string& filename) const
 {
-	const bool tri = is_tri_only() ;
 	std::ofstream file(filename) ;
-	if (tri)
-		export_to_obj_tri(file);
-	else
-		export_to_obj_contig_faces(file);
+	export_to_obj_contig_faces(file);
 	file.close() ;
 }
 
