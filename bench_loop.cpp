@@ -18,11 +18,15 @@ int main(int argc, char* argv[])
     }
 
 	const std::string f_name(argv[1]) ;
-	Mesh_Loop S0(f_name) ;
-
 	const uint D = atoi(argv[2]) ;
-
 	const uint runCount = argc == 4 ? atoi(argv[3]) : 16 ;
+
+	Mesh_Loop S0(f_name) ;
+	if (!S0.is_tri_only())
+	{
+		std::cerr << "ERROR: The provided mesh should be triangle-only" << std::endl ;
+		exit(0) ;
+	}
 
     S0.check() ;
 # ifdef EXPORT
@@ -33,9 +37,9 @@ int main(int argc, char* argv[])
 	double refine_he_time = 0 ;
 	double refine_cr_time = 0 ;
 	double refine_vx_time = 0 ;
+	std::cout << "Benching depth " << D << std::endl ;
 	for (int d = 1 ; d <= D ; d++)
     {
-		std::cout << d << std::endl ;
         if (S.V(d+1) > MAX_VERTICES)
             break ;
 
@@ -60,9 +64,12 @@ int main(int argc, char* argv[])
 # endif
     }
 
-	std::cout << "Halfedges:\t" << refine_he_time << "ms" << std::endl ;
-	std::cout << "Creases:\t" << refine_cr_time << "ms" << std::endl ;
-	std::cout << "Vertices:\t" << refine_vx_time << "ms" << std::endl ;
+//	std::cout << "Halfedges:\t" << refine_he_time << "ms" << std::endl ;
+//	std::cout << "Creases:\t" << refine_cr_time << "ms" << std::endl ;
+//	std::cout << "Vertices:\t" << refine_vx_time << "ms" << std::endl ;
+	std::cout << "He/Cr/Ve" << std::endl ;
+	std::cout << refine_he_time << "\t" << refine_cr_time << "\t" << refine_vx_time << std::endl ;
+
 
 	// print the number of threads
 	#pragma omp parallel
