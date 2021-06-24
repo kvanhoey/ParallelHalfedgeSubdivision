@@ -41,7 +41,7 @@ Mesh_CC::E(int depth) const
 int
 Mesh_CC::Next(int h) const
 {
-	if (is_cage())
+	if (is_cage()) // TODO: optimize to avoid this branch
 		return Mesh::Next(h) ;
 
 	return h % 4 == 3 ? h - 3 : h + 1 ;
@@ -50,7 +50,7 @@ Mesh_CC::Next(int h) const
 int
 Mesh_CC::Prev(int h) const
 {
-	if (is_cage())
+	if (is_cage()) // TODO: optimize to avoid this branch
 		return Mesh::Prev(h) ;
 
 	return h % 4 == 0 ? h + 3 : h - 1 ;
@@ -59,7 +59,7 @@ Mesh_CC::Prev(int h) const
 int
 Mesh_CC::Face(int h) const
 {
-	if (is_cage())
+	if (is_cage()) // TODO: optimize to avoid this branch
 		return Mesh::Face(h) ;
 
 	return h / 4 ;
@@ -68,7 +68,7 @@ Mesh_CC::Face(int h) const
 int
 Mesh_CC::n_vertex_of_polygon(int h) const
 {
-	if (is_cage())
+	if (is_cage()) // TODO: optimize to avoid this branch
 		return Mesh::n_vertex_of_polygon(h) ;
 
 	return 4 ;

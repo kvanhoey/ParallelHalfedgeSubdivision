@@ -94,6 +94,7 @@ MeshSubdivision::bench_refine_step(bool refine_he, bool refine_cr, bool refine_v
 
 	if (refine_he)
 	{
+//		std::cout << "Benching refinement of " << Hd << " halfedges" << std::endl ;
 		duration min_time_he(1e9) ;
 
 		H_new.resize(H(depth() + 1));
@@ -113,6 +114,8 @@ MeshSubdivision::bench_refine_step(bool refine_he, bool refine_cr, bool refine_v
 
 	if (refine_cr)
 	{
+//		std::cout << "Benching refinement of " << Cd << " creases" << std::endl ;
+
 		duration min_time_cr(1e9) ;
 
 		C_new.resize(C(depth() + 1));
@@ -132,6 +135,7 @@ MeshSubdivision::bench_refine_step(bool refine_he, bool refine_cr, bool refine_v
 
 	if (refine_vx)
 	{
+//		std::cout << "Benching refinement of " << Vd << " vertices" << std::endl ;
 		duration min_time_vx(1e9) ;
 
 		V_new.resize(V(depth() + 1));
@@ -139,7 +143,7 @@ MeshSubdivision::bench_refine_step(bool refine_he, bool refine_cr, bool refine_v
 		for (uint i = 0 ; i < repetitions; ++i)
 		{
 			auto start = timer::now() ;
-			refine_vertices(V_new) ;
+			refine_vertices_with_creases(V_new) ;
 			auto stop = timer::now() ;
 
 			duration elapsed = stop - start;

@@ -143,12 +143,13 @@ CC_PARALLEL_FOR
 	{
 		const int v = Vert(h) ;
 		const int new_odd_pt_id = Vd + Edge(h) ;
+		vec3& v_new = V_new[new_odd_pt_id] ;
 		if (is_border_halfedge(h)) // Boundary rule
 		{
 			const int vn = Vert(Next(h)) ;
 			for (int c = 0; c < 3; ++c)
 			{
-				V_new[new_odd_pt_id][c] = 0.5f * (V_old[v][c] + V_old[vn][c]) ;
+				v_new[c] = 0.5f * (V_old[v][c] + V_old[vn][c]) ;
 			}
 		}
 		else
@@ -158,7 +159,7 @@ CC_PARALLEL_FOR
 			{
 				const float increm = 0.375f * V_old[v][c] + 0.125f * V_old[vp][c] ;
 CC_ATOMIC
-				V_new[new_odd_pt_id][c] += increm ;
+				v_new[c] += increm ;
 			}
 		}
 	}
