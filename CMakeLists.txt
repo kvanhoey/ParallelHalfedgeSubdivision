@@ -16,11 +16,15 @@ if (OPENMP_FOUND)
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
-add_executable(main_cc main_cc.cpp mesh_cc.cpp mesh_subdiv.cpp mesh.cpp)
-add_executable(main_loop main_loop.cpp mesh_loop.cpp mesh_subdiv.cpp mesh.cpp)
+file(GLOB dependency_files lib/*.cpp)
 
-add_executable(bench_cc bench_cc.cpp mesh_cc.cpp mesh_subdiv.cpp mesh.cpp)
-add_executable(bench_loop bench_loop.cpp mesh_loop.cpp mesh_subdiv.cpp mesh.cpp)
+include_directories(lib/)
+
+add_executable(main_cc main_cc.cpp ${dependency_files})
+add_executable(main_loop main_loop.cpp ${dependency_files})
+
+add_executable(bench_cc bench_cc.cpp ${dependency_files})
+add_executable(bench_loop bench_loop.cpp ${dependency_files})
 
 
 
