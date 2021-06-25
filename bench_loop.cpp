@@ -6,20 +6,20 @@
 #include "mesh.h"
 
 //#define INPLACE
-//#define EXPORT
 #define MAX_VERTICES pow(2,28)
 
 int main(int argc, char* argv[])
 {
 	if (argc < 3)
     {
-		std::cout << "Usage: " << argv[0] << " <filename>.obj <depth> <nb_repetitions=16>" << std::endl ;
+		std::cout << "Usage: " << argv[0] << " <filename>.obj <depth> <export=0> <nb_repetitions=16>" << std::endl ;
 		return 0 ;
     }
 
 	const std::string f_name(argv[1]) ;
 	const uint D = atoi(argv[2]) ;
-	const uint runCount = argc == 4 ? atoi(argv[3]) : 16 ;
+	const bool enable_export = argc < 4 ? false : atoi(argv[3]) ;
+	const uint runCount = argc == 4 ? atoi(argv[4]) : 16 ;
 
 	Mesh_Loop S0(f_name) ;
 	if (!S0.is_tri_only())
@@ -29,9 +29,9 @@ int main(int argc, char* argv[])
 	}
 
     S0.check() ;
-# ifdef EXPORT
-    S0.export_to_obj("S0.obj") ;
-# endif
+
+	if (enable_export)
+		S0.export_to_obj("S0.obj") ;
 
 	Mesh_Loop S = S0 ;
 	double refine_he_time = 0 ;
@@ -51,17 +51,17 @@ int main(int argc, char* argv[])
 
         S.check() ;
 
-# ifdef EXPORT
-        // Export
-        std::stringstream ss ;
-        ss << "S" << d ;
+		if (enable_export)
+		{
+			std::stringstream ss ;
+			ss << "S" << d ;
 #   ifdef INPLACE
-        ss << "_inplace" ;
+			ss << "_inplace" ;
 #   endif
-        ss << ".obj" ;
+			ss << ".obj" ;
 
-        S.export_to_obj(ss.str()) ;
-# endif
+			S.export_to_obj(ss.str()) ;
+		}
     }
 
 //	std::cout << "Halfedges:\t" << refine_he_time << "ms" << std::endl ;
