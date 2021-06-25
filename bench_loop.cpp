@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
 	double refine_he_time = 0 ;
 	double refine_cr_time = 0 ;
 	double refine_vx_time = 0 ;
-	std::cout << "Benching depth " << D << std::endl ;
+
 	for (int d = 1 ; d <= D ; d++)
     {
         if (S.V(d+1) > MAX_VERTICES)
@@ -67,15 +67,14 @@ int main(int argc, char* argv[])
 //	std::cout << "Halfedges:\t" << refine_he_time << "ms" << std::endl ;
 //	std::cout << "Creases:\t" << refine_cr_time << "ms" << std::endl ;
 //	std::cout << "Vertices:\t" << refine_vx_time << "ms" << std::endl ;
-	std::cout << "He/Cr/Ve" << std::endl ;
 	std::cout << refine_he_time << "\t" << refine_cr_time << "\t" << refine_vx_time << std::endl ;
 
 
 	// print the number of threads
-	#pragma omp parallel
-	{
-		std::cout << "num threads: " << omp_get_num_threads() << std::endl << std::flush ;
-	}
+//	#pragma omp parallel
+//	{
+//		std::cout << "num threads: " << omp_get_num_threads() << std::endl << std::flush ;
+//	}
 
 
     return 0 ;
