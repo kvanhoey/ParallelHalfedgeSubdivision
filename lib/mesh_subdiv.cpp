@@ -144,7 +144,7 @@ MeshSubdivision::bench_refine_step(bool refine_he, bool refine_cr, bool refine_v
 		for (uint i = 0 ; i < repetitions; ++i)
 		{
 			auto start = timer::now() ;
-			refine_vertices_with_creases(V_new) ;
+			refine_vertices(V_new) ;
 			auto stop = timer::now() ;
 
 			duration elapsed = stop - start;
