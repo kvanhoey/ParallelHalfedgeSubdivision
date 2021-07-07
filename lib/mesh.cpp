@@ -423,6 +423,32 @@ Mesh::is_quad_only() const
 	return all_faces_are_ngons(4);
 }
 
+int
+Mesh::count_sharp_creases() const
+{
+	int counter = 0 ;
+	for (int c = 0; c < E0 ; ++c)
+	{
+		if (Sigma(c) > 1e-6)
+			counter ++ ;
+	}
+
+	return counter ;
+}
+
+int
+Mesh::count_border_edges() const
+{
+	int counter = 0 ;
+	for (int h = 0; h < H0 ; ++h)
+	{
+		if (Twin(h) < 0)
+			counter ++ ;
+	}
+
+	return counter ;
+}
+
 
 bool
 Mesh::all_faces_are_ngons(int n) const

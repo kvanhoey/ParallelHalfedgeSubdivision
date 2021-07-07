@@ -11,6 +11,7 @@
 #include <array>
 #include <cmath>
 #include <chrono>
+#include <algorithm>
 #include <bits/stdc++.h>
 
 #include <omp.h>
@@ -76,6 +77,8 @@ public:
 	bool check() const ;
 	bool is_cage() const ;
 
+	int count_border_edges() const ;
+	int count_sharp_creases() const ;
 	bool is_tri_only() const ;
 	bool is_quad_only() const ;
 	bool all_faces_are_ngons(int n) const ;
