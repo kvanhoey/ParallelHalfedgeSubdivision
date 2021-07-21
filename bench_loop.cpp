@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
 //	std::cout << "Halfedges:\t" << refine_he_time << "ms" << std::endl ;
 //	std::cout << "Creases:\t" << refine_cr_time << "ms" << std::endl ;
 //	std::cout << "Vertices:\t" << refine_vx_time << "ms" << std::endl ;
-	std::cout << std::fixed << refine_he_time.median << "\t/\t" << refine_cr_time.median << "\t/\t" << refine_vx_time.median << std::endl ;
+	std::cout << std::fixed << refine_he_time.median << "\t" << refine_cr_time.median << "\t" << refine_vx_time.median << std::endl ;
 
 	// write into files
 	std::string f_name_tmp = f_name.substr(f_name.find_last_of("\\/") + 1, 999) ;

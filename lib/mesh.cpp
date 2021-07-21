@@ -629,9 +629,9 @@ Mesh::read_from_obj(const std::string& filename)
 
 	// Creases
 	alloc_crease_buffer(this->E0) ;
-	//set_creases(tmp_creases) ;
+	set_creases(tmp_creases) ;
 	set_boundaries_sharp() ;
-	//compute_and_set_crease_neighbors() ;
+	compute_and_set_crease_neighbors() ;
 
 	// set depth
 	set_depth(0) ;
