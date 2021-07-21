@@ -113,6 +113,7 @@ CreatePlot(const char *meshName, const char *performanceType, const char *plotLa
 
     // read numbers
     for (int32_t threadID = 0; threadID < threadCount; ++threadID) {
+	const int32_t nthreads = threadID == 5 ? 24 : 1 << threadID ;
         for (int32_t depth = 1; depth <= maxDepth; ++depth) {
             FILE *dataFile;
 
@@ -121,7 +122,8 @@ CreatePlot(const char *meshName, const char *performanceType, const char *plotLa
                     meshName,
                     performanceType,
                     depth,
-                    1 << threadID);
+                    nthreads);
+	    printf("Opening %s\n",buffer) ;
             dataFile = fopen(buffer, "r");
             fscanf(dataFile, "%f", &data[depth - 1]);
             fclose(dataFile);
