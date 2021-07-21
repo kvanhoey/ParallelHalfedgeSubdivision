@@ -66,7 +66,7 @@ fprintf(pf,
 "    \\tiny{CPU\\_4},\n"
 "    \\tiny{CPU\\_8},\n"
 "    \\tiny{CPU\\_16},\n"
-"    \\tiny{CPU\\_24},\n"
+"    \\tiny{CPU\\_32},\n"
 "}\n"
 "\\end{semilogyaxis}\n"
 "\n"
@@ -113,7 +113,7 @@ CreatePlot(const char *meshName, const char *performanceType, const char *plotLa
 
     // read numbers
     for (int32_t threadID = 0; threadID < threadCount; ++threadID) {
-        const int32_t nthreads = threadID == 5 ? 24 : 1 << threadID ;
+        const int32_t nthreads = 1 << threadID ;
         for (int32_t depth = 1; depth <= maxDepth; ++depth) {
             FILE *dataFile;
 
