@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
 //	std::cout << "Halfedges:\t" << refine_he_time << "ms" << std::endl ;
 //	std::cout << "Creases:\t" << refine_cr_time << "ms" << std::endl ;
 //	std::cout << "Vertices:\t" << refine_vx_time << "ms" << std::endl ;
-	std::cout << refine_he_time.median << "\t/\t" << refine_cr_time.median << "\t/\t" << refine_vx_time.median << std::endl ;
+	std::cout << std::fixed << refine_he_time.median << "\t/\t" << refine_cr_time.median << "\t/\t" << refine_vx_time.median << std::endl ;
 
 	// write into files
 	std::string f_name_tmp = f_name.substr(f_name.find_last_of("\\/") + 1, 999) ;
@@ -79,17 +79,17 @@ int main(int argc, char* argv[])
 
 	std::ofstream f_he ;
 	f_he.open(fname_he.str()) ;
-	f_he << refine_he_time.median << "\t/\t" << refine_he_time.mean << "\t/\t" << refine_he_time.min << "\t/\t" << refine_he_time.max << std::endl ;
+	f_he << std::fixed << refine_he_time.median << "\t/\t" << refine_he_time.mean << "\t/\t" << refine_he_time.min << "\t/\t" << refine_he_time.max << std::endl ;
 	f_he.close() ;
 
 	std::ofstream f_cr ;
 	f_cr.open(fname_cr.str()) ;
-	f_cr << refine_cr_time.median << "\t/\t" << refine_cr_time.mean << "\t/\t" << refine_cr_time.min << "\t/\t" << refine_cr_time.max << std::endl ;
+	f_cr << std::fixed << refine_cr_time.median << "\t/\t" << refine_cr_time.mean << "\t/\t" << refine_cr_time.min << "\t/\t" << refine_cr_time.max << std::endl ;
 	f_cr.close() ;
 
 	std::ofstream f_vx ;
 	f_vx.open(fname_vx.str()) ;
-	f_vx << refine_vx_time.median << "\t/\t" << refine_vx_time.mean << "\t/\t" << refine_vx_time.min << "\t/\t" << refine_vx_time.max << std::endl ;
+	f_vx << std::fixed << refine_vx_time.median << "\t/\t" << refine_vx_time.mean << "\t/\t" << refine_vx_time.min << "\t/\t" << refine_vx_time.max << std::endl ;
 	f_vx.close() ;
 
 
