@@ -1,6 +1,6 @@
 for mesh in ../meshes/data_benching/*.obj; do  
 	echo $mesh
-	for CPU in 1 2 4 8 16 32; do
+	for CPU in 32 16 8 4 2 1; do
 		export OMP_NUM_THREADS=$CPU
 		echo "$CPU CPUs"
 		for D in {1..7}; do
