@@ -8,6 +8,7 @@
 
 #include "halfedge.h"
 #include "crease.h"
+#include "timings.h"
 #include <array>
 #include <cmath>
 #include <chrono>
@@ -191,11 +192,12 @@ protected:
 	typedef std::chrono::high_resolution_clock timer;
 	typedef std::chrono::duration<float, std::milli> duration;
 public:
-	virtual double bench_refine_step(bool refine_he, bool refine_cr, bool refine_vx, uint repetitions, bool save_result=false) final ;
+	virtual Timings bench_refine_step(bool refine_he, bool refine_cr, bool refine_vx, uint repetitions, bool save_result=false) final ;
 };
 
 class Mesh_CC: public MeshSubdivision
 {
+
 public:
 	Mesh_CC(int H, int V, int E, int F): MeshSubdivision(H,V,E,F) {}
 	Mesh_CC(const std::string& filename): MeshSubdivision(filename) {}

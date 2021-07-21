@@ -5,7 +5,7 @@ project (ParallelHalfedgeSubdivision CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_FLAGS "-Os -march=native")
-# set(CMAKE_CXX_FLAGS "-g") # Debug
+#set(CMAKE_CXX_FLAGS "-g") # Debug
 
 option(BUILD_DOC "Build documentation" OFF)
 
@@ -27,7 +27,6 @@ add_executable(bench_cc bench_cc.cpp ${dependency_files})
 add_executable(bench_loop bench_loop.cpp ${dependency_files})
 
 add_executable(stats stats.cpp ${dependency_files})
-
 
 # check if Doxygen is installed
 find_package(Doxygen)

@@ -82,16 +82,17 @@ CC_BARRIER
 }
 
 
-double
+
+Timings
 MeshSubdivision::bench_refine_step(bool refine_he, bool refine_cr, bool refine_vx, uint repetitions, bool save_result)
 {
 	halfedge_buffer H_new ;
 	crease_buffer C_new ;
 	vertex_buffer V_new ;
 
-	duration median_he(0) ;
-	duration median_cr(0) ;
-	duration median_vx(0) ;
+	duration min_he(0),max_he(0),sum_he(0),median_he(0) ;
+	duration min_cr(0),max_cr(0),sum_cr(0),median_cr(0) ;
+	duration min_vx(0),max_vx(0),sum_vx(0),median_vx(0) ;
 
 	if (refine_he)
 	{
@@ -109,9 +110,13 @@ MeshSubdivision::bench_refine_step(bool refine_he, bool refine_cr, bool refine_v
 			duration elapsed = stop - start;
 			timings_he.push_back(elapsed) ;
 		}
+		assert(timings_he.size() == repetitions) ;
 
 		std::sort(timings_he.begin(), timings_he.end()) ;
 		median_he = timings_he[repetitions / 2] ;
+		min_he = timings_he.front() ;
+		max_he = timings_he.back() ;
+		sum_he = std::accumulate(timings_he.begin(), timings_he.end(), duration(0)) ;
 	}
 
 	if (refine_cr)
@@ -130,9 +135,13 @@ MeshSubdivision::bench_refine_step(bool refine_he, bool refine_cr, bool refine_v
 			duration elapsed = stop - start;
 			timings_cr.push_back(elapsed) ;
 		}
+		assert(timings_cr.size() == repetitions) ;
 
 		std::sort(timings_cr.begin(), timings_cr.end()) ;
 		median_cr = timings_cr[repetitions / 2] ;
+		min_cr = timings_cr.front() ;
+		max_cr = timings_cr.back() ;
+		sum_cr = std::accumulate(timings_cr.begin(), timings_cr.end(), duration(0)) ;
 	}
 
 	if (refine_vx)
@@ -150,9 +159,13 @@ MeshSubdivision::bench_refine_step(bool refine_he, bool refine_cr, bool refine_v
 			duration elapsed = stop - start;
 			timings_vx.push_back(elapsed) ;
 		}
+		assert(timings_vx.size() == repetitions) ;
 
 		std::sort(timings_vx.begin(), timings_vx.end()) ;
 		median_vx = timings_vx[repetitions / 2] ;
+		min_vx = timings_vx.front() ;
+		max_vx = timings_vx.back() ;
+		sum_vx = std::accumulate(timings_vx.begin(), timings_vx.end(), duration(0)) ;
 	}
 
 	if (save_result && refine_he)
@@ -165,9 +178,18 @@ MeshSubdivision::bench_refine_step(bool refine_he, bool refine_cr, bool refine_v
 	if (save_result && refine_he && refine_cr && refine_vx)
 		set_depth(depth() + 1) ;
 
+	duration min_time = min_he + min_cr + min_vx ;
+	duration max_time = max_he + max_cr + max_vx ;
+	duration sum_time = sum_he + sum_cr + sum_vx ;
 	duration median_time = median_he + median_cr + median_vx ;
 
-	return median_time.count() ;
+	Timings t ;
+	t.min = min_time.count() ;
+	t.max = max_time.count() ;
+	t.mean = sum_time.count() / repetitions ;
+	t.median = median_time.count() ;
+
+	return t ;
 }
 
 void
