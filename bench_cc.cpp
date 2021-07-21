@@ -30,9 +30,9 @@ int main(int argc, char* argv[])
 # endif
 
     Mesh_CC S = S0 ;
-	double refine_he_time = 0 ;
-	double refine_cr_time = 0 ;
-	double refine_vx_time = 0 ;
+	Timings refine_he_time ;
+	Timings refine_cr_time ;
+	Timings refine_vx_time ;
 	for (int d = 1 ; d <= D ; d++)
     {
 		std::cout << d << std::endl ;
@@ -60,9 +60,9 @@ int main(int argc, char* argv[])
 # endif
     }
 
-	std::cout << "Halfedges:\t" << refine_he_time << "ms" << std::endl ;
-	std::cout << "Creases:\t" << refine_cr_time << "ms" << std::endl ;
-	std::cout << "Vertices:\t" << refine_vx_time << "ms" << std::endl ;
+	std::cout << "Halfedges:\t" << refine_he_time.median << "ms" << std::endl ;
+	std::cout << "Creases:\t" << refine_cr_time.median << "ms" << std::endl ;
+	std::cout << "Vertices:\t" << refine_vx_time.median << "ms" << std::endl ;
 
 	// print the number of threads
 	#pragma omp parallel
