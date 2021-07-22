@@ -260,14 +260,20 @@ private:
 	void refine_vertices_with_creases(vertex_buffer& V_new) const ;
 	void refine_vertices_twosteps(vertex_buffer& V_new) const ;
 	void refine_vertices_with_creases_twosteps(vertex_buffer& V_new) const ;
+	void refine_vertices_with_creases_twosteps_branchless(vertex_buffer& V_new) const ;
 	void refine_vertices_inplace() ;
 
 	void edgepoints(vertex_buffer& V_new) const ;
 	void edgepoints_with_creases(vertex_buffer& V_new) const ;
+	void edgepoints_with_creases_branchless(vertex_buffer& V_new) const ;
+
 	void vertexpoints(vertex_buffer& V_new) const ;
 	void vertexpoints_with_creases(vertex_buffer& V_new) const ;
+	void vertexpoints_with_creases_branchless(vertex_buffer& V_new) const ;
+
 	void allpoints(vertex_buffer& V_new) const ;
 	void allpoints_with_creases(vertex_buffer& V_new) const ;
+	void allpoints_with_creases_branchless(vertex_buffer& V_new) const ;
 
 	void vertexpoints_inplace() ;
 	void vertexpoints_inplace_pass1() ;

@@ -106,8 +106,10 @@ void
 Mesh_Loop::refine_vertices_with_creases(vertex_buffer& V_new) const
 {
 	init_vertex_buffer(V_new) ;
-//	allpoints_with_creases(V_new) ;
-	refine_vertices_with_creases_twosteps(V_new) ;
+	//allpoints_with_creases(V_new) ;
+	//allpoints_with_creases_branchless(V_new) ;
+	//refine_vertices_with_creases_twosteps(V_new) ;
+	refine_vertices_with_creases_twosteps_branchless(V_new) ;
 }
 
 void
@@ -131,6 +133,13 @@ Mesh_Loop::refine_vertices_with_creases_twosteps(vertex_buffer& V_new) const
 {
 	edgepoints_with_creases(V_new) ;
 	vertexpoints_with_creases(V_new) ;
+}
+
+void
+Mesh_Loop::refine_vertices_with_creases_twosteps_branchless(vertex_buffer& V_new) const
+{
+	edgepoints_with_creases_branchless(V_new) ;
+	vertexpoints_with_creases_branchless(V_new) ;
 }
 
 void
@@ -176,31 +185,87 @@ CC_PARALLEL_FOR
 	{
 		const int v = Vert(h) ;
 		const int new_odd_pt_id = Vd + Edge(h) ;
-		vec3& v_new = V_new[new_odd_pt_id] ;
-//		if (is_border_halfedge(h)) // Boundary rule A.1
-//		{
-//			const int vn = Vert(Next(h)) ;
-//			for (int c = 0; c < 3; ++c)
-//			{
-//				V_new[new_odd_pt_id][c] = (Vd[v][c] + Vd[vn][c])  / 2. ;
-//			}
-//		}
-//		else
+		const vec3& v_old_vx = V_old[v] ;
+
+		vec3& v_new_edge = V_new[new_odd_pt_id] ;
 		{
 			const int vp = Vert(Prev(h)) ;
 			const int vn = Vert(Next(h)) ;
 			const int c_id = Edge(h) ;
-			const float sharpness = std::clamp(Sigma(c_id),0.0f,1.0f) ;
-			const bool is_border = is_border_halfedge(h) ;
 
-			for (int c = 0; c < 3; ++c)
+			const vec3& vp_old_vx = V_old[vp] ;
+			const vec3& vn_old_vx = V_old[vn] ;
+
+			const float edge_sharpness = Sigma(c_id) ;
+			if (edge_sharpness < 1e-6)
 			{
-				const float increm_smooth = 0.375f * V_old[v][c] + 0.125f * V_old[vp][c] ;
-				const float increm_sharp = 0.5f * (is_border ? V_old[v][c] + V_old[vn][c] : V_old[v][c]) ;
-				float increm = std::lerp(increm_smooth,increm_sharp,sharpness) ;
+				for (int c = 0; c < 3; ++c)
+				{
+					const float increm_v_edge = 0.375f * v_old_vx[c] + 0.125f * vp_old_vx[c] ;
 CC_ATOMIC
-				v_new[c] += increm ;
+					v_new_edge[c] += increm_v_edge ;
+				}
+
 			}
+			else
+			{
+				const bool is_border = is_border_halfedge(h) ;
+				if (edge_sharpness > 1.0)
+				{
+					for (int c = 0; c < 3; ++c)
+					{
+						const float increm_v_edge = 0.5f * (is_border ? v_old_vx[c] + vn_old_vx[c] : v_old_vx[c]) ;
+CC_ATOMIC
+						v_new_edge[c] += increm_v_edge ;
+					}
+				}
+				else
+				{
+					for (int c = 0; c < 3; ++c)
+					{
+						const float increm_smooth_edge = 0.375f * v_old_vx[c] + 0.125f * vp_old_vx[c] ;
+						const float increm_sharp_edge = 0.5f * (is_border ? v_old_vx[c] + vn_old_vx[c] : v_old_vx[c]) ;
+						float increm_v_edge = std::lerp(increm_smooth_edge,increm_sharp_edge,edge_sharpness) ;
+CC_ATOMIC
+						v_new_edge[c] += increm_v_edge ;
+					}
+				}
+			}
+		}
+	}
+CC_BARRIER
+}
+
+
+void
+Mesh_Loop::edgepoints_with_creases_branchless(vertex_buffer& V_new) const
+{
+	const vertex_buffer& V_old = this->vertices ;
+
+CC_PARALLEL_FOR
+	for (int h = 0; h < Hd ; ++h)
+	{
+		const int v = Vert(h) ;
+		const int new_odd_pt_id = Vd + Edge(h) ;
+		vec3& v_new = V_new[new_odd_pt_id] ;
+
+		const int vp = Vert(Prev(h)) ;
+		const int vn = Vert(Next(h)) ;
+		const vec3& v_old_vx = V_old[v] ;
+		const vec3& vp_old_vx = V_old[vp] ;
+		const vec3& vn_old_vx = V_old[vn] ;
+
+		const int c_id = Edge(h) ;
+		const float sharpness = std::clamp(Sigma(c_id),0.0f,1.0f) ;
+		const bool is_border = is_border_halfedge(h) ;
+
+		for (int c = 0; c < 3; ++c)
+		{
+			const float increm_smooth = 0.375f * v_old_vx[c] + 0.125f * vp_old_vx[c] ;
+			const float increm_sharp = 0.5f * (is_border ? v_old_vx[c] + vn_old_vx[c] : v_old_vx[c]) ;
+			float increm = std::lerp(increm_smooth,increm_sharp,sharpness) ;
+CC_ATOMIC
+			v_new[c] += increm ;
 		}
 	}
 CC_BARRIER
@@ -262,118 +327,185 @@ CC_PARALLEL_FOR
 	for (int h = 0; h < Hd ; ++h)
 	{
 		const int v = Vert(h) ;
-		vec3& v_new = V_new[v] ;
-
+		vec3& v_new_vx = V_new[v] ;
+		const vec3& v_old_vx = V_old[v] ;
 		const int n = vertex_edge_valence(h) ;
-		const int vn = Vert(Next(h)) ;
 
-
-//		if (n < 0) // Boundary rule
-//		{
-//			// Vd[v]*3/4 + (sum of 2 neighbors) / 8.
-//			if (is_border_halfedge(h))
-//			{
-//				for (int c=0; c < 3; ++c)
-//				{
-//					const float incremV = Vd[v][c]*3./8. + Vd[vn][c]*1./8. ;
-//					const float incremVn = Vd[v][c]*1./8. + Vd[vn][c]*3./8. ;
-//CC_ATOMIC
-//					v_new[c] += incremV ;
-//CC_ATOMIC
-//					V_new[vn][c] += incremVn ;
-//				}
-//			}
-//		}
-//		else
+		const int n_creases = vertex_crease_valence(h) ;
+		if ((n==2) || n_creases > 2) // Corner vertex rule
 		{
-			const int n_creases = vertex_crease_valence(h) ;
-			if ((n==2) || n_creases > 2) // Corner vertex rule
+			const int vertex_he_valence = vertex_halfedge_valence(h) ;
+			for (int c=0; c < 3; ++c)
 			{
-				const int vertex_he_valence = vertex_halfedge_valence(h) ;
+				const float increm_corner = v_old_vx[c] / vertex_he_valence ;
+CC_ATOMIC
+				v_new_vx[c] += increm_corner ;
+			}
+		}
+		else
+		{
+			const float vx_sharpness = n_creases < 2 ? 0.0f : vertex_sharpness(h) ; // n_creases < 0 ==> dart vertex ==> smooth
+			if (vx_sharpness < 1e-6) // smooth
+			{
+				const int vn = Vert(Next(h)) ;
+				const vec3& vn_old_vx = V_old[vn] ;
+				const float n_ = 1./float(n) ;
+				const float beta = compute_beta(n_) ;
+				const float beta_ = n_ - beta ;
 				for (int c=0; c < 3; ++c)
 				{
-					const float increm = V_old[v][c] / vertex_he_valence ;
+					const float increm_smooth = beta_*v_old_vx[c] + beta*vn_old_vx[c] ;
 CC_ATOMIC
-					v_new[c] += increm ;
+					v_new_vx[c] += increm_smooth ;
 				}
 			}
-			else
+			else // creased or blend
 			{
-				const float vx_sharpness = n_creases < 2 ? 0.0f : vertex_sharpness(h) ; // n_creases < 0 ==> dart vertex ==> smooth
-				if (vx_sharpness < 1e-6) // smooth
+				const int c_id = Edge(h) ;
+				const float edge_sharpness = Sigma(c_id) ;
+				if (edge_sharpness > 1e-6) // current edge is one of two creases and contributes
 				{
-					const float n_ = 1./float(n) ;
-					const float beta = compute_beta(n_) ;
-					const float beta_ = n_ - beta ;
-					for (int c=0; c < 3; ++c)
-					{
-						const float increm = beta_*V_old[v][c] + beta*V_old[vn][c] ;
-CC_ATOMIC
-						v_new[c] += increm ;
-					}
-				}
-				else // creased or blend
-				{
-					const int c_id = Edge(h) ;
-					const float edge_sharpness = Sigma(c_id) ;
-					if (edge_sharpness > 1e-6) // current edge is one of two creases and contributes
-					{
-						const float interp = std::clamp(vx_sharpness,0.0f,1.0f) ;
-						const bool is_border = is_border_halfedge(h) ;
+					const int vn = Vert(Next(h)) ;
+					const vec3& vn_old_vx = V_old[vn] ;
+					const bool is_border = is_border_halfedge(h) ;
 
-						float increm_corner_factr = 0.5f ;
-						float increm_sharp_factr_vn = 0.375f ;
-						float increm_sharp_factr_vb = 0.0f ;
-						int vb = v ;
+					float increm_corner_factr = 0.5f ;
+					float increm_sharp_factr_vn = 0.375f ;
+					float increm_sharp_factr_vb = 0.0f ;
+					int vb = v ;
 
-						if (is_border)
+					if (is_border)
+					{
+						increm_corner_factr = 1.0f ;
+						increm_sharp_factr_vn = 0.75f ;
+
+						for (int h_it = Prev(h) ; ; h_it = Prev(h_it))
 						{
-							increm_corner_factr = 1.0f ;
-							increm_sharp_factr_vn = 0.75f ;
-
-							for (int h_it = Prev(h) ; ; h_it = Prev(h_it))
+							const int h_it_twin = Twin(h_it) ;
+							if (h_it_twin < 0)
 							{
-								const int h_it_twin = Twin(h_it) ;
-								if (h_it_twin < 0)
-								{
-									assert(is_crease_halfedge(h_it)) ;
-									vb = Vert(h_it) ;
-									increm_sharp_factr_vb = 0.125f ;
-									break ;
-								}
-
-								h_it = h_it_twin ;
+								assert(is_crease_halfedge(h_it)) ;
+								vb = Vert(h_it) ;
+								increm_sharp_factr_vb = 0.125f ;
+								break ;
 							}
-						}
 
+							h_it = h_it_twin ;
+						}
+					}
+					const vec3& vb_old_vx = V_old[vb] ;
+
+					if (vx_sharpness >= 1.0) // sharp
+					{
 						for (int c=0; c < 3; ++c)
 						{
-							const float increm_corner = increm_corner_factr * V_old[v][c] ;
-							const float increm_sharp = 0.125f * V_old[vn][c] + increm_sharp_factr_vn * V_old[v][c] + increm_sharp_factr_vb * V_old[vb][c] ;
-							const float incremV = std::lerp(increm_corner,increm_sharp,interp) ;
+							const float increm_sharp = 0.125f * vn_old_vx[c] + increm_sharp_factr_vn * v_old_vx[c] + increm_sharp_factr_vb * vb_old_vx[c] ;
 CC_ATOMIC
-							v_new[c] += incremV ;
+							v_new_vx[c] += increm_sharp ;
 						}
+					}
+					else // blend
+					{
+						for (int c=0; c < 3; ++c)
+						{
+							const float increm_corner = 0.5*v_old_vx[c] ;
+							const float increm_sharp = 0.125f * vn_old_vx[c] + increm_sharp_factr_vn * v_old_vx[c] + increm_sharp_factr_vb * vb_old_vx[c] ;
+CC_ATOMIC
+							v_new_vx[c] += std::lerp(increm_corner,increm_sharp,vx_sharpness) ;
+						}
+					}
+				}
+			}
+		}
+	}
+CC_BARRIER
+}
 
-//						if (vx_sharpness >= 1.0) // sharp
-//						{
-//							for (int c=0; c < 3; ++c)
-//							{
-//								const float increm = 0.125*Vd[vn][c] + 0.375*Vd[v][c];
-//CC_ATOMIC
-//								v_new[c] += increm ;
-//							}
-//						}
-//						else // blend
-//						{
-//							for (int c=0; c < 3; ++c)
-//							{
-//								const float increm_corner = 0.5*Vd[v][c] ;
-//								const float increm_sharp = 0.125*Vd[vn][c] + 0.375*Vd[v][c];
-//CC_ATOMIC
-//								v_new[c] += std::lerp(increm_corner,increm_sharp,vx_sharpness) ;
-//							}
-//						}
+void
+Mesh_Loop::vertexpoints_with_creases_branchless(vertex_buffer& V_new) const
+{
+	const vertex_buffer& V_old = this->vertices ;
+
+CC_PARALLEL_FOR
+	for (int h = 0; h < Hd ; ++h)
+	{
+		const int v = Vert(h) ;
+		vec3& v_new_vx = V_new[v] ;
+		const vec3& v_old_vx = V_old[v] ;
+		const int n = vertex_edge_valence(h) ;
+
+		const int n_creases = vertex_crease_valence(h) ;
+		if ((n==2) || n_creases > 2) // Corner vertex rule
+		{
+			const int vertex_he_valence = vertex_halfedge_valence(h) ;
+			for (int c=0; c < 3; ++c)
+			{
+				const float increm = v_old_vx[c] / vertex_he_valence ;
+CC_ATOMIC
+				v_new_vx[c] += increm ;
+			}
+		}
+		else
+		{
+			const float vx_sharpness = n_creases < 2 ? 0.0f : vertex_sharpness(h) ; // n_creases < 0 ==> dart vertex ==> smooth
+			if (vx_sharpness < 1e-6) // smooth
+			{
+				const int vn = Vert(Next(h)) ;
+				const vec3& vn_old_vx = V_old[vn] ;
+				const float n_ = 1./float(n) ;
+				const float beta = compute_beta(n_) ;
+				const float beta_ = n_ - beta ;
+				for (int c=0; c < 3; ++c)
+				{
+					const float increm = beta_*v_old_vx[c] + beta*vn_old_vx[c] ;
+CC_ATOMIC
+					v_new_vx[c] += increm ;
+				}
+			}
+			else // creased or blend
+			{
+				const int c_id = Edge(h) ;
+				const float edge_sharpness = Sigma(c_id) ;
+				if (edge_sharpness > 1e-6) // current edge is one of two creases and contributes
+				{
+					const int vn = Vert(Next(h)) ;
+					const vec3& vn_old_vx = V_old[vn] ;
+
+					const float interp = std::clamp(vx_sharpness,0.0f,1.0f) ;
+					const bool is_border = is_border_halfedge(h) ;
+
+					float increm_corner_factr = 0.5f ;
+					float increm_sharp_factr_vn = 0.375f ;
+					float increm_sharp_factr_vb = 0.0f ;
+					int vb = v ;
+
+					if (is_border)
+					{
+						increm_corner_factr = 1.0f ;
+						increm_sharp_factr_vn = 0.75f ;
+
+						for (int h_it = Prev(h) ; ; h_it = Prev(h_it))
+						{
+							const int h_it_twin = Twin(h_it) ;
+							if (h_it_twin < 0)
+							{
+								assert(is_crease_halfedge(h_it)) ;
+								vb = Vert(h_it) ;
+								increm_sharp_factr_vb = 0.125f ;
+								break ;
+							}
+
+							h_it = h_it_twin ;
+						}
+					}
+
+					for (int c=0; c < 3; ++c)
+					{
+						const float increm_corner = increm_corner_factr * v_old_vx[c] ;
+						const float increm_sharp = 0.125f * vn_old_vx[c] + increm_sharp_factr_vn * v_old_vx[c] + increm_sharp_factr_vb * V_old[vb][c] ;
+						const float incremV = std::lerp(increm_corner,increm_sharp,interp) ;
+CC_ATOMIC
+						v_new_vx[c] += incremV ;
 					}
 				}
 			}
@@ -443,9 +575,123 @@ CC_BARRIER
 }
 
 void
-Mesh_Loop::allpoints_with_creases(vertex_buffer &V_new) const
+Mesh_Loop::allpoints_with_creases_branchless(vertex_buffer &V_new) const
 {
-	assert(false) ;
+	// NOTE. This currently is only a copy-pasting of edgepoints_with_creases_branchless and vertexpoints_with_creases_branchless
+	// within the same loop on halfedges.
+	// TODO: one can probably exploit the single-loop case more optimally !
+
+	const vertex_buffer& V_old = this->vertices ;
+
+CC_PARALLEL_FOR
+	for (int h = 0; h < Hd ; ++h)
+	{
+		// edgepoints
+		const int v = Vert(h) ;
+		const int new_odd_pt_id = Vd + Edge(h) ;
+		vec3& v_new = V_new[new_odd_pt_id] ;
+
+		const int vp = Vert(Prev(h)) ;
+		const int vn = Vert(Next(h)) ;
+		const vec3& v_old_vx = V_old[v] ;
+		const vec3& vp_old_vx = V_old[vp] ;
+		const vec3& vn_old_vx = V_old[vn] ;
+
+		const int c_id = Edge(h) ;
+		const float sharpness = std::clamp(Sigma(c_id),0.0f,1.0f) ;
+		const bool is_border = is_border_halfedge(h) ;
+
+		for (int c = 0; c < 3; ++c)
+		{
+			const float increm_smooth = 0.375f * v_old_vx[c] + 0.125f * vp_old_vx[c] ;
+			const float increm_sharp = 0.5f * (is_border ? v_old_vx[c] + vn_old_vx[c] : v_old_vx[c]) ;
+			float increm = std::lerp(increm_smooth,increm_sharp,sharpness) ;
+	CC_ATOMIC
+			v_new[c] += increm ;
+		}
+
+		// vertex points
+		vec3& v_new_vx = V_new[v] ;
+		const int n = vertex_edge_valence(h) ;
+
+		const int n_creases = vertex_crease_valence(h) ;
+		if ((n==2) || n_creases > 2) // Corner vertex rule
+		{
+			const int vertex_he_valence = vertex_halfedge_valence(h) ;
+			for (int c=0; c < 3; ++c)
+			{
+				const float increm = v_old_vx[c] / vertex_he_valence ;
+CC_ATOMIC
+				v_new_vx[c] += increm ;
+			}
+		}
+		else
+		{
+			const float vx_sharpness = n_creases < 2 ? 0.0f : vertex_sharpness(h) ; // n_creases < 0 ==> dart vertex ==> smooth
+			if (vx_sharpness < 1e-6) // smooth
+			{
+				const int vn = Vert(Next(h)) ;
+				const vec3& vn_old_vx = V_old[vn] ;
+				const float n_ = 1./float(n) ;
+				const float beta = compute_beta(n_) ;
+				const float beta_ = n_ - beta ;
+				for (int c=0; c < 3; ++c)
+				{
+					const float increm = beta_*v_old_vx[c] + beta*vn_old_vx[c] ;
+CC_ATOMIC
+					v_new_vx[c] += increm ;
+				}
+			}
+			else // creased or blend
+			{
+				const int c_id = Edge(h) ;
+				const float edge_sharpness = Sigma(c_id) ;
+				if (edge_sharpness > 1e-6) // current edge is one of two creases and contributes
+				{
+					const int vn = Vert(Next(h)) ;
+					const vec3& vn_old_vx = V_old[vn] ;
+
+					const float interp = std::clamp(vx_sharpness,0.0f,1.0f) ;
+					const bool is_border = is_border_halfedge(h) ;
+
+					float increm_corner_factr = 0.5f ;
+					float increm_sharp_factr_vn = 0.375f ;
+					float increm_sharp_factr_vb = 0.0f ;
+					int vb = v ;
+
+					if (is_border)
+					{
+						increm_corner_factr = 1.0f ;
+						increm_sharp_factr_vn = 0.75f ;
+
+						for (int h_it = Prev(h) ; ; h_it = Prev(h_it))
+						{
+							const int h_it_twin = Twin(h_it) ;
+							if (h_it_twin < 0)
+							{
+								assert(is_crease_halfedge(h_it)) ;
+								vb = Vert(h_it) ;
+								increm_sharp_factr_vb = 0.125f ;
+								break ;
+							}
+
+							h_it = h_it_twin ;
+						}
+					}
+
+					for (int c=0; c < 3; ++c)
+					{
+						const float increm_corner = increm_corner_factr * v_old_vx[c] ;
+						const float increm_sharp = 0.125f * vn_old_vx[c] + increm_sharp_factr_vn * v_old_vx[c] + increm_sharp_factr_vb * V_old[vb][c] ;
+						const float incremV = std::lerp(increm_corner,increm_sharp,interp) ;
+CC_ATOMIC
+						v_new_vx[c] += incremV ;
+					}
+				}
+			}
+		}
+	}
+CC_BARRIER
 }
 
 

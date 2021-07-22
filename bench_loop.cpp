@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
 	const std::string f_name(argv[1]) ;
 	const uint D = atoi(argv[2]) ;
 	const bool enable_export = argc < 4 ? false : atoi(argv[3]) ;
-	const uint runCount = argc == 4 ? atoi(argv[4]) : 16 ;
+	const uint runCount = argc == 5 ? atoi(argv[4]) : 16 ;
 
 	Mesh_Loop S0(f_name) ;
 	if (!S0.is_tri_only())
@@ -68,9 +68,13 @@ int main(int argc, char* argv[])
 	std::cout << std::fixed << refine_he_time.median << "\t" << refine_cr_time.median << "\t" << refine_vx_time.median << std::endl ;
 
 	// write into files
-	std::string f_name_tmp = f_name.substr(f_name.find_last_of("\\/") + 1, 999) ;
-	std::string f_name_clean = f_name_tmp.substr(0,f_name_tmp.find_last_of(".")) ;
-	int num_threads = atoi(std::getenv("OMP_NUM_THREADS")) ;
+	const std::string f_name_tmp = f_name.substr(f_name.find_last_of("\\/") + 1, 999) ;
+	const std::string f_name_clean = f_name_tmp.substr(0,f_name_tmp.find_last_of(".")) ;
+	const char* num_threads_str = std::getenv("OMP_NUM_THREADS") ;
+	int num_threads = 0 ;
+	if (num_threads_str != NULL)
+		 num_threads = atoi(num_threads_str) ;
+//	std::cout << "Using " << num_threads << " threads" << std::endl ;
 
 	std::stringstream fname_he, fname_cr, fname_vx ;
 	fname_he << f_name_clean << "_halfedge_" << D << "_" << num_threads << ".txt" ;
