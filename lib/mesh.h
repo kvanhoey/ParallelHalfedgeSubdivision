@@ -6,6 +6,7 @@
 #include <fstream>
 #include <sstream>
 
+#include "vec3.h"
 #include "halfedge.h"
 #include "crease.h"
 #include "timings.h"
@@ -44,7 +45,6 @@
 class Mesh
 {
 protected:
-	typedef std::array<float,3> vec3 ;
 	typedef std::vector<HalfEdge_cage> halfedge_buffer_cage ;
 	typedef std::vector<HalfEdge> halfedge_buffer ;
 	typedef std::vector<vec3> vertex_buffer ;

@@ -231,7 +231,7 @@ MeshSubdivision::init_vertex_buffer(vertex_buffer& V, uint start_index)
 CC_PARALLEL_FOR
 	for (uint k = start_index ; k < V.size() ; ++k)  // important: include memset for realtime scenario
 	{
-		V[k] = vec3({0.0f,0.0f,0.0f}) ;
+		V[k] = {0.0f,0.0f,0.0f} ;
 	}
 CC_BARRIER
 }

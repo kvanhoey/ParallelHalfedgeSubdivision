@@ -430,87 +430,89 @@ CC_PARALLEL_FOR
 	for (int h = 0; h < Hd ; ++h)
 	{
 		const int v = Vert(h) ;
+		const int vn = Vert(Next(h)) ;
+
 		vec3& v_new_vx = V_new[v] ;
 		const vec3& v_old_vx = V_old[v] ;
-		const int n = vertex_edge_valence(h) ;
+		const vec3& vn_old_vx = V_old[vn] ;
 
+		const int n = vertex_edge_valence(h) ;
 		const int n_creases = vertex_crease_valence(h) ;
+		const int vertex_he_valence = vertex_halfedge_valence(h) ;
+
+		const int c_id = Edge(h) ;
+		const float edge_sharpness = Sigma(c_id) ;
+		const float vx_sharpness = n_creases < 2 ? 0.0f : vertex_sharpness(h) ; // n_creases < 0 ==> dart vertex ==> smooth
+
+		const float lerp_alpha = std::clamp(vx_sharpness,0.0f,1.0f) ;
+
+		// utility notations
+		const float n_ = 1./float(n) ;
+		const float beta = compute_beta(n_) ;
+		const float beta_ = n_ - beta ;
+
+
+		float edge_sharpness_factr = edge_sharpness < 1e-6 ? 0.0 : 1.0 ;
+
+		// border correction
+		const bool is_border = is_border_halfedge(h) ;
+		float increm_corner_factr = 0.5f ;
+		float increm_sharp_factr_vn = 0.375f ;
+		float increm_sharp_factr_vb = 0.0f ;
+
+		int vb = v ;
+		if (is_border)
+		{
+			increm_corner_factr = 1.0f ;
+			increm_sharp_factr_vn = 0.75f ;
+
+			for (int h_it = Prev(h) ; ; h_it = Prev(h_it))
+			{
+				const int h_it_twin = Twin(h_it) ;
+				if (h_it_twin < 0)
+				{
+					assert(is_crease_halfedge(h_it)) ;
+					vb = Vert(h_it) ;
+					increm_sharp_factr_vb = 0.125f ;
+					break ;
+				}
+
+				h_it = h_it_twin ;
+			}
+		}
+
+		const vec3 increm_corner = v_old_vx / vertex_he_valence ;
+		const vec3 increm_smooth = beta_*v_old_vx + beta*vn_old_vx ;
+		const vec3 increm_sharp = edge_sharpness_factr * (0.125f * vn_old_vx + increm_sharp_factr_vn * v_old_vx + increm_sharp_factr_vb * V_old[vb]) ;
+
 		if ((n==2) || n_creases > 2) // Corner vertex rule
 		{
-			const int vertex_he_valence = vertex_halfedge_valence(h) ;
+			// TODO apply_atomic_vec3_increment(v_new_vx,increm_corner) ;
 			for (int c=0; c < 3; ++c)
 			{
-				const float increm = v_old_vx[c] / vertex_he_valence ;
 CC_ATOMIC
-				v_new_vx[c] += increm ;
+				v_new_vx[c] += increm_corner[c] ;
 			}
 		}
 		else
-		{
-			const float vx_sharpness = n_creases < 2 ? 0.0f : vertex_sharpness(h) ; // n_creases < 0 ==> dart vertex ==> smooth
 			if (vx_sharpness < 1e-6) // smooth
 			{
-				const int vn = Vert(Next(h)) ;
-				const vec3& vn_old_vx = V_old[vn] ;
-				const float n_ = 1./float(n) ;
-				const float beta = compute_beta(n_) ;
-				const float beta_ = n_ - beta ;
 				for (int c=0; c < 3; ++c)
 				{
-					const float increm = beta_*v_old_vx[c] + beta*vn_old_vx[c] ;
 CC_ATOMIC
-					v_new_vx[c] += increm ;
+					v_new_vx[c] += increm_smooth[c] ;
 				}
 			}
 			else // creased or blend
 			{
-				const int c_id = Edge(h) ;
-				const float edge_sharpness = Sigma(c_id) ;
-				if (edge_sharpness > 1e-6) // current edge is one of two creases and contributes
+				for (int c=0; c < 3; ++c)
 				{
-					const int vn = Vert(Next(h)) ;
-					const vec3& vn_old_vx = V_old[vn] ;
-
-					const float interp = std::clamp(vx_sharpness,0.0f,1.0f) ;
-					const bool is_border = is_border_halfedge(h) ;
-
-					float increm_corner_factr = 0.5f ;
-					float increm_sharp_factr_vn = 0.375f ;
-					float increm_sharp_factr_vb = 0.0f ;
-					int vb = v ;
-
-					if (is_border)
-					{
-						increm_corner_factr = 1.0f ;
-						increm_sharp_factr_vn = 0.75f ;
-
-						for (int h_it = Prev(h) ; ; h_it = Prev(h_it))
-						{
-							const int h_it_twin = Twin(h_it) ;
-							if (h_it_twin < 0)
-							{
-								assert(is_crease_halfedge(h_it)) ;
-								vb = Vert(h_it) ;
-								increm_sharp_factr_vb = 0.125f ;
-								break ;
-							}
-
-							h_it = h_it_twin ;
-						}
-					}
-
-					for (int c=0; c < 3; ++c)
-					{
-						const float increm_corner = increm_corner_factr * v_old_vx[c] ;
-						const float increm_sharp = 0.125f * vn_old_vx[c] + increm_sharp_factr_vn * v_old_vx[c] + increm_sharp_factr_vb * V_old[vb][c] ;
-						const float incremV = std::lerp(increm_corner,increm_sharp,interp) ;
+					const float incremV = std::lerp(increm_corner[c],increm_sharp[c],lerp_alpha) ;
 CC_ATOMIC
-						v_new_vx[c] += incremV ;
-					}
+					v_new_vx[c] += incremV ;
 				}
 			}
-		}
-	}
+}
 CC_BARRIER
 }
 

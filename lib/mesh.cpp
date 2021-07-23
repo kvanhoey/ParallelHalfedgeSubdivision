@@ -19,7 +19,7 @@ Mesh::alloc_halfedge_buffer(int H)
 void
 Mesh::alloc_vertex_buffer(int V)
 {
-	vertices.resize(V,{0.,0.,0.}) ;
+	vertices.resize(V,{0.0f,0.0f,0.0f}) ;
 }
 
 void
@@ -521,7 +521,9 @@ Mesh::read_obj_data(std::ifstream& file)
 		{
 			for (int i = 0 ; i < 3 ; ++i)
 			{
-				iss >> Vx[v][i] ;
+				float val ;
+				iss >> val ;
+				Vx[v][i] = val ;
 			}
 			++v ;
 		}
