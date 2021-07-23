@@ -82,6 +82,38 @@ CC_BARRIER
 }
 
 
+void
+MeshSubdivision::refine_creases_branchless(crease_buffer& C_new) const
+{
+CC_PARALLEL_FOR
+	for (int c = 0; c < Cd; ++c)
+	{
+		const int _2c = 2*c ;
+
+		Crease& c0 = C_new[_2c + 0] ;
+		Crease& c1 = C_new[_2c + 1] ;
+		const int c_next = NextC(c) ;
+		const int c_prev = PrevC(c) ;
+		const bool b1 = c == PrevC(c_next) ;
+		const bool b2 = c == NextC(c_prev) ;
+		const float thisS = 3.0f * Sigma(c) ;
+		const float nextS = Sigma(NextC(c)) ;
+		const float prevS = Sigma(c_prev) ;
+
+		c0.Next = _2c + 1 ;
+		c1.Next = 2 * c_next + (b1 ? 0 : 1) ;
+
+		c0.Prev = 2 * c_prev + (b2 ? 1 : 0) ;
+		c1.Prev = _2c + 0 ;
+
+		c0.Sigma = std::max(0.0f, 0.250f * (prevS + thisS ) - 1.0f) ;
+		c1.Sigma = std::max(0.0f, 0.250f * (nextS + thisS ) - 1.0f) ;
+	}
+CC_BARRIER
+}
+
+
+
 
 Timings
 MeshSubdivision::bench_refine_step(bool refine_he, bool refine_cr, bool refine_vx, uint repetitions, bool save_result)
@@ -129,7 +161,7 @@ MeshSubdivision::bench_refine_step(bool refine_he, bool refine_cr, bool refine_v
 		for (uint i = 0 ; i < repetitions; ++i)
 		{
 			auto start = timer::now() ;
-			refine_creases(C_new) ;
+			refine_creases_branchless(C_new) ;
 			auto stop = timer::now() ;
 
 			duration elapsed = stop - start;

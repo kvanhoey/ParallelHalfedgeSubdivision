@@ -187,6 +187,7 @@ protected:
 	// virtual void refine_vertices_with_creases_inplace() = 0 ;
 
 	virtual void refine_creases(crease_buffer&) const  ;
+	virtual void refine_creases_branchless(crease_buffer&) const  ;
 
 protected:
 	typedef std::chrono::high_resolution_clock timer;
