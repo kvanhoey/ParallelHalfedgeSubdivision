@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project (ParallelHalfedgeSubdivision CXX)
+project (ParallelHalfedgeSubdivision CXX C)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -8,6 +8,16 @@ set(CMAKE_CXX_FLAGS "-Os -march=native")
 #set(CMAKE_CXX_FLAGS "-g") # Debug
 
 option(BUILD_DOC "Build documentation" OFF)
+
+# disable GLFW docs, examples and tests
+# see http://www.glfw.org/docs/latest/build_guide.html
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+
+# set path to dependencies
+add_subdirectory(submodules/glfw)
+include_directories(submodules/dj_opengl)
 
 find_package(OpenMP REQUIRED)
 if (OPENMP_FOUND)
@@ -27,6 +37,18 @@ add_executable(bench_cc bench_cc.cpp ${dependency_files})
 add_executable(bench_loop bench_loop.cpp ${dependency_files})
 
 add_executable(stats stats.cpp ${dependency_files})
+
+add_executable(loop_gpu loop_gpu.cpp ${dependency_files} lib/glad/glad.c)
+target_link_libraries(loop_gpu glfw)
+
+
+# ------------------------------------------------------------------------------
+##set(SRC_DIR demo-all)
+#include_directories(${SRC_DIR})
+#add_executable(demo-all ${SRC_DIR}/demo-all.cpp ${LIB_DIR}/glad/glad.c)
+#target_link_libraries(demo-all glfw)
+
+# ------------------------------------------------------------------------------
 
 # check if Doxygen is installed
 find_package(Doxygen)
