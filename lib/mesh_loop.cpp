@@ -487,32 +487,18 @@ CC_PARALLEL_FOR
 
 		if ((n==2) || n_creases > 2) // Corner vertex rule
 		{
-			// TODO apply_atomic_vec3_increment(v_new_vx,increm_corner) ;
-			for (int c=0; c < 3; ++c)
-			{
-CC_ATOMIC
-				v_new_vx[c] += increm_corner[c] ;
-			}
+            apply_atomic_vec3_increment(v_new_vx,increm_corner) ;
 		}
-		else
-			if (vx_sharpness < 1e-6) // smooth
-			{
-				for (int c=0; c < 3; ++c)
-				{
-CC_ATOMIC
-					v_new_vx[c] += increm_smooth[c] ;
-				}
-			}
-			else // creased or blend
-			{
-				for (int c=0; c < 3; ++c)
-				{
-					const float incremV = std::lerp(increm_corner[c],increm_sharp[c],lerp_alpha) ;
-CC_ATOMIC
-					v_new_vx[c] += incremV ;
-				}
-			}
-}
+        else if (vx_sharpness < 1e-6) // smooth
+        {
+            apply_atomic_vec3_increment(v_new_vx,increm_smooth) ;
+        }
+        else // creased or blend
+        {
+            const vec3 incremV = vec3::lerp(increm_corner,increm_sharp,lerp_alpha) ;
+            apply_atomic_vec3_increment(v_new_vx, incremV) ;
+        }
+    }
 CC_BARRIER
 }
 

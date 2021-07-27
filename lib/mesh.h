@@ -189,6 +189,8 @@ protected:
 	virtual void refine_creases(crease_buffer&) const  ;
 	virtual void refine_creases_branchless(crease_buffer&) const  ;
 
+    static void apply_atomic_vec3_increment(vec3& v_old, const vec3& v_increm) ;
+
 protected:
 	typedef std::chrono::high_resolution_clock timer;
 	typedef std::chrono::duration<float, std::milli> duration;

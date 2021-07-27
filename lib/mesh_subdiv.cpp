@@ -1,6 +1,16 @@
 #include "mesh.h"
 
 void
+MeshSubdivision::apply_atomic_vec3_increment(vec3& old, const vec3& v_increm)
+{
+    for (int c=0; c < 3; ++c)
+    {
+CC_ATOMIC
+        old[c] += v_increm[c] ;
+    }
+}
+
+void
 MeshSubdivision::refine_step()
 {
 	halfedge_buffer H_new ;

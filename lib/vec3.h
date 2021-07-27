@@ -60,6 +60,17 @@ public:
 		return new_val ;
 	}
 
+    static vec3 lerp(const vec3& a, const vec3& b, const float alpha)
+    {
+        vec3 res ;
+
+        for (int c=0; c < 3; ++c)
+        {
+            res[c] = (1 - alpha) * a[c] + alpha * b[c];
+        }
+
+        return res ;
+    }
 
 
 	const float& operator[](const int& i) const
