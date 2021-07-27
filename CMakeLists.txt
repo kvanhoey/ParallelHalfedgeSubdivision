@@ -17,7 +17,6 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
 # set path to dependencies
 add_subdirectory(submodules/glfw)
-include_directories(submodules/dj_opengl)
 
 find_package(OpenMP REQUIRED)
 if (OPENMP_FOUND)
@@ -41,14 +40,6 @@ add_executable(stats stats.cpp ${dependency_files})
 add_executable(loop_gpu loop_gpu.cpp ${dependency_files} lib/glad/glad.c)
 target_link_libraries(loop_gpu glfw)
 
-
-# ------------------------------------------------------------------------------
-##set(SRC_DIR demo-all)
-#include_directories(${SRC_DIR})
-#add_executable(demo-all ${SRC_DIR}/demo-all.cpp ${LIB_DIR}/glad/glad.c)
-#target_link_libraries(demo-all glfw)
-
-# ------------------------------------------------------------------------------
 
 # check if Doxygen is installed
 find_package(Doxygen)
