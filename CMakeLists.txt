@@ -25,19 +25,21 @@ if (OPENMP_FOUND)
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
-file(GLOB dependency_files lib/*.cpp)
+file(GLOB lib_cpu lib/*.cpp)
+file(GLOB lib_gpu lib_gpu/*.cpp lib_gpu/glad/glad.c)
 
 include_directories(lib/)
+add_executable(main_cc main_cc.cpp ${lib_cpu})
+add_executable(main_loop main_loop.cpp ${lib_cpu})
 
-add_executable(main_cc main_cc.cpp ${dependency_files})
-add_executable(main_loop main_loop.cpp ${dependency_files})
+add_executable(bench_cc bench_cc.cpp ${lib_cpu})
+add_executable(bench_loop bench_loop.cpp ${lib_cpu})
 
-add_executable(bench_cc bench_cc.cpp ${dependency_files})
-add_executable(bench_loop bench_loop.cpp ${dependency_files})
+add_executable(stats stats.cpp ${lib_cpu})
 
-add_executable(stats stats.cpp ${dependency_files})
 
-add_executable(loop_gpu loop_gpu.cpp ${dependency_files} lib/glad/glad.c)
+include_directories(lib_gpu/)
+add_executable(loop_gpu loop_gpu.cpp ${lib_gpu} ${lib_cpu})
 target_link_libraries(loop_gpu glfw)
 
 

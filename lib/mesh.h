@@ -1,3 +1,6 @@
+#ifndef __MESH_H__
+#define __MESH_H__
+
 #include <vector>
 #include <map>
 #include <cmath>
@@ -288,3 +291,6 @@ private:
 
 	int n_vertex_of_polygon(int h) const ;
 };
+
+
+#endif
