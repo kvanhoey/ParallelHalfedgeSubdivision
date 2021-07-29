@@ -3,6 +3,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include "glad/glad.h"
 
 #define LOG(fmt, ...)  fprintf(stdout, fmt, ##__VA_ARGS__); fflush(stdout);
 static void APIENTRY

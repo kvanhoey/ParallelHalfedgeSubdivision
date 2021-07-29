@@ -5,7 +5,7 @@ project (ParallelHalfedgeSubdivision CXX C)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_FLAGS "-Os -march=native")
-#set(CMAKE_CXX_FLAGS "-g") # Debug
+set(CMAKE_CXX_FLAGS "-g") # Debug
 
 option(BUILD_DOC "Build documentation" OFF)
 
@@ -39,7 +39,9 @@ add_executable(stats stats.cpp ${lib_cpu})
 
 
 include_directories(lib_gpu/)
-add_executable(loop_gpu loop_gpu.cpp ${lib_gpu} ${lib_cpu})
+file(GLOB shaders shaders/*.glsl)
+
+add_executable(loop_gpu loop_gpu.cpp ${shaders} ${lib_gpu} ${lib_cpu})
 target_link_libraries(loop_gpu glfw)
 
 
