@@ -1,5 +1,7 @@
 #include <iostream>
 
+#define MAX_VERTICES pow(2,28)
+
 #include "mesh_loop_gpu.h"
 #include "gpu_debug_logger.h"
 
@@ -60,12 +62,24 @@ int main(int argc, char **argv)
 		Mesh_Loop_GPU S = S0 ;
 
         log_debug_output() ;
-		S.refine_step_gpu() ;
 
-		if (enable_export)
+		for (int d = 1 ; d <= D ; d++)
 		{
-			std::cout << "Exporting S1.obj" << std::endl ;
-			S.export_to_obj("S1.obj") ;
+			std::cout << "Subdividing level " << d << std::endl ;
+			if (S.V(d+1) > MAX_VERTICES)
+				break ;
+			S.refine_step_gpu() ;
+			S.check() ;
+
+			if (enable_export)
+			{
+				std::stringstream ss ;
+				ss << "S" << d ;
+				ss << ".obj" ;
+
+				std::cout << "Exporting " << ss.str() << std::endl ;
+				S.export_to_obj(ss.str()) ;
+			}
 		}
 	}
 

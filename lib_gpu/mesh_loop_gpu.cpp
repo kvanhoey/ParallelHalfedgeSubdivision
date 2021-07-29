@@ -24,7 +24,7 @@ Mesh_Loop_GPU::~Mesh_Loop_GPU()
 void
 Mesh_Loop_GPU::init_buffers()
 {
-    halfedges_gpu = create_buffer(Hd * sizeof(HalfEdge),halfedges.data(),false) ;
+	halfedges_gpu = create_buffer(BUFFER_HALFEDGES_IN, Hd * sizeof(HalfEdge),halfedges.data(),false) ;
 }
 
 void
@@ -34,7 +34,7 @@ Mesh_Loop_GPU::release_buffers()
 }
 
 GLuint
-Mesh_Loop_GPU::create_buffer(uint size, void* data, bool clear_buffer)
+Mesh_Loop_GPU::create_buffer(GLuint buffer_bind_id, uint size, void* data, bool clear_buffer)
 {
 	GLuint new_buffer ;
 
@@ -44,7 +44,7 @@ Mesh_Loop_GPU::create_buffer(uint size, void* data, bool clear_buffer)
 	if (clear_buffer)
         assert(false) ;
         //	glClearNamedBufferData(new_buffer,GL_R32F,GL_RED,GL_FLOAT,nullptr) ;
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, new_buffer, new_buffer) ; // allows to be read in shader
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, buffer_bind_id, new_buffer) ; // allows to be read in shader
 
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0) ;
 
@@ -93,11 +93,19 @@ Mesh_Loop_GPU::refine_step_gpu()
 {
     const uint new_depth = depth() ; // todo reset + 1 ;
 
-    // create new halfedge buffer
-    const GLuint H_new_gpu = create_buffer(H(new_depth) * sizeof(HalfEdge), nullptr, false) ;
+	// ensure input is bound to BUFFER_HALFEDGES_IN
+	if (depth() > 0)
+	{
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, halfedges_gpu) ;
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BUFFER_HALFEDGES_IN, halfedges_gpu) ;
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0) ;
+	}
+
+	// create new halfedge buffer
+	const GLuint H_new_gpu = create_buffer(BUFFER_HALFEDGES_OUT, H(new_depth) * sizeof(HalfEdge), nullptr, false) ;
 
     // create program for halfedge refinement
-    const GLuint refine_halfedges_gpu = create_program_refine_halfedges(halfedges_gpu, H_new_gpu) ;
+	const GLuint refine_halfedges_gpu = create_program_refine_halfedges(BUFFER_HALFEDGES_IN, BUFFER_HALFEDGES_OUT) ;
     glUseProgram(refine_halfedges_gpu) ;
 
     const GLint u_Hd = glGetUniformLocation(refine_halfedges_gpu, "Hd");
@@ -116,6 +124,4 @@ Mesh_Loop_GPU::refine_step_gpu()
     set_depth(new_depth) ;
     halfedges_gpu = H_new_gpu ;
     readback_buffers() ;
-
-    std::cout << halfedges[0].Twin << std::endl ;
 }
