@@ -3,8 +3,6 @@
 #define DJ_OPENGL_IMPLEMENTATION
 #include "dj_opengl.h"
 
-#include "gpu_debug_logger.h"
-
 Mesh_Loop_GPU::Mesh_Loop_GPU(int H, int V, int E, int F):
 	Mesh_Loop(H,V,E,F)
 {
@@ -26,7 +24,7 @@ Mesh_Loop_GPU::~Mesh_Loop_GPU()
 void
 Mesh_Loop_GPU::init_buffers()
 {
-	halfedges_gpu = create_buffer(Hd,halfedges.data(),false) ;
+    halfedges_gpu = create_buffer(Hd * sizeof(HalfEdge),halfedges.data(),false) ;
 }
 
 void
@@ -44,7 +42,9 @@ Mesh_Loop_GPU::create_buffer(uint size, void* data, bool clear_buffer)
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, new_buffer) ;
 	glBufferStorage(GL_SHADER_STORAGE_BUFFER, size, data, GL_MAP_READ_BIT) ; // TODO remove READ_BIT ?
 	if (clear_buffer)
-		glClearNamedBufferData(new_buffer,GL_R32F,GL_RED,GL_FLOAT,nullptr) ;
+        assert(false) ;
+        //	glClearNamedBufferData(new_buffer,GL_R32F,GL_RED,GL_FLOAT,nullptr) ;
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, new_buffer, new_buffer) ; // allows to be read in shader
 
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0) ;
 
@@ -65,15 +65,9 @@ Mesh_Loop_GPU::readback_buffers()
 	HalfEdge* data = (HalfEdge*) glMapNamedBuffer(halfedges_gpu, GL_READ_ONLY) ;
 
 	halfedges.resize(Hd) ;
-	memcpy(&halfedges[0], data, Hd) ;
+    memcpy(&(halfedges[0]), data, Hd * sizeof(HalfEdge)) ;
 
 	glUnmapNamedBuffer(halfedges_gpu) ;
-}
-
-void
-Mesh_Loop_GPU::create_programs()
-{
-	assert(false) ;
 }
 
 GLuint
@@ -84,9 +78,9 @@ Mesh_Loop_GPU::create_program_refine_halfedges(GLuint halfedges_gpu_in, GLuint h
 	djg_program* builder = djgp_create() ;
 	djgp_push_string(builder,"#define HALFEDGE_BUFFER_IN %d\n", halfedges_gpu_in) ;
 	djgp_push_string(builder,"#define HALFEDGE_BUFFER_OUT %d\n", halfedges_gpu_out) ;
-	djgp_push_string(builder, "#extension GL_NV_shader_atomic_float: require\n");
+    //djgp_push_string(builder, "#extension GL_NV_shader_atomic_float: require\n");
 
-	djgp_push_file(builder, "../shaders/loop_refine_halfedges.glsl") ;
+    djgp_push_file(builder, "../shaders/loop_refine_halfedges.glsl") ;
 	djgp_to_gl(builder, 450, false, true, &refine_halfedges_program) ;
 
 	djgp_release(builder) ;
@@ -95,38 +89,33 @@ Mesh_Loop_GPU::create_program_refine_halfedges(GLuint halfedges_gpu_in, GLuint h
 }
 
 void
-Mesh_Loop_GPU::delete_programs()
-{
-	assert(false);
-	//glDeleteProgram(refine_halfedges_gpu) ;
-}
-
-void
 Mesh_Loop_GPU::refine_step_gpu()
 {
-	const uint new_depth = depth() ; // todo reset + 1 ;
-	GLuint H_new_gpu = create_buffer(H(new_depth), nullptr, false) ;
+    const uint new_depth = depth() ; // todo reset + 1 ;
 
-	for (uint k = 0; k < halfedges.size() ; ++k)
-	{
-		halfedges[k] = {0,0,0} ;
-	}
+    // create new halfedge buffer
+    const GLuint H_new_gpu = create_buffer(H(new_depth) * sizeof(HalfEdge), nullptr, false) ;
 
-	GLuint refine_halfedges_gpu = create_program_refine_halfedges(halfedges_gpu, H_new_gpu) ;
-	const int u_Hd = glGetUniformLocation(refine_halfedges_gpu, "Hd");
-	glUseProgram(refine_halfedges_gpu) ;
+    // create program for halfedge refinement
+    const GLuint refine_halfedges_gpu = create_program_refine_halfedges(halfedges_gpu, H_new_gpu) ;
+    glUseProgram(refine_halfedges_gpu) ;
+
+    const GLint u_Hd = glGetUniformLocation(refine_halfedges_gpu, "Hd");
 	glUniform1i(u_Hd, Hd) ;
-	uint n_dispatch_groups = std::ceil(Hd / 256.0f) ;
-	std::cout << "Dispating " << n_dispatch_groups << " threads of 256" << std::endl ;
+
+    // execute program
+    const uint n_dispatch_groups = std::ceil(Hd / 256.0f) ;
 	glDispatchCompute(n_dispatch_groups,1,1) ;
-
 	glMemoryBarrier(GL_ALL_BARRIER_BITS) ;
-	glDeleteProgram(refine_halfedges_gpu) ;
 
-	release_buffer(halfedges_gpu) ;
-	halfedges_gpu = H_new_gpu ;
+    // cleanup
+    glDeleteProgram(refine_halfedges_gpu) ;
+    release_buffer(halfedges_gpu) ;
 
-	set_depth(new_depth) ;
+    // save new state
+    set_depth(new_depth) ;
+    halfedges_gpu = H_new_gpu ;
+    readback_buffers() ;
 
-	readback_buffers() ;
+    std::cout << halfedges[0].Twin << std::endl ;
 }

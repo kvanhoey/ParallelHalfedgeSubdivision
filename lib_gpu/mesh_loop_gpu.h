@@ -16,8 +16,8 @@ public:
 	void refine_step_gpu() ;
 
 private:
-	GLuint halfedges_gpu, creases_gpu, vertices_gpu ;
-	// GLuint refine_halfedges_gpu ;
+    GLuint halfedges_gpu ; //, creases_gpu, vertices_gpu ;
+    //GLuint halfedges_gpu_id ;
 
 	void init_buffers() ;
 	void readback_buffers() ;
@@ -27,9 +27,6 @@ private:
 	static void release_buffer(GLuint buffer) ;
 
 	static GLuint create_program_refine_halfedges(GLuint halfedges_gpu_in, GLuint halfedges_gpu_out) ;
-
-	void create_programs() ;
-	void delete_programs() ;
 };
 
 #endif

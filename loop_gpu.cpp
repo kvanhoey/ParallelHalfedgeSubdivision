@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "mesh_loop_gpu.h"
+#include "gpu_debug_logger.h"
 
 int main(int argc, char **argv)
 {
@@ -57,6 +58,8 @@ int main(int argc, char **argv)
 		}
 
 		Mesh_Loop_GPU S = S0 ;
+
+        log_debug_output() ;
 		S.refine_step_gpu() ;
 
 		if (enable_export)
@@ -65,6 +68,7 @@ int main(int argc, char **argv)
 			S.export_to_obj("S1.obj") ;
 		}
 	}
+
 	glfwTerminate();
 
 	return 0;
