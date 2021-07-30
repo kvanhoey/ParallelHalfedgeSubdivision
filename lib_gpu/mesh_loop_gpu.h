@@ -23,6 +23,7 @@ private:
 
 		BUFFER_COUNT
 	};
+	void rebind_buffers() const ;
 
 	void init_buffers() ;
 	void readback_buffers() ;

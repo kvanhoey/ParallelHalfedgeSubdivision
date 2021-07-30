@@ -89,16 +89,22 @@ Mesh_Loop_GPU::create_program_refine_halfedges(GLuint halfedges_gpu_in, GLuint h
 }
 
 void
+Mesh_Loop_GPU::rebind_buffers() const
+{
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, halfedges_gpu) ;
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BUFFER_HALFEDGES_IN, halfedges_gpu) ;
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0) ;
+}
+
+void
 Mesh_Loop_GPU::refine_step_gpu()
 {
-    const uint new_depth = depth() ; // todo reset + 1 ;
+	const uint new_depth = depth() + 1 ;
 
 	// ensure input is bound to BUFFER_HALFEDGES_IN
 	if (depth() > 0)
 	{
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, halfedges_gpu) ;
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BUFFER_HALFEDGES_IN, halfedges_gpu) ;
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0) ;
+		rebind_buffers() ;
 	}
 
 	// create new halfedge buffer
@@ -108,8 +114,13 @@ Mesh_Loop_GPU::refine_step_gpu()
 	const GLuint refine_halfedges_gpu = create_program_refine_halfedges(BUFFER_HALFEDGES_IN, BUFFER_HALFEDGES_OUT) ;
     glUseProgram(refine_halfedges_gpu) ;
 
+	// set uniforms
     const GLint u_Hd = glGetUniformLocation(refine_halfedges_gpu, "Hd");
+	const GLint u_Vd = glGetUniformLocation(refine_halfedges_gpu, "Vd");
+	const GLint u_Ed = glGetUniformLocation(refine_halfedges_gpu, "Ed");
 	glUniform1i(u_Hd, Hd) ;
+	glUniform1i(u_Ed, Ed) ;
+	glUniform1i(u_Vd, Vd) ;
 
     // execute program
     const uint n_dispatch_groups = std::ceil(Hd / 256.0f) ;
