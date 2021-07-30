@@ -567,6 +567,7 @@ CC_PARALLEL_FOR
         vec3 increm = vec3::lerp(increm_smooth_edge,increm_sharp_edge,sharpness) ;
         apply_atomic_vec3_increment(v_new, increm) ;
 
+		// vertex points
         vec3& v_new_vx = V_new[v] ;
 
         const int n = vertex_edge_valence(h) ;

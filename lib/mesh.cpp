@@ -246,7 +246,7 @@ Mesh::vertex_crease_valence_or_border(int h) const
 int
 Mesh::vertex_crease_valence(int h) const
 {
-	int n = is_crease_halfedge(h) ;
+	int n = int(is_crease_halfedge(h)) ;
 
 	int h_it ;
 	for (h_it = Twin(h) ; h_it >= 0 ; h_it = Twin(h_it))

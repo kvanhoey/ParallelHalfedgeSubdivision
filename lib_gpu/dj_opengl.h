@@ -512,7 +512,7 @@ djgp_to_gl(
     it = program->next;
     i = 1;
     while (it) {
-        //printf("%s\n",it->src);
+		//printf("%s\n",it->src);
         srcv[i] = it->src;
         it = it->next;
         ++i;

@@ -6,6 +6,17 @@
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 
+enum {
+	BUFFER_HALFEDGES_IN,
+	BUFFER_HALFEDGES_OUT,
+	BUFFER_CREASES_IN,
+	BUFFER_CREASES_OUT,
+	BUFFER_VERTICES_IN,
+	BUFFER_VERTICES_OUT,
+
+	BUFFER_COUNT
+};
+
 class Mesh_Loop_GPU: public Mesh_Loop
 {
 public:
@@ -16,23 +27,18 @@ public:
 	void refine_step_gpu() ;
 
 private:
-    GLuint halfedges_gpu ; //, creases_gpu, vertices_gpu ;
-	enum {
-		BUFFER_HALFEDGES_IN,
-		BUFFER_HALFEDGES_OUT,
+	GLuint halfedges_gpu, creases_gpu, vertices_gpu ;
 
-		BUFFER_COUNT
-	};
 	void rebind_buffers() const ;
 
 	void init_buffers() ;
 	void readback_buffers() ;
 	void release_buffers() ;
 
-	static GLuint create_buffer(GLuint buffer_bind_id, uint size, void* data, bool clear_buffer) ;
+	static GLuint create_buffer(GLuint buffer_bind_id, uint size, void* data, bool clear_buffer = false) ;
 	static void release_buffer(GLuint buffer) ;
 
-	static GLuint create_program_refine_halfedges(GLuint halfedges_gpu_in, GLuint halfedges_gpu_out) ;
+	static GLuint create_program(const std::string& shader_file, GLuint in_buffer, GLuint out_buffer, bool is_vertex_program = false) ;
 };
 
 #endif

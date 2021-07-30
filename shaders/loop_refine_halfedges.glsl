@@ -15,13 +15,13 @@ struct HalfEdge
     int Edge ;
 };
 
-layout (binding = HALFEDGE_BUFFER_IN, std430)
+layout (binding = BUFFER_IN, std430)
 readonly buffer HalfedgeBufferIn
 {
     HalfEdge halfedges[] ;
 } HalfedgeBuffer_in ;
 
-layout (binding = HALFEDGE_BUFFER_OUT, std430)
+layout (binding = BUFFER_OUT, std430)
 buffer HalfedgeBufferOut
 {
     HalfEdge halfedges[] ;
