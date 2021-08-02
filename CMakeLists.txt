@@ -5,7 +5,7 @@ project (ParallelHalfedgeSubdivision CXX C)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_FLAGS "-Os -march=native")
-set(CMAKE_CXX_FLAGS "-g") # Debug
+#set(CMAKE_CXX_FLAGS "-g") # Debug
 
 option(BUILD_DOC "Build documentation" OFF)
 
@@ -29,11 +29,11 @@ file(GLOB lib_cpu lib/*.cpp)
 file(GLOB lib_gpu lib_gpu/*.cpp lib_gpu/glad/glad.c)
 
 include_directories(lib/)
-add_executable(main_cc main_cc.cpp ${lib_cpu})
-add_executable(main_loop main_loop.cpp ${lib_cpu})
+add_executable(cc_cpu cc_cpu.cpp ${lib_cpu})
+add_executable(loop_cpu loop_cpu.cpp ${lib_cpu})
 
-add_executable(bench_cc bench_cc.cpp ${lib_cpu})
-add_executable(bench_loop bench_loop.cpp ${lib_cpu})
+add_executable(bench_cc_cpu bench_cc_cpu.cpp ${lib_cpu})
+add_executable(bench_loop_cpu bench_loop_cpu.cpp ${lib_cpu})
 
 add_executable(stats stats.cpp ${lib_cpu})
 
@@ -43,6 +43,9 @@ file(GLOB shaders shaders/*.glsl)
 
 add_executable(loop_gpu loop_gpu.cpp ${shaders} ${lib_gpu} ${lib_cpu})
 target_link_libraries(loop_gpu glfw)
+
+add_executable(bench_loop_gpu bench_loop_gpu.cpp ${shaders} ${lib_gpu} ${lib_cpu})
+target_link_libraries(bench_loop_gpu glfw)
 
 
 # check if Doxygen is installed
