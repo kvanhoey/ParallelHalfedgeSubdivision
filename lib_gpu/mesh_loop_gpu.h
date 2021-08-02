@@ -37,8 +37,12 @@ private:
 
 	static GLuint create_buffer(GLuint buffer_bind_id, uint size, void* data, bool clear_buffer = false) ;
 	static void release_buffer(GLuint buffer) ;
+	static void clear_buffer(GLuint buffer) ;
 
 	static GLuint create_program(const std::string& shader_file, GLuint in_buffer, GLuint out_buffer, bool is_vertex_program = false) ;
+
+public:
+	virtual Timings bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine_vx, uint repetitions, bool save_result=false) final ;
 };
 
 #endif

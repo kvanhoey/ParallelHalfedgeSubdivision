@@ -55,6 +55,16 @@ Mesh_Loop_GPU::create_buffer(GLuint buffer_bind_id, uint size, void* data, bool 
 }
 
 void
+Mesh_Loop_GPU::clear_buffer(GLuint buffer)
+{
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer) ;
+	if (clear_buffer)
+		glClearNamedBufferData(buffer,GL_R32F,GL_RED,GL_FLOAT,nullptr) ;
+
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0) ;
+}
+
+void
 Mesh_Loop_GPU::release_buffer(GLuint buffer)
 {
 	glDeleteBuffers(1, &buffer) ;
@@ -221,4 +231,94 @@ Mesh_Loop_GPU::refine_step_gpu()
 	creases_gpu = C_new_gpu ;
 	vertices_gpu = V_new_gpu ;
     readback_buffers() ;
+}
+
+
+void
+Mesh_Loop_GPU::bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine_vx, uint repetitions, bool save_result)
+{
+	const uint new_depth = depth() + 1 ;
+
+	// ensure inputs are bound as inputs
+	if (depth() > 0)
+	{
+		rebind_buffers() ;
+	}
+
+	// create new buffers
+	const GLuint H_new_gpu = create_buffer(BUFFER_HALFEDGES_OUT	, H(new_depth) * sizeof(HalfEdge)	, nullptr) ;
+	const GLuint C_new_gpu = create_buffer(BUFFER_CREASES_OUT	, C(new_depth) * sizeof(Crease)		, nullptr) ;
+	const GLuint V_new_gpu = create_buffer(BUFFER_VERTICES_OUT	, V(new_depth) * sizeof(vec3)		, nullptr, false) ;
+
+	// create programs
+	const GLuint refine_halfedges_gpu	= create_program("../shaders/loop_refine_halfedges.glsl",BUFFER_HALFEDGES_IN, BUFFER_HALFEDGES_OUT	) ;
+	const GLuint refine_creases_gpu		= create_program("../shaders/refine_creases.glsl"		,BUFFER_CREASES_IN	, BUFFER_CREASES_OUT	) ;
+	const GLuint refine_vertices_gpu	= create_program("../shaders/loop_refine_vertices.glsl"	,BUFFER_VERTICES_IN	, BUFFER_VERTICES_OUT,true) ;
+
+	// execute halfedge refinement
+	{
+		glUseProgram(refine_halfedges_gpu) ;
+
+		// set uniforms
+		const GLint u_Hd = glGetUniformLocation(refine_halfedges_gpu, "Hd");
+		const GLint u_Vd = glGetUniformLocation(refine_halfedges_gpu, "Vd");
+		const GLint u_Ed = glGetUniformLocation(refine_halfedges_gpu, "Ed");
+		glUniform1i(u_Hd, Hd) ;
+		glUniform1i(u_Ed, Ed) ;
+		glUniform1i(u_Vd, Vd) ;
+
+		// execute program
+		const uint n_dispatch_groups = std::ceil(Hd / 256.0f) ;
+		glDispatchCompute(n_dispatch_groups,1,1) ;
+		glMemoryBarrier(GL_ALL_BARRIER_BITS) ;
+	}
+
+	// execute crease refinement
+	{
+		glUseProgram(refine_creases_gpu) ;
+
+		// set uniforms
+		const GLint u_Cd = glGetUniformLocation(refine_creases_gpu, "Cd");
+		glUniform1i(u_Cd, Cd) ;
+
+		// execute program
+		const uint n_dispatch_groups = std::ceil(Cd / 256.0f) ;
+		glDispatchCompute(n_dispatch_groups,1,1) ;
+		glMemoryBarrier(GL_ALL_BARRIER_BITS) ;
+	}
+
+	// execute vertex refinement
+	{
+		glUseProgram(refine_vertices_gpu) ;
+
+		// set uniforms
+		const GLint u_Hd = glGetUniformLocation(refine_vertices_gpu, "Hd");
+		const GLint u_Vd = glGetUniformLocation(refine_vertices_gpu, "Vd");
+		const GLint u_Ed = glGetUniformLocation(refine_vertices_gpu, "Ed");
+		const GLint u_Cd = glGetUniformLocation(refine_vertices_gpu, "Cd");
+		glUniform1i(u_Hd, Hd) ;
+		glUniform1i(u_Ed, Ed) ;
+		glUniform1i(u_Vd, Vd) ;
+		glUniform1i(u_Cd, Cd) ;
+
+		// execute program
+		const uint n_dispatch_groups = std::ceil(Hd / 256.0f) ;
+		glDispatchCompute(n_dispatch_groups,1,1) ;
+		glMemoryBarrier(GL_ALL_BARRIER_BITS) ;
+	}
+
+	// cleanup
+	glDeleteProgram(refine_halfedges_gpu) ;
+	glDeleteProgram(refine_creases_gpu) ;
+	glDeleteProgram(refine_vertices_gpu) ;
+	release_buffer(halfedges_gpu) ;
+	release_buffer(creases_gpu) ;
+	release_buffer(vertices_gpu) ;
+
+	// save new state
+	set_depth(new_depth) ;
+	halfedges_gpu = H_new_gpu ;
+	creases_gpu = C_new_gpu ;
+	vertices_gpu = V_new_gpu ;
+	readback_buffers() ;
 }

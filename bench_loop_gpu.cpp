@@ -68,7 +68,9 @@ int main(int argc, char **argv)
 			std::cout << "Subdividing level " << d << std::endl ;
 			if (S.V(d+1) > MAX_VERTICES)
 				break ;
-			S.refine_step_gpu() ;
+
+			S.bench_refine_step_gpu() ;
+
 			S.check() ;
 
 			if (enable_export)
