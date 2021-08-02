@@ -35,7 +35,7 @@ private:
 	void readback_buffers() ;
 	void release_buffers() ;
 
-	static GLuint create_buffer(GLuint buffer_bind_id, uint size, void* data, bool clear_buffer = false) ;
+	static GLuint create_buffer(GLuint buffer_bind_id, uint size, void* data, bool clear_buffer = false, bool enable_readback = true) ;
 	static void release_buffer(GLuint buffer) ;
 	static void clear_buffer(GLuint buffer) ;
 

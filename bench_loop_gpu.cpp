@@ -64,8 +64,6 @@ int main(int argc, char **argv)
 
 		Mesh_Loop_GPU S = S0 ;
 
-        log_debug_output() ;
-
 		for (int d = 1 ; d <= D ; d++)
 		{
 			std::cout << "Subdividing level " << d << std::endl ;

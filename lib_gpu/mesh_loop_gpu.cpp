@@ -24,9 +24,9 @@ Mesh_Loop_GPU::~Mesh_Loop_GPU()
 void
 Mesh_Loop_GPU::init_buffers()
 {
-	halfedges_gpu	= create_buffer(BUFFER_HALFEDGES_IN	, Hd * sizeof(HalfEdge)	, halfedges.data()	) ;
-	creases_gpu		= create_buffer(BUFFER_CREASES_IN	, Cd * sizeof(Crease)	, creases.data()	) ;
-	vertices_gpu	= create_buffer(BUFFER_VERTICES_IN	, Vd * sizeof(vec3)		, vertices.data()	) ;
+	halfedges_gpu	= create_buffer(BUFFER_HALFEDGES_IN	, Hd * sizeof(HalfEdge)	, halfedges.data()	,	false,	false) ;
+	creases_gpu		= create_buffer(BUFFER_CREASES_IN	, Cd * sizeof(Crease)	, creases.data()	,	false,	false) ;
+	vertices_gpu	= create_buffer(BUFFER_VERTICES_IN	, Vd * sizeof(vec3)		, vertices.data()	,	false,	false) ;
 }
 
 void
@@ -38,13 +38,16 @@ Mesh_Loop_GPU::release_buffers()
 }
 
 GLuint
-Mesh_Loop_GPU::create_buffer(GLuint buffer_bind_id, uint size, void* data, bool clear_buffer)
+Mesh_Loop_GPU::create_buffer(GLuint buffer_bind_id, uint size, void* data, bool clear_buffer, bool enable_readback)
 {
 	GLuint new_buffer ;
 
 	glGenBuffers(1, &new_buffer) ;
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, new_buffer) ;
-	glBufferStorage(GL_SHADER_STORAGE_BUFFER, size, data, GL_MAP_READ_BIT) ; // TODO remove READ_BIT ?
+	if (enable_readback)
+		glBufferStorage(GL_SHADER_STORAGE_BUFFER, size, data, GL_MAP_READ_BIT) ;
+	else
+		glBufferStorage(GL_SHADER_STORAGE_BUFFER, size, data, 0) ;
 	if (clear_buffer)
 		glClearNamedBufferData(new_buffer,GL_R32F,GL_RED,GL_FLOAT,nullptr) ;
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, buffer_bind_id, new_buffer) ; // allows to be read in shader
@@ -69,8 +72,6 @@ Mesh_Loop_GPU::release_buffer(GLuint buffer)
 {
 	glDeleteBuffers(1, &buffer) ;
 }
-
-
 
 void
 Mesh_Loop_GPU::readback_buffers()
@@ -257,7 +258,7 @@ Mesh_Loop_GPU::bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine
 	if (refine_he)
 	{
 		// create new buffer
-		H_new_gpu = create_buffer(BUFFER_HALFEDGES_OUT	, H(new_depth) * sizeof(HalfEdge)	, nullptr) ;
+		H_new_gpu = create_buffer(BUFFER_HALFEDGES_OUT	, H(new_depth) * sizeof(HalfEdge)	, nullptr, false, save_result) ;
 
 		// create program
 		const GLuint refine_halfedges_gpu	= create_program("../shaders/loop_refine_halfedges.glsl",BUFFER_HALFEDGES_IN, BUFFER_HALFEDGES_OUT	) ;
@@ -271,12 +272,12 @@ Mesh_Loop_GPU::bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine
 			glFinish();
 			djgc_start(clock);
 			{
-				glUseProgram(refine_halfedges_gpu) ;
-
 				// set uniforms
 				const GLint u_Hd = glGetUniformLocation(refine_halfedges_gpu, "Hd");
 				const GLint u_Vd = glGetUniformLocation(refine_halfedges_gpu, "Vd");
 				const GLint u_Ed = glGetUniformLocation(refine_halfedges_gpu, "Ed");
+
+				glUseProgram(refine_halfedges_gpu) ;
 				glUniform1i(u_Hd, Hd) ;
 				glUniform1i(u_Ed, Ed) ;
 				glUniform1i(u_Vd, Vd) ;
@@ -290,7 +291,7 @@ Mesh_Loop_GPU::bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine
 			glFinish();
 			djgc_ticks(clock, &cpuTime, &gpuTime);
 
-			duration elapsed(gpuTime) ;
+			duration elapsed(gpuTime * 1e3) ;
 			timings_he.push_back(elapsed) ;
 		}
 		// cleanup
@@ -309,7 +310,7 @@ Mesh_Loop_GPU::bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine
 	if (refine_cr)
 	{
 		// create new buffer
-		C_new_gpu = create_buffer(BUFFER_CREASES_OUT	, C(new_depth) * sizeof(Crease)		, nullptr) ;
+		C_new_gpu = create_buffer(BUFFER_CREASES_OUT	, C(new_depth) * sizeof(Crease)		, nullptr, false, save_result) ;
 
 		// create program
 		const GLuint refine_creases_gpu		= create_program("../shaders/refine_creases.glsl"		,BUFFER_CREASES_IN	, BUFFER_CREASES_OUT	) ;
@@ -323,10 +324,10 @@ Mesh_Loop_GPU::bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine
 			glFinish();
 			djgc_start(clock);
 			{
-				glUseProgram(refine_creases_gpu) ;
-
 				// set uniforms
 				const GLint u_Cd = glGetUniformLocation(refine_creases_gpu, "Cd");
+
+				glUseProgram(refine_creases_gpu) ;
 				glUniform1i(u_Cd, Cd) ;
 
 				// execute program
@@ -338,7 +339,7 @@ Mesh_Loop_GPU::bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine
 			glFinish();
 			djgc_ticks(clock, &cpuTime, &gpuTime);
 
-			duration elapsed(gpuTime) ;
+			duration elapsed(gpuTime * 1e3) ;
 			timings_cr.push_back(elapsed) ;
 		}
 		// cleanup
@@ -357,7 +358,7 @@ Mesh_Loop_GPU::bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine
 	if (refine_vx)
 	{
 		// create new buffer
-		V_new_gpu = create_buffer(BUFFER_VERTICES_OUT	, V(new_depth) * sizeof(vec3)		, nullptr) ;
+		V_new_gpu = create_buffer(BUFFER_VERTICES_OUT	, V(new_depth) * sizeof(vec3)		, nullptr, false, save_result) ;
 
 		// create program
 		const GLuint refine_vertices_gpu	= create_program("../shaders/loop_refine_vertices.glsl"	,BUFFER_VERTICES_IN	, BUFFER_VERTICES_OUT,true) ;
@@ -374,13 +375,14 @@ Mesh_Loop_GPU::bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine
 				// reset buffer to 0
 				clear_buffer(V_new_gpu) ;
 
-				glUseProgram(refine_vertices_gpu) ;
-
-				// set uniforms
 				const GLint u_Hd = glGetUniformLocation(refine_vertices_gpu, "Hd");
 				const GLint u_Vd = glGetUniformLocation(refine_vertices_gpu, "Vd");
 				const GLint u_Ed = glGetUniformLocation(refine_vertices_gpu, "Ed");
 				const GLint u_Cd = glGetUniformLocation(refine_vertices_gpu, "Cd");
+
+				glUseProgram(refine_vertices_gpu) ;
+
+				// set uniforms
 				glUniform1i(u_Hd, Hd) ;
 				glUniform1i(u_Ed, Ed) ;
 				glUniform1i(u_Vd, Vd) ;
@@ -395,7 +397,7 @@ Mesh_Loop_GPU::bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine
 			glFinish();
 			djgc_ticks(clock, &cpuTime, &gpuTime);
 
-			duration elapsed(gpuTime) ;
+			duration elapsed(1e3 * gpuTime) ;
 			timings_vx.push_back(elapsed) ;
 		}
 		// cleanup

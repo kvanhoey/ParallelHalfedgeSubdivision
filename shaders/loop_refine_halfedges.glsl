@@ -73,32 +73,44 @@ void main()
 
     if (h < Hd)
     {
-	const int h0 = 3 * h + 0 ;
-	const int h1 = 3 * h + 1 ;
-	const int h2 = 3 * h + 2 ;
+	const int _3h = 3 * h ;
+
+	const int h0 = _3h + 0 ;
+	const int h1 = _3h + 1 ;
+	const int h2 = _3h + 2 ;
 	const int h3 = 3 * Hd + h ;
 
 	const int h_twin = Twin(h) ;
 	const int h_edge = Edge(h) ;
+	const int h_twin_next = Next_safe(h_twin) ;
 
 	const int h_prev = Prev(h) ;
 	const int h_prev_twin = Twin(h_prev) ;
 	const int h_prev_edge = Edge(h_prev) ;
 
-	HalfedgeBuffer_out.halfedges[h0].Twin = 3 * Next_safe(h_twin) + 2 ;
-	HalfedgeBuffer_out.halfedges[h1].Twin = h3 ;
-	HalfedgeBuffer_out.halfedges[h2].Twin = 3 * h_prev_twin ;
-	HalfedgeBuffer_out.halfedges[h3].Twin = h1 ;
+	const int v = Vert(h) ;
 
-	HalfedgeBuffer_out.halfedges[h0].Vert = Vert(h) ;
-	HalfedgeBuffer_out.halfedges[h1].Vert = Vd + h_edge ;
-	HalfedgeBuffer_out.halfedges[h2].Vert = Vd + h_prev_edge ;
-	HalfedgeBuffer_out.halfedges[h3].Vert = HalfedgeBuffer_out.halfedges[h2].Vert ;
+	HalfEdge halfedges[4] ;
 
-	HalfedgeBuffer_out.halfedges[h0].Edge = 2 * h_edge + (h > h_twin ? 0 : 1) ;
-	HalfedgeBuffer_out.halfedges[h1].Edge = 2 * Ed + h ;
-	HalfedgeBuffer_out.halfedges[h2].Edge = 2 * h_prev_edge + (int(h_prev) > h_prev_twin ? 1 : 0) ;
-	HalfedgeBuffer_out.halfedges[h3].Edge = HalfedgeBuffer_out.halfedges[h1].Edge ;
+	halfedges[0].Twin = 3 * h_twin_next + 2 ;
+	halfedges[1].Twin = h3 ;
+	halfedges[2].Twin = 3 * h_prev_twin ;
+	halfedges[3].Twin = h1 ;
+
+	halfedges[0].Vert = v ;
+	halfedges[1].Vert = Vd + h_edge ;
+	halfedges[2].Vert = Vd + h_prev_edge ;
+	halfedges[3].Vert = halfedges[2].Vert ;
+
+	halfedges[0].Edge = 2 * h_edge + (h > h_twin ? 0 : 1) ;
+	halfedges[1].Edge = 2 * Ed + h ;
+	halfedges[2].Edge = 2 * h_prev_edge + (h_prev > h_prev_twin ? 1 : 0) ;
+	halfedges[3].Edge = halfedges[1].Edge ;
+
+	HalfedgeBuffer_out.halfedges[h0] = halfedges[0] ;
+	HalfedgeBuffer_out.halfedges[h1] = halfedges[1] ;
+	HalfedgeBuffer_out.halfedges[h2] = halfedges[2] ;
+	HalfedgeBuffer_out.halfedges[h3] = halfedges[3] ;
     }
 }
 

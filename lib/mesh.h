@@ -196,7 +196,7 @@ protected:
 
 protected:
 	typedef std::chrono::high_resolution_clock timer;
-	typedef std::chrono::duration<float, std::milli> duration;
+	typedef std::chrono::duration<double, std::milli> duration;
 public:
 	virtual Timings bench_refine_step(bool refine_he, bool refine_cr, bool refine_vx, uint repetitions, bool save_result=false) final ;
 };
