@@ -128,13 +128,13 @@ CC_BARRIER
 Timings
 MeshSubdivision::bench_refine_step(bool refine_he, bool refine_cr, bool refine_vx, uint repetitions, bool save_result)
 {
-	halfedge_buffer H_new ;
-	crease_buffer C_new ;
-	vertex_buffer V_new ;
-
 	duration min_he(0),max_he(0),sum_he(0),median_he(0) ;
 	duration min_cr(0),max_cr(0),sum_cr(0),median_cr(0) ;
 	duration min_vx(0),max_vx(0),sum_vx(0),median_vx(0) ;
+
+	halfedge_buffer H_new ;
+	crease_buffer C_new ;
+	vertex_buffer V_new ;
 
 	if (refine_he)
 	{
@@ -214,7 +214,7 @@ MeshSubdivision::bench_refine_step(bool refine_he, bool refine_cr, bool refine_v
 		halfedges = H_new ;
 	if (save_result && refine_cr)
 		creases = C_new ;
-	if (save_result)
+	if (save_result && refine_vx)
 		vertices = V_new ;
 
 	if (save_result && refine_he && refine_cr && refine_vx)
