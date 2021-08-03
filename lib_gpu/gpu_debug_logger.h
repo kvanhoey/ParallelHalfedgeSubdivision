@@ -35,7 +35,7 @@ debug_output_logger(
     case GL_DEBUG_TYPE_OTHER: strcpy(typestr, "Message"); break;
     default: strcpy(typestr, "???"); break;
     }
-    if (severity == GL_DEBUG_SEVERITY_HIGH || severity == GL_DEBUG_SEVERITY_MEDIUM) {
+    if (severity == GL_DEBUG_SEVERITY_HIGH || severity == GL_DEBUG_SEVERITY_MEDIUM || true) {
         LOG("djg_debug_output: %s %s\n"                \
             "-- Begin -- GL_debug_output\n" \
             "%s\n"                              \

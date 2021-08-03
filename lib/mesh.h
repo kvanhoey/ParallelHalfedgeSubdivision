@@ -111,12 +111,14 @@ private:
 	 */
 	int find_second_crease(int h) const ;
 
+public:
+    virtual void set_depth(int d) ;
 protected:
 	void alloc_halfedge_buffer(int H) ;
 	void alloc_vertex_buffer(int V) ;
 	void alloc_crease_buffer(int E) ;
 
-	virtual void set_depth(int d) ;
+    //virtual void set_depth(int d) ;
 
 	virtual int Twin(int h) const final ;
 	virtual int Prev(int h) const ;

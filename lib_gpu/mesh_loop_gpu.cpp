@@ -61,8 +61,7 @@ void
 Mesh_Loop_GPU::clear_buffer(GLuint buffer)
 {
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer) ;
-	if (clear_buffer)
-		glClearNamedBufferData(buffer,GL_R32F,GL_RED,GL_FLOAT,nullptr) ;
+    glClearNamedBufferData(buffer,GL_R32F,GL_RED,GL_FLOAT,nullptr) ;
 
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0) ;
 }
@@ -133,16 +132,13 @@ Mesh_Loop_GPU::create_program(const std::string& shader_file, GLuint in_buffer, 
 void
 Mesh_Loop_GPU::rebind_buffers() const
 {
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, halfedges_gpu) ;
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BUFFER_HALFEDGES_IN, halfedges_gpu) ;
 
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, creases_gpu) ;
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BUFFER_CREASES_IN, creases_gpu) ;
 
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, vertices_gpu) ;
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BUFFER_VERTICES_IN, vertices_gpu) ;
 
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0) ;
+    //glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0) ;
 }
 
 void
@@ -272,15 +268,15 @@ Mesh_Loop_GPU::bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine
 			glFinish();
 			djgc_start(clock);
 			{
-				// set uniforms
-				const GLint u_Hd = glGetUniformLocation(refine_halfedges_gpu, "Hd");
-				const GLint u_Vd = glGetUniformLocation(refine_halfedges_gpu, "Vd");
-				const GLint u_Ed = glGetUniformLocation(refine_halfedges_gpu, "Ed");
+                // set uniforms
+                const GLint u_Hd = glGetUniformLocation(refine_halfedges_gpu, "Hd");
+                const GLint u_Vd = glGetUniformLocation(refine_halfedges_gpu, "Vd");
+                const GLint u_Ed = glGetUniformLocation(refine_halfedges_gpu, "Ed");
 
-				glUseProgram(refine_halfedges_gpu) ;
-				glUniform1i(u_Hd, Hd) ;
-				glUniform1i(u_Ed, Ed) ;
-				glUniform1i(u_Vd, Vd) ;
+                glUseProgram(refine_halfedges_gpu) ;
+                glUniform1i(u_Hd, Hd) ;
+                glUniform1i(u_Ed, Ed) ;
+                glUniform1i(u_Vd, Vd) ;
 
 				// execute program
 				const uint n_dispatch_groups = std::ceil(Hd / 256.0f) ;
@@ -455,7 +451,7 @@ Mesh_Loop_GPU::bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine
 	if (save_result && refine_he && refine_cr && refine_vx)
 	{
 		set_depth(new_depth) ;
-		readback_buffers() ;
+        //readback_buffers() ;
 	}
 
 	duration min_time = min_he + min_cr + min_vx ;

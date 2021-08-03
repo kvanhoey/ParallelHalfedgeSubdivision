@@ -56,7 +56,7 @@ void main()
 		const int c0 = 2 * c + 0 ;
 		const int c1 = 2 * c + 1 ;
 
-		if (is_crease_edge(c))
+                if (is_crease_edge(c))
 		{
 			const int c_next = Next(c) ;
 			const int c_prev = Prev(c) ;
