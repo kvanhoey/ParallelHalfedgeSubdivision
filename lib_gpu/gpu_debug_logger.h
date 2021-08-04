@@ -50,7 +50,7 @@ debug_output_logger(
             srcstr, typestr, message);
     }
 }
-void log_debug_output(void)
+void gpu_log_debug_output(void)
 {
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glDebugMessageCallback(&debug_output_logger, nullptr);

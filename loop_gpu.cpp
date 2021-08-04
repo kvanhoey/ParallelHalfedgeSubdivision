@@ -3,7 +3,9 @@
 #define MAX_VERTICES pow(2,28)
 
 #include "mesh_loop_gpu.h"
-#include "gpu_debug_logger.h"
+#ifndef NDEBUG
+	#include "gpu_debug_logger.h"
+#endif
 
 int main(int argc, char **argv)
 {
@@ -62,7 +64,9 @@ int main(int argc, char **argv)
 
 		Mesh_Loop_GPU S = S0 ;
 
-        log_debug_output() ;
+#ifndef NDEBUG
+		gpu_log_debug_output() ;
+#endif
 
 		for (int d = 1 ; d <= D ; d++)
 		{

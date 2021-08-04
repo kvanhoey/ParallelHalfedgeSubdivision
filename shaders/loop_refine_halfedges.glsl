@@ -73,11 +73,9 @@ void main()
 
     if (h < Hd)
     {
-	const int _3h = 3 * h ;
-
-	const int h0 = _3h + 0 ;
-	const int h1 = _3h + 1 ;
-	const int h2 = _3h + 2 ;
+	const int h0 = 3 * h + 0 ;
+	const int h1 = 3 * h + 1 ;
+	const int h2 = 3 * h + 2 ;
 	const int h3 = 3 * Hd + h ;
 
 	const int h_twin = Twin(h) ;

@@ -1,23 +1,26 @@
 #include <iostream>
 
 #define MAX_VERTICES pow(2,28)
+#define N_REPETITIONS 50
 
 #include "mesh_loop_gpu.h"
-#include "gpu_debug_logger.h"
+#ifndef NDEBUG
+	#include "gpu_debug_logger.h"
+#endif
 
 int main(int argc, char **argv)
 {
 	// Fetch arguments
 	if (argc < 3)
 	{
-		std::cout << "Usage: " << argv[0] << " <filename>.obj <depth> <export=0> <nb_repetitions=16>" << std::endl ;
+		std::cout << "Usage: " << argv[0] << " <filename>.obj <depth> <export=0> <nb_repetitions=" << N_REPETITIONS << ">" << std::endl ;
 		return 0 ;
 	}
 
 	const std::string f_name(argv[1]) ;
 	const uint D = atoi(argv[2]) ;
 	const bool enable_export = argc < 4 ? false : atoi(argv[3]) ;
-	const uint runCount = argc == 5 ? atoi(argv[4]) : 16 ;
+	const uint runCount = argc == 5 ? atoi(argv[4]) : N_REPETITIONS ;
 
 	// Init GL
 	glfwInit();
@@ -43,7 +46,7 @@ int main(int argc, char **argv)
 	}
 
 #ifndef NDEBUG
-	log_debug_output() ;
+	gpu_log_debug_output() ;
 #endif
 
 	Timings refine_he_time, refine_cr_time, refine_vx_time ;
