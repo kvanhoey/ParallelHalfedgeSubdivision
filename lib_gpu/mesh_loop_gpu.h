@@ -24,7 +24,7 @@ public:
 	Mesh_Loop_GPU(const std::string& filename) ;
 	~Mesh_Loop_GPU() ;
 
-	void refine_step_gpu() ;
+	void refine_step_gpu(bool readback) ;
 
 private:
 	GLuint halfedges_gpu, creases_gpu, vertices_gpu ;

@@ -68,11 +68,12 @@ int main(int argc, char **argv)
 			std::cout << "Subdividing level " << d << std::endl ;
 			if (S.V(d+1) > MAX_VERTICES)
 				break ;
-			S.refine_step_gpu() ;
-			S.check() ;
+			S.refine_step_gpu(enable_export) ;
 
 			if (enable_export)
 			{
+				assert(S.check()) ;
+
 				std::stringstream ss ;
 				ss << "S" << d ;
 				ss << ".obj" ;

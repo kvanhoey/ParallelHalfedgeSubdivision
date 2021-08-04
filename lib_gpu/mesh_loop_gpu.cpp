@@ -146,7 +146,7 @@ Mesh_Loop_GPU::rebind_buffers() const
 }
 
 void
-Mesh_Loop_GPU::refine_step_gpu()
+Mesh_Loop_GPU::refine_step_gpu(bool readback)
 {
 	const uint new_depth = depth() + 1 ;
 
@@ -233,7 +233,9 @@ Mesh_Loop_GPU::refine_step_gpu()
 	halfedges_gpu = H_new_gpu ;
 	creases_gpu = C_new_gpu ;
 	vertices_gpu = V_new_gpu ;
-    readback_buffers() ;
+
+	if (readback)
+		readback_buffers() ;
 }
 
 
