@@ -133,29 +133,24 @@ void
 Mesh_Loop_GPU::rebind_buffers() const
 {
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BUFFER_HALFEDGES_IN, halfedges_gpu) ;
-
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BUFFER_CREASES_IN, creases_gpu) ;
-
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BUFFER_VERTICES_IN, vertices_gpu) ;
-
-    //glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0) ;
 }
 
 void
-Mesh_Loop_GPU::refine_step_gpu(bool readback)
+Mesh_Loop_GPU::refine_step_gpu(bool readback_to_cpu)
 {
-	const uint new_depth = depth() + 1 ;
-
 	// ensure inputs are bound as inputs
 	if (depth() > 0)
 	{
 		rebind_buffers() ;
 	}
+	const uint new_depth = depth() + 1 ;
 
 	// create new buffers
-	const GLuint H_new_gpu = create_buffer(BUFFER_HALFEDGES_OUT	, H(new_depth) * sizeof(HalfEdge)	, nullptr) ;
-	const GLuint C_new_gpu = create_buffer(BUFFER_CREASES_OUT	, C(new_depth) * sizeof(Crease)		, nullptr) ;
-	const GLuint V_new_gpu = create_buffer(BUFFER_VERTICES_OUT	, V(new_depth) * sizeof(vec3)		, nullptr, true) ;
+	const GLuint H_new_gpu = create_buffer(BUFFER_HALFEDGES_OUT	, H(new_depth) * sizeof(HalfEdge)	, nullptr,	false,	readback_to_cpu) ;
+	const GLuint C_new_gpu = create_buffer(BUFFER_CREASES_OUT	, C(new_depth) * sizeof(Crease)		, nullptr,	false,	readback_to_cpu) ;
+	const GLuint V_new_gpu = create_buffer(BUFFER_VERTICES_OUT	, V(new_depth) * sizeof(vec3)		, nullptr,	true,	readback_to_cpu) ;
 
 	// create programs
 	const GLuint refine_halfedges_gpu	= create_program("../shaders/loop_refine_halfedges.glsl",BUFFER_HALFEDGES_IN, BUFFER_HALFEDGES_OUT	) ;
@@ -230,13 +225,13 @@ Mesh_Loop_GPU::refine_step_gpu(bool readback)
 	creases_gpu = C_new_gpu ;
 	vertices_gpu = V_new_gpu ;
 
-	if (readback)
+	if (readback_to_cpu)
 		readback_buffers() ;
 }
 
 
 Timings
-Mesh_Loop_GPU::bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine_vx, uint repetitions, bool save_result)
+Mesh_Loop_GPU::bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine_vx, uint repetitions, bool save_result, bool readback_to_cpu)
 {
 	duration min_he(0),max_he(0),sum_he(0),median_he(0) ;
 	duration min_cr(0),max_cr(0),sum_cr(0),median_cr(0) ;
@@ -453,8 +448,10 @@ Mesh_Loop_GPU::bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine
 	if (save_result && refine_he && refine_cr && refine_vx)
 	{
 		set_depth(new_depth) ;
-        //readback_buffers() ;
 	}
+
+	if (readback_to_cpu)
+		readback_buffers() ;
 
 	duration min_time = min_he + min_cr + min_vx ;
 	duration max_time = max_he + max_cr + max_vx ;

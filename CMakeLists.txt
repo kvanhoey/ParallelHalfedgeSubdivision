@@ -4,8 +4,13 @@ project (ParallelHalfedgeSubdivision CXX C)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+# Debugging off
 set(CMAKE_CXX_FLAGS "-Os -march=native")
+add_definitions(-DNDEBUG)
+# Debugging on
 #set(CMAKE_CXX_FLAGS "-g") # Debug
+
 
 option(BUILD_DOC "Build documentation" OFF)
 

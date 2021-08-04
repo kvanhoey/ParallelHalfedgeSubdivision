@@ -24,7 +24,8 @@ public:
 	Mesh_Loop_GPU(const std::string& filename) ;
 	~Mesh_Loop_GPU() ;
 
-	void refine_step_gpu(bool readback) ;
+	void refine_step_gpu(bool readback_to_cpu) ;
+	virtual Timings bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine_vx, uint repetitions, bool save_result=false, bool readback_to_cpu=false) final ;
 
 private:
 	GLuint halfedges_gpu, creases_gpu, vertices_gpu ;
@@ -41,8 +42,6 @@ private:
 
 	static GLuint create_program(const std::string& shader_file, GLuint in_buffer, GLuint out_buffer, bool is_vertex_program = false) ;
 
-public:
-	virtual Timings bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine_vx, uint repetitions, bool save_result=false) final ;
 };
 
 #endif

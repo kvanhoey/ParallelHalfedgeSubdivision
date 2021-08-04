@@ -42,7 +42,9 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-    log_debug_output() ;
+#ifndef NDEBUG
+	log_debug_output() ;
+#endif
 
 	Timings refine_he_time, refine_cr_time, refine_vx_time ;
 
@@ -56,47 +58,43 @@ int main(int argc, char **argv)
 			std::cerr << "ERROR: The provided mesh should be triangle-only" << std::endl ;
 			exit(0) ;
 		}
-
-		S0.check() ;
-
-		if (enable_export)
+		if (S0.V(D) > MAX_VERTICES)
 		{
-			std::cout << "Exporting S0.obj" << std::endl ;
-			S0.export_to_obj("S0.obj") ;
+			std::cout << std::endl << "ERROR: Mesh may exceed memory limits at depth " << D << std::endl ;
+			return 0 ;
 		}
 
+
+		assert(S0.check()) ;
 		Mesh_Loop_GPU S = S0 ;
 
 		for (int d = 1 ; d <= D ; d++)
 		{
-			std::cout << "Subdividing level " << d << std::endl ;
-			if (S.V(d+1) > MAX_VERTICES)
-				break ;
+			const bool export_to_obj = enable_export && d==D ;
+			std::cout << "Subdividing level " << d << "/" << D << "\r" << std::flush ;
 
 			refine_he_time += S.bench_refine_step_gpu(true, false, false, runCount) ;
             refine_cr_time += S.bench_refine_step_gpu(false, true, false, runCount) ;
-//            refine_vx_time += S.bench_refine_step_gpu(false, false, true, runCount) ;
+			refine_vx_time += S.bench_refine_step_gpu(false, false, true, runCount) ;
 
-            //S.bench_refine_step_gpu(true, true, true, 1, true) ;
-            S.set_depth(d) ;
+			S.bench_refine_step_gpu(true, true, true, 1, true, export_to_obj) ;
 
-            //S.check() ;
-
-			if (enable_export)
+			if (export_to_obj)
 			{
+				assert(S.check()) ;
+
 				std::stringstream ss ;
 				ss << "S" << d ;
 				ss << ".obj" ;
 
-				std::cout << "Exporting " << ss.str() << std::endl ;
+				std::cout << std::endl << "Exporting " << ss.str() << std::endl ;
 				S.export_to_obj(ss.str()) ;
 			}
 		}
+		std::cout << std::endl ;
 	}
 
 	glfwTerminate();
-
-//    std::cout << std::fixed << refine_he_time.mean << "\t" << refine_cr_time.mean << "\t" << refine_vx_time.mean << std::endl ;
 
     std::cout << std::fixed << refine_he_time.median << "\t" << refine_cr_time.median << "\t" << refine_vx_time.median << std::endl ;
 

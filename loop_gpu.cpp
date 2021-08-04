@@ -24,6 +24,7 @@ int main(int argc, char **argv)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+	glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
 
 	GLFWwindow* window = glfwCreateWindow(800, 600, "Hello OpenGL Window", nullptr, nullptr);
 	if (window == nullptr)
@@ -68,6 +69,7 @@ int main(int argc, char **argv)
 			std::cout << "Subdividing level " << d << std::endl ;
 			if (S.V(d+1) > MAX_VERTICES)
 				break ;
+
 			S.refine_step_gpu(enable_export) ;
 
 			if (enable_export)
