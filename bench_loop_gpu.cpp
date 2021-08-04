@@ -25,6 +25,7 @@ int main(int argc, char **argv)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+    glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
 
 	GLFWwindow* window = glfwCreateWindow(800, 600, "Hello OpenGL Window", nullptr, nullptr);
 	if (window == nullptr)
@@ -40,6 +41,8 @@ int main(int argc, char **argv)
 		printf("window creation failed!\n");
 		return -1;
 	}
+
+    log_debug_output() ;
 
 	Timings refine_he_time, refine_cr_time, refine_vx_time ;
 
@@ -71,12 +74,13 @@ int main(int argc, char **argv)
 				break ;
 
 			refine_he_time += S.bench_refine_step_gpu(true, false, false, runCount) ;
-			refine_cr_time += S.bench_refine_step_gpu(false, true, false, runCount) ;
-			refine_vx_time += S.bench_refine_step_gpu(false, false, true, runCount) ;
+            refine_cr_time += S.bench_refine_step_gpu(false, true, false, runCount) ;
+//            refine_vx_time += S.bench_refine_step_gpu(false, false, true, runCount) ;
 
-			S.bench_refine_step_gpu(true, true, true, 1, true) ;
+            //S.bench_refine_step_gpu(true, true, true, 1, true) ;
+            S.set_depth(d) ;
 
-			S.check() ;
+            //S.check() ;
 
 			if (enable_export)
 			{
@@ -92,7 +96,9 @@ int main(int argc, char **argv)
 
 	glfwTerminate();
 
-	std::cout << std::fixed << refine_he_time.median << "\t" << refine_cr_time.median << "\t" << refine_vx_time.median << std::endl ;
+//    std::cout << std::fixed << refine_he_time.mean << "\t" << refine_cr_time.mean << "\t" << refine_vx_time.mean << std::endl ;
+
+    std::cout << std::fixed << refine_he_time.median << "\t" << refine_cr_time.median << "\t" << refine_vx_time.median << std::endl ;
 
 	// write into files
 	const std::string f_name_tmp = f_name.substr(f_name.find_last_of("\\/") + 1, 999) ;
