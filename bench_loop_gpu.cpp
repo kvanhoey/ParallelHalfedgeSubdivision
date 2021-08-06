@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 	gpu_log_debug_output() ;
 #endif
 
-	Timings refine_he_time, refine_cr_time, refine_vx_time ;
+    Timings refine_he_time, refine_cr_time, refine_cl_time, refine_vx_time ;
 
 	// encapsulates what requires GL context
 	{
@@ -76,11 +76,12 @@ int main(int argc, char **argv)
 			const bool export_to_obj = enable_export && d==D ;
 			std::cout << "Subdividing level " << d << "/" << D << "\r" << std::flush ;
 
-			refine_he_time += S.bench_refine_step_gpu(true, false, false, runCount) ;
-            refine_cr_time += S.bench_refine_step_gpu(false, true, false, runCount) ;
-			refine_vx_time += S.bench_refine_step_gpu(false, false, true, runCount) ;
+            refine_he_time += S.bench_refine_step_gpu(true, false, false, false, runCount) ;
+            refine_cr_time += S.bench_refine_step_gpu(false, true, false, false, runCount) ;
+            refine_cl_time += S.bench_refine_step_gpu(false, false, true, false, runCount) ;
+            refine_vx_time += S.bench_refine_step_gpu(false, false, false, true, runCount) ;
 
-			S.bench_refine_step_gpu(true, true, true, 1, true, export_to_obj) ;
+            S.bench_refine_step_gpu(true, true, true, true, 1, true, export_to_obj) ;
 
 			if (export_to_obj)
 			{
@@ -99,21 +100,27 @@ int main(int argc, char **argv)
 
 	glfwTerminate();
 
-    std::cout << std::fixed << refine_he_time.median << "\t" << refine_cr_time.median << "\t" << refine_vx_time.median << std::endl ;
+    std::cout << std::fixed << refine_he_time.median << "\t" << refine_cr_time.median << "\t" << (refine_cl_time.median + refine_vx_time.median) << std::endl ;
 
 
 	Timings rendering_time = refine_vx_time ;
+    rendering_time += refine_cl_time ;
 	Timings modelling_time = refine_he_time ;
 	modelling_time += refine_cr_time ;
+    modelling_time += refine_cl_time ;
 	modelling_time += refine_vx_time ;
 
 	// write into files
 	const std::string f_name_tmp = f_name.substr(f_name.find_last_of("\\/") + 1, 999) ;
 	const std::string f_name_clean = f_name_tmp.substr(0,f_name_tmp.find_last_of(".")) ;
 
-	std::stringstream fname_mod, fname_render ;
+    std::stringstream fname_mod, fname_render, fname_he, fname_cr, fname_clear, fname_vx ;
 	fname_mod << f_name_clean << "_gpu_modelling.txt" ;
 	fname_render << f_name_clean << "_gpu_rendering.txt" ;
+    fname_he << f_name_clean << "_gpu_halfedge.txt" ;
+    fname_cr << f_name_clean << "_gpu_crease.txt" ;
+    fname_clear << f_name_clean << "_gpu_clear.txt" ;
+    fname_vx << f_name_clean << "_gpu_vertex.txt" ;
 
 	std::ofstream f_mod ;
 	f_mod.open(fname_mod.str(), std::ofstream::out | std::ofstream::app) ;
@@ -122,8 +129,29 @@ int main(int argc, char **argv)
 
 	std::ofstream f_render ;
 	f_render.open(fname_render.str(), std::ofstream::out | std::ofstream::app) ;
-	f_render << std::fixed << "(" << D << ", " << rendering_time.median << ") -= (0.0, " << rendering_time.median - rendering_time.min << ") += (0.0, " << rendering_time.max - rendering_time.median << ")" << std::endl ;
+    f_render << std::fixed << "(" << D << ", " << rendering_time.median << ") -= (0.0, " <<  rendering_time.median - rendering_time.min << ") += (0.0, " << rendering_time.max - rendering_time.median << ")" << std::endl ;
 	f_render.close() ;
+
+    std::ofstream f_halfedge ;
+    f_halfedge.open(fname_he.str(), std::ofstream::out | std::ofstream::app) ;
+    f_halfedge << std::fixed << "(" << D << ", " << refine_he_time.median << ") -= (0.0, " << refine_he_time.median - refine_he_time.min << ") += (0.0, " << refine_he_time.max - refine_he_time.median << ")" << std::endl ;
+    f_halfedge.close() ;
+
+    std::ofstream f_crease ;
+    f_crease.open(fname_cr.str(), std::ofstream::out | std::ofstream::app) ;
+    f_crease << std::fixed << "(" << D << ", " << refine_cr_time.median << ") -= (0.0, " << refine_cr_time.median - refine_cr_time.min << ") += (0.0, " << refine_cr_time.max - refine_cr_time.median << ")" << std::endl ;
+    f_crease.close() ;
+
+    std::ofstream f_clear ;
+    f_clear.open(fname_clear.str(), std::ofstream::out | std::ofstream::app) ;
+    f_clear << std::fixed << "(" << D << ", " << refine_cl_time.median << ") -= (0.0, " << refine_cl_time.median - refine_cl_time.min << ") += (0.0, " << refine_cl_time.max - refine_cl_time.median << ")" << std::endl ;
+    f_clear.close() ;
+
+    std::ofstream f_vertex ;
+    f_vertex.open(fname_vx.str(), std::ofstream::out | std::ofstream::app) ;
+    f_vertex << std::fixed << "(" << D << ", " << refine_vx_time.median << ") -= (0.0, " << refine_vx_time.median - refine_vx_time.min << ") += (0.0, " << refine_vx_time.max - refine_vx_time.median << ")" << std::endl ;
+    f_vertex.close() ;
+
 
 	return 0;
 }

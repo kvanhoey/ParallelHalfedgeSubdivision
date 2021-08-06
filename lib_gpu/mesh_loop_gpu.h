@@ -25,7 +25,7 @@ public:
 	~Mesh_Loop_GPU() ;
 
 	void refine_step_gpu(bool readback_to_cpu) ;
-	virtual Timings bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine_vx, uint repetitions, bool save_result=false, bool readback_to_cpu=false) final ;
+    virtual Timings bench_refine_step_gpu(bool bench_halfedges, bool bench_creases, bool bench_clear, bool bench_vertices, uint repetitions, bool save_result = false, bool readback_to_cpu = false) final ;
 
 private:
 	GLuint halfedges_gpu, creases_gpu, vertices_gpu ;

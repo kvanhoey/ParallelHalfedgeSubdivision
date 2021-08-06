@@ -231,11 +231,12 @@ Mesh_Loop_GPU::refine_step_gpu(bool readback_to_cpu)
 
 
 Timings
-Mesh_Loop_GPU::bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine_vx, uint repetitions, bool save_result, bool readback_to_cpu)
+Mesh_Loop_GPU::bench_refine_step_gpu(bool bench_halfedges, bool bench_creases, bool bench_clear, bool bench_vertices, uint repetitions, bool save_result, bool readback_to_cpu)
 {
 	duration min_he(0),max_he(0),sum_he(0),median_he(0) ;
 	duration min_cr(0),max_cr(0),sum_cr(0),median_cr(0) ;
-	duration min_vx(0),max_vx(0),sum_vx(0),median_vx(0) ;
+    duration min_clear(0),max_clear(0),sum_clear(0),median_clear(0) ;
+    duration min_vx(0),max_vx(0),sum_vx(0),median_vx(0) ;
 	djg_clock *clock = djgc_create();
 
 	GLuint H_new_gpu, C_new_gpu, V_new_gpu ;
@@ -248,7 +249,7 @@ Mesh_Loop_GPU::bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine
 	}
 
 	// execute halfedge refinement
-	if (refine_he)
+    if (bench_halfedges)
 	{
 		// create new buffer
 		H_new_gpu = create_buffer(BUFFER_HALFEDGES_OUT	, H(new_depth) * sizeof(HalfEdge)	, nullptr, false, save_result) ;
@@ -300,7 +301,7 @@ Mesh_Loop_GPU::bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine
 	}
 
 	// execute crease refinement
-	if (refine_cr)
+    if (bench_creases)
 	{
 		// create new buffer
 		C_new_gpu = create_buffer(BUFFER_CREASES_OUT	, C(new_depth) * sizeof(Crease)		, nullptr, false, save_result) ;
@@ -348,7 +349,7 @@ Mesh_Loop_GPU::bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine
 	}
 
 	// execute vertex refinement
-	if (refine_vx)
+    if (bench_clear || bench_vertices)
 	{
 		// create new buffer
 		V_new_gpu = create_buffer(BUFFER_VERTICES_OUT	, V(new_depth) * sizeof(vec3)		, nullptr, false, save_result) ;
@@ -356,7 +357,7 @@ Mesh_Loop_GPU::bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine
 		// create program
 		const GLuint refine_vertices_gpu	= create_program("../shaders/loop_refine_vertices.glsl"	,BUFFER_VERTICES_IN	, BUFFER_VERTICES_OUT,true) ;
 
-		std::vector<duration> timings_vx ;
+        std::vector<duration> timings_clear, timings_vx ;
 
 		for (uint i = 0 ; i < repetitions; ++i)
 		{
@@ -367,48 +368,70 @@ Mesh_Loop_GPU::bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine
 			{
 				// reset buffer to 0
 				clear_buffer(V_new_gpu) ;
-
-				const GLint u_Hd = glGetUniformLocation(refine_vertices_gpu, "Hd");
-				const GLint u_Vd = glGetUniformLocation(refine_vertices_gpu, "Vd");
-				const GLint u_Ed = glGetUniformLocation(refine_vertices_gpu, "Ed");
-				const GLint u_Cd = glGetUniformLocation(refine_vertices_gpu, "Cd");
-
-				glUseProgram(refine_vertices_gpu) ;
-
-				// set uniforms
-				glUniform1i(u_Hd, Hd) ;
-				glUniform1i(u_Ed, Ed) ;
-				glUniform1i(u_Vd, Vd) ;
-				glUniform1i(u_Cd, Cd) ;
-
-				// execute program
-				const uint n_dispatch_groups = std::ceil(Hd / 256.0f) ;
-				glDispatchCompute(n_dispatch_groups,1,1) ;
-				glMemoryBarrier(GL_ALL_BARRIER_BITS) ;
 			}
 			djgc_stop(clock);
 			glFinish();
 			djgc_ticks(clock, &cpuTime, &gpuTime);
 
 			duration elapsed(1e3 * gpuTime) ;
-			timings_vx.push_back(elapsed) ;
+            timings_clear.push_back(elapsed) ;
+
+            glFinish();
+            djgc_start(clock);
+            {
+                const GLint u_Hd = glGetUniformLocation(refine_vertices_gpu, "Hd");
+                const GLint u_Vd = glGetUniformLocation(refine_vertices_gpu, "Vd");
+                const GLint u_Ed = glGetUniformLocation(refine_vertices_gpu, "Ed");
+                const GLint u_Cd = glGetUniformLocation(refine_vertices_gpu, "Cd");
+
+                glUseProgram(refine_vertices_gpu) ;
+
+                // set uniforms
+                glUniform1i(u_Hd, Hd) ;
+                glUniform1i(u_Ed, Ed) ;
+                glUniform1i(u_Vd, Vd) ;
+                glUniform1i(u_Cd, Cd) ;
+
+                // execute program
+                const uint n_dispatch_groups = std::ceil(Hd / 256.0f) ;
+                glDispatchCompute(n_dispatch_groups,1,1) ;
+                glMemoryBarrier(GL_ALL_BARRIER_BITS) ;
+            }
+            djgc_stop(clock);
+            glFinish();
+            djgc_ticks(clock, &cpuTime, &gpuTime);
+
+            elapsed = duration(1e3 * gpuTime) ;
+            timings_vx.push_back(elapsed) ;
 		}
 		// cleanup
 		glDeleteProgram(refine_vertices_gpu) ;
 
-		assert(timings_vx.size() == repetitions) ;
+        if (bench_clear)
+        {
+            assert(timings_clear.size() == repetitions) ;
+            std::sort(timings_clear.begin(), timings_clear.end()) ;
+            median_clear = timings_clear[repetitions / 2] ;
+            min_clear = timings_clear.front() ;
+            max_clear = timings_clear.back() ;
+            sum_clear = std::accumulate(timings_clear.begin(), timings_clear.end(), duration(0)) ;
+        }
 
-		std::sort(timings_vx.begin(), timings_vx.end()) ;
-		median_vx = timings_vx[repetitions / 2] ;
-		min_vx = timings_vx.front() ;
-		max_vx = timings_vx.back() ;
-		sum_vx = std::accumulate(timings_vx.begin(), timings_vx.end(), duration(0)) ;
+        if (bench_vertices)
+        {
+            assert(timings_vx.size() == repetitions) ;
+            std::sort(timings_vx.begin(), timings_vx.end()) ;
+            median_vx = timings_vx[repetitions / 2] ;
+            min_vx = timings_vx.front() ;
+            max_vx = timings_vx.back() ;
+            sum_vx = std::accumulate(timings_vx.begin(), timings_vx.end(), duration(0)) ;
+        }
 	}
 
 	glUseProgram(0) ;
 
 	// save new state
-	if (refine_he)
+    if (bench_halfedges)
 	{
 		if (save_result)
 		{
@@ -419,7 +442,7 @@ Mesh_Loop_GPU::bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine
 			release_buffer(H_new_gpu) ;
 	}
 
-	if (refine_cr)
+    if (bench_creases)
 	{
 		if(save_result)
 		{
@@ -432,7 +455,7 @@ Mesh_Loop_GPU::bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine
 		}
 	}
 
-	if (refine_vx)
+    if (bench_clear || bench_vertices)
 	{
 		if (save_result)
 		{
@@ -445,7 +468,7 @@ Mesh_Loop_GPU::bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine
 		}
 	}
 
-	if (save_result && refine_he && refine_cr && refine_vx)
+    if (save_result && bench_halfedges && bench_creases && bench_clear && bench_vertices)
 	{
 		set_depth(new_depth) ;
 	}
@@ -453,10 +476,10 @@ Mesh_Loop_GPU::bench_refine_step_gpu(bool refine_he, bool refine_cr, bool refine
 	if (readback_to_cpu)
 		readback_buffers() ;
 
-	duration min_time = min_he + min_cr + min_vx ;
-	duration max_time = max_he + max_cr + max_vx ;
-	duration sum_time = sum_he + sum_cr + sum_vx ;
-	duration median_time = median_he + median_cr + median_vx ;
+    duration min_time = min_he + min_cr + min_clear + min_vx ;
+    duration max_time = max_he + max_cr + max_clear + max_vx ;
+    duration sum_time = sum_he + sum_cr + sum_clear + sum_vx ;
+    duration median_time = median_he + median_cr + median_clear + median_vx ;
 
 	Timings t ;
 	t.min = min_time.count() ;
