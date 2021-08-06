@@ -117,12 +117,12 @@ int main(int argc, char **argv)
 
 	std::ofstream f_mod ;
 	f_mod.open(fname_mod.str(), std::ofstream::out | std::ofstream::app) ;
-	f_mod << std::fixed << "(" << D << ", " << modelling_time.median << ") -= (0.0, " << modelling_time.min << ") += (0.0, " << modelling_time.max << ")" << std::endl ;
+	f_mod << std::fixed << "(" << D << ", " << modelling_time.median << ") -= (0.0, " << modelling_time.median - modelling_time.min << ") += (0.0, " << modelling_time.max - modelling_time.median << ")" << std::endl ;
 	f_mod.close() ;
 
 	std::ofstream f_render ;
 	f_render.open(fname_render.str(), std::ofstream::out | std::ofstream::app) ;
-	f_render << std::fixed << "(" << D << ", " << rendering_time.median << ") -= (0.0, " << rendering_time.min << ") += (0.0, " << rendering_time.max << ")" << std::endl ;
+	f_render << std::fixed << "(" << D << ", " << rendering_time.median << ") -= (0.0, " << rendering_time.median - rendering_time.min << ") += (0.0, " << rendering_time.max - rendering_time.median << ")" << std::endl ;
 	f_render.close() ;
 
 	return 0;
