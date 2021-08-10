@@ -1,0 +1,95 @@
+%-------------------------------------------------------------------------------
+%-------------------------------------------------------------------------------
+\begin{semilogyaxis}[
+    grid = both,
+    name = myaxis,
+    y label style={font=\footnotesize},
+    ylabel = timings (ms),
+    x tick label style={font=\footnotesize},
+    symbolic x coords={1, 2, 3, 4, 5, 6, 7},
+    xtick = data,
+    enlarge x limits = {abs=0.85cm},
+    title = Vertex-Point Refinement,
+    legend style={at={(0.01, 0.98), fill = mygreylighter, rounded corners = 0.8},
+    nodes near coords,
+    every node near coord/.append style={font=\tiny},
+    anchor = north west, legend columns=-1, append after command={
+        \pgfextra{
+          \draw[rounded corners = 0.8, drop shadow, fill opacity = 0.0]
+            (\tikzlastnode.south west)rectangle(\tikzlastnode.north east);
+          }
+       }}
+]
+\addplot[point meta=rawy, mark=*, color=myorange, mark options={solid, fill=myorangelight}, line width = 0.6pt] coordinates {
+    (1, 1.268075)
+    (2, 6.158495)
+    (3, 25.902620)
+    (4, 106.161156)
+    (5, 446.113647)
+    (6, 1954.319214)
+    (7, 8181.511230)
+};
+\addplot[point meta=rawy, mark=*, color=mygreen, mark options={solid, fill=mygreenlight}, line width = 0.6pt] coordinates {
+    (1, 0.702049)
+    (2, 3.277165)
+    (3, 13.322996)
+    (4, 54.076626)
+    (5, 234.761520)
+    (6, 1034.830933)
+    (7, 4244.446777)
+};
+\addplot[point meta=rawy, mark=*, color=myred, mark options={solid, fill=myredlight}, line width = 0.6pt] coordinates {
+    (1, 0.391470)
+    (2, 1.750589)
+    (3, 6.962323)
+    (4, 27.753733)
+    (5, 115.175308)
+    (6, 538.297058)
+    (7, 2250.438477)
+};
+\addplot[point meta=rawy, mark=*, color=myblue, mark options={solid, fill=mybluelight}, line width = 0.6pt] coordinates {
+    (1, 0.363197)
+    (2, 1.105732)
+    (3, 3.821748)
+    (4, 14.496690)
+    (5, 58.430656)
+    (6, 281.298492)
+    (7, 1176.653076)
+};
+\addplot[point meta=rawy, mark=*, color=mygrey, mark options={solid, fill=mygreylight}, line width = 0.6pt] coordinates {
+    (1, 0.203988)
+    (2, 0.607254)
+    (3, 2.120371)
+    (4, 7.710372)
+    (5, 30.344988)
+    (6, 146.084839)
+    (7, 630.854980)
+};
+\addplot[nodes near coords align={anchor=north}, point meta=rawy, mark=*, color=myblack, mark options={solid, fill=myblack}, line width = 0.6pt] coordinates {
+    (1, 0.167436)
+    (2, 0.473623)
+    (3, 1.580471)
+    (4, 5.829026)
+    (5, 22.774920)
+    (6, 106.050354)
+    (7, 426.936035)
+};
+\legend{
+    \tiny{CPU\_1},
+    \tiny{CPU\_2},
+    \tiny{CPU\_4},
+    \tiny{CPU\_8},
+    \tiny{CPU\_16},
+    \tiny{CPU\_32},
+}
+\end{semilogyaxis}
+
+\begin{pgfonlayer}{background}
+\draw[fill=mygreylighterr, drop shadow]
+        (myaxis.north west)
+        rectangle (myaxis.south east);
+\end{pgfonlayer}
+%-------------------------------------------------------------------------------
+%-------------------------------------------------------------------------------
+
+\node[black, draw=none, anchor = east] at (0.8, -0.22) {\scalebox{0.9}{{depth: }}};
