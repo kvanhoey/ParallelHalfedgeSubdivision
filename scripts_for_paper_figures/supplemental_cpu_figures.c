@@ -17,7 +17,7 @@ void PlotStart(FILE *pf, const char *title)
 "    y label style={font=\\footnotesize},\n"
 "    ylabel = timings (ms),\n"
 "    x tick label style={font=\\footnotesize},\n"
-"    symbolic x coords={1, 2, 3, 4, 5, 6},\n"
+"    symbolic x coords={1, 2, 3, 4, 5, 6, 7},\n"
 "    xtick = data,\n"
 "    enlarge x limits = {abs=0.85cm},\n"
 "    title = %s,\n"
@@ -45,6 +45,8 @@ fprintf(pf,
 "    (3, %f)\n"
 "    (4, %f)\n"
 "    (5, %f)\n"
+"    (6, %f)\n"
+//"    (7, %f)\n"
 "};\n",
         nodeNorth ? "nodes near coords align={anchor=north}, " : "",
         color,
@@ -53,7 +55,9 @@ fprintf(pf,
         data[1],
         data[2],
         data[3],
-        data[4]
+        data[4],
+				data[5]//,
+//				data[6]
         );
 }
 
@@ -91,7 +95,7 @@ CreatePlot(const char *meshName, const char *performanceType, const char *plotLa
         "myred",
         "myblue",
         "mygrey",
-        "black"
+        "myblack"
     };
     const char *fillColors[] = {
         "myorangelight",
@@ -99,10 +103,10 @@ CreatePlot(const char *meshName, const char *performanceType, const char *plotLa
         "myredlight",
         "mybluelight",
         "mygreylight",
-        "black"
-    };
+        "myblack"
+		};
     const int32_t threadCount = 6;
-    const int32_t maxDepth = 5;
+    const int32_t maxDepth = 6;
     float data[maxDepth];
     char buffer[256];
     FILE *pf;

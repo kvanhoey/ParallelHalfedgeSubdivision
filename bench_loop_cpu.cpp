@@ -27,6 +27,12 @@ int main(int argc, char* argv[])
 		std::cerr << "ERROR: The provided mesh should be triangle-only" << std::endl ;
 		exit(0) ;
 	}
+	if (S0.V(D) > MAX_VERTICES)
+	{
+		std::cout << std::endl << "ERROR: Mesh may exceed memory limits at depth " << D << std::endl ;
+		return 0 ;
+	}
+
 
     S0.check() ;
 
@@ -38,18 +44,15 @@ int main(int argc, char* argv[])
 
 	for (int d = 1 ; d <= D ; d++)
     {
-        if (S.V(d+1) > MAX_VERTICES)
-            break ;
-
 		refine_he_time += S.bench_refine_step(true, false, false, runCount) ;
 		refine_cr_time += S.bench_refine_step(false, true, false, runCount) ;
 		refine_vx_time += S.bench_refine_step(false, false, true, runCount) ;
-
+		std::cout << std::fixed << refine_he_time.median << "\t" << refine_cr_time.median << "\t" << refine_vx_time.median << std::endl ;
 		S.bench_refine_step(true, true, true, 1, true) ;
 
-        S.check() ;
+		assert(S.check()) ;
 
-		if (enable_export)
+		if (enable_export && d >= 6)
 		{
 			std::stringstream ss ;
 			ss << "S" << d ;
