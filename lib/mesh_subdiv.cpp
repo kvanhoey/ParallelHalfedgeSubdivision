@@ -67,8 +67,8 @@ CC_PARALLEL_FOR
 		{
 			const int c_next = NextC(c) ;
 			const int c_prev = PrevC(c) ;
-			const bool b1 = c == PrevC(c_next) ;
-			const bool b2 = c == NextC(c_prev) ;
+			const bool b1 = c == PrevC(c_next) && c != c_next ;
+			const bool b2 = c == NextC(c_prev) && c != c_prev;
 			const float thisS = 3.0f * Sigma(c) ;
 			const float nextS = Sigma(NextC(c)) ;
 			const float prevS = Sigma(c_prev) ;
