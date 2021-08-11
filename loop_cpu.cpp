@@ -3,7 +3,6 @@
 #include <fstream>
 #include <sstream>
 
-//#define INPLACE
 #define MAX_VERTICES pow(2,28)
 
 #include "mesh.h"
@@ -12,7 +11,7 @@ int main(int argc, char* argv[])
 {
 	if (argc < 3)
 	{
-		std::cout << "Usage: " << argv[0] << " <filename>.obj <depth> <export=0>" << std::endl ;
+		std::cout << "Usage: " << argv[0] << " <filename>.obj <depth> <export_all_levels=0>" << std::endl ;
 		return 0 ;
 	}
 
@@ -28,38 +27,43 @@ int main(int argc, char* argv[])
 		exit(0) ;
 	}
 
-	S0.check() ;
+	if (S0.V(D) > MAX_VERTICES)
+	{
+		std::cout << std::endl << "ERROR: Mesh may exceed memory limits at depth " << D << std::endl ;
+		return 0 ;
+	}
 
+	const char* num_threads_str = std::getenv("OMP_NUM_THREADS") ;
+	if (num_threads_str != NULL)
+		 std::cout << "Using " << atoi(num_threads_str) << " threads" << std::endl ;
+	else
+		std::cout << "Using default number of threads" << std::endl ;
+
+	S0.check() ;
 	if (enable_export)
 	{
-		std::cout << "Exporting S0.obj" << std::endl ;
-		S0.export_to_obj("S0.obj") ;
+		std::cout << "Exporting S0.obj ... " << std::flush ;
+		S0.export_to_obj("S0.obj") ; // <-- subdivision happens here
+		std::cout << "[OK]" << std::endl ;
 	}
 
 	Mesh_Loop S = S0 ;
 	for (int d = 1 ; d <= D ; d++)
 	{
-		std::cout << "Subdividing level " << d << std::endl ;
-		if (S.V(d+1) > MAX_VERTICES)
-			break ;
-		# ifdef INPLACE
-			S.refine_step_inplace() ;
-		# else
-			S.refine_step() ;
-		# endif
-		S.check() ;
+		std::cout << "Subdividing level " << d << " ... " << std::flush;
+		S.refine_step() ;
+		std::cout << "[OK]" << std::endl ;
 
-		if (enable_export)
+		assert(S.check()) ;
+
+		if (enable_export || d == D)
 		{
 			std::stringstream ss ;
-			ss << "S" << d ;
-			# ifdef INPLACE
-				ss << "_inplace" ;
-			# endif
-			ss << ".obj" ;
+			ss << "S" << d << ".obj" ;
 
-			std::cout << "Exporting " << ss.str() << std::endl ;
+			std::cout << "Exporting " << ss.str() << " ... " << std::flush ;
 			S.export_to_obj(ss.str()) ;
+			std::cout << "[OK]" << std::endl ;
 		}
 	}
 

@@ -12,7 +12,7 @@ int main(int argc, char **argv)
 	// Fetch arguments
 	if (argc < 3)
 	{
-		std::cout << "Usage: " << argv[0] << " <filename>.obj <depth> <export=0>" << std::endl ;
+		std::cout << "Usage: " << argv[0] << " <filename>.obj <depth> <export_all_levels=0>" << std::endl ;
 		return 0 ;
 	}
 
@@ -54,38 +54,40 @@ int main(int argc, char **argv)
 			exit(0) ;
 		}
 
-		S0.check() ;
-
-		if (enable_export)
+		if (S0.V(D) > MAX_VERTICES)
 		{
-			std::cout << "Exporting S0.obj" << std::endl ;
-			S0.export_to_obj("S0.obj") ;
+			std::cout << std::endl << "ERROR: Mesh may exceed memory limits at depth " << D << std::endl ;
+			return 0 ;
 		}
 
-		Mesh_Loop_GPU S = S0 ;
-
+		S0.check() ;
+		if (enable_export)
+		{
+			std::cout << "Exporting S0.obj ... " << std::flush ;
+			S0.export_to_obj("S0.obj") ;
+			std::cout << "[OK]" << std::endl ;
+		}
 #ifndef NDEBUG
 		gpu_log_debug_output() ;
 #endif
 
+		Mesh_Loop_GPU S = S0 ;
 		for (int d = 1 ; d <= D ; d++)
 		{
-			std::cout << "Subdividing level " << d << std::endl ;
-			if (S.V(d+1) > MAX_VERTICES)
-				break ;
+			std::cout << "Subdividing level " << d << " ... " << std::flush;
+			S.refine_step_gpu(enable_export) ; // <-- subdivision happens here
+			std::cout << "[OK]" << std::endl ;
 
-			S.refine_step_gpu(enable_export) ;
+			assert(S.check()) ;
 
-			if (enable_export)
+			if (enable_export || d == D)
 			{
-				assert(S.check()) ;
-
 				std::stringstream ss ;
-				ss << "S" << d ;
-				ss << ".obj" ;
+				ss << "S" << d << ".obj" ;
 
-				std::cout << "Exporting " << ss.str() << std::endl ;
+				std::cout << "Exporting " << ss.str() << " ... " << std::flush ;
 				S.export_to_obj(ss.str()) ;
+				std::cout << "[OK]" << std::endl ;
 			}
 		}
 	}
