@@ -60,8 +60,8 @@ void main()
 		{
 			const int c_next = Next(c) ;
 			const int c_prev = Prev(c) ;
-			const bool b1 = c == Prev(c_next) ;
-			const bool b2 = c == Next(c_prev) ;
+			const bool b1 = c == Prev(c_next) && c != c_next ;
+			const bool b2 = c == Next(c_prev) && c != c_prev;
 			const float thisS = 3.0 * Sharpness(c) ;
 			const float nextS = Sharpness(Next(c)) ;
 			const float prevS = Sharpness(c_prev) ;
