@@ -106,10 +106,7 @@ void
 Mesh_Loop::refine_vertices_with_creases(vertex_buffer& V_new) const
 {
 	init_vertex_buffer(V_new) ;
-	//allpoints_with_creases(V_new) ;
-	//allpoints_with_creases_branchless(V_new) ;
-	//refine_vertices_with_creases_twosteps(V_new) ;
-	refine_vertices_with_creases_twosteps_branchless(V_new) ;
+	allpoints_with_creases_branchless(V_new) ;
 }
 
 void

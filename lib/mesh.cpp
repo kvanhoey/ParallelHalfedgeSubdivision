@@ -356,7 +356,7 @@ int
 Mesh::n_vertex_of_polygon_check(int h) const
 {
 	int n = 1 ;
-	for (int h_fw = Next(h) ; h_fw != h ; h_fw = Next(h_fw))
+	for (int h_fw = Mesh::Next(h) ; h_fw != h ; h_fw = Mesh::Next(h_fw))
 	{
 		++n ;
 	}
@@ -849,7 +849,30 @@ Mesh::compute_and_set_crease_neighbors()
 				c_prev = Edge(h_vx_it) ;
 			}
 		}
-		if (prev_creases == 1 && h == h_vx_it)
+		if (h_vx_it < 0) // go backwards
+		{
+			h_vx_it = Prev(h) ;
+			while(true)
+			{
+				int h_vx_it_twin = Twin(h_vx_it) ;
+				if (h_vx_it_twin == h)
+					break ;
+
+				int c_id = Edge(h_vx_it) ;
+				float c_prev_sharpness = Cr[c_id].Sigma ;
+				if (c_prev_sharpness > 1e-06)
+				{
+					++prev_creases ;
+					c_prev = c_id ;
+				}
+
+				if (h_vx_it_twin < 0)
+					break ;
+
+				h_vx_it = Prev(h_vx_it_twin) ;
+			}
+		}
+		if (prev_creases == 1)
 		{
 			Cr[c].Prev = c_prev ;
 		}
@@ -867,7 +890,33 @@ Mesh::compute_and_set_crease_neighbors()
 			if (c_next_sharpness > 1e-06)
 			{
 				++next_creases ;
-				c_next = Edge(h_vx_it) ;
+				c_next = c_id ;
+			}
+		}
+		if (h_vx_it < 0) // go backwards
+		{
+			int h_vx_it_twin = Twin(h) ;
+			if (h_vx_it_twin >= 0)
+			{
+				h_vx_it = Prev(h_vx_it_twin) ;
+				while(true)
+				{
+					if (h_vx_it == h)
+						break ;
+
+					int c_id = Edge(h_vx_it) ;
+					float c_next_sharpness = Cr[c_id].Sigma ;
+					if (c_next_sharpness > 1e-06)
+					{
+						++next_creases ;
+						c_next = c_id ;
+					}
+
+					h_vx_it_twin = Twin(h_vx_it) ;
+					if (h_vx_it_twin < 0)
+						break ;
+					h_vx_it = Prev(h_vx_it) ;
+				}
 			}
 		}
 		if (next_creases == 1)

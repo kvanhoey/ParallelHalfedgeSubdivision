@@ -74,14 +74,15 @@ int main(int argc, char **argv)
 		Mesh_Loop_GPU S = S0 ;
 		for (int d = 1 ; d <= D ; d++)
 		{
+			bool export_mesh = (enable_export || d == D) ;
 			std::cout << "Subdividing level " << d << " ... " << std::flush;
-			S.refine_step_gpu(enable_export) ; // <-- subdivision happens here
+			S.refine_step_gpu(export_mesh) ; // <-- subdivision happens here
 			std::cout << "[OK]" << std::endl ;
 
-			assert(S.check()) ;
-
-			if (enable_export || d == D)
+			if (export_mesh)
 			{
+				assert(S.check()) ;
+
 				std::stringstream ss ;
 				ss << "S" << d << ".obj" ;
 

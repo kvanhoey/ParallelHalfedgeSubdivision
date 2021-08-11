@@ -82,8 +82,6 @@ int main(int argc, char **argv)
             refine_vx_time += S.bench_refine_step_gpu(false, false, false, true, runCount) ;
             S.bench_refine_step_gpu(true, true, true, true, 1, true, export_to_obj) ;
 			std::cout << "[OK]" << std::endl ;
-
-			assert(S.check()) ;
 		}
 		std::cout << std::endl ;
 
@@ -95,6 +93,8 @@ int main(int argc, char **argv)
 
 		if (enable_export)
 		{
+			assert(S.check()) ;
+
 			std::stringstream ss ;
 			ss << "S" << D << ".obj" ;
 
