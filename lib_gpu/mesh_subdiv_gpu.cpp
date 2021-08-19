@@ -1,7 +1,13 @@
-#include "mesh.h"
+#include "mesh_subdiv_gpu.h"
 
 #define DJ_OPENGL_IMPLEMENTATION
 #include "dj_opengl.h"
+
+Mesh_Subdiv_GPU::Mesh_Subdiv_GPU(const std::string &filename, uint max_depth):
+	Mesh_Subdiv(filename,max_depth)
+{
+	refine_creases_step_program = create_program("../shaders/refine_creases.glsl", BUFFER_CREASES_IN, BUFFER_CREASES_OUT) ;
+}
 
 Mesh_Subdiv_GPU::~Mesh_Subdiv_GPU()
 {

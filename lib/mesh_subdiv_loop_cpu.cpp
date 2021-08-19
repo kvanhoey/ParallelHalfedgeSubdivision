@@ -1,4 +1,10 @@
-#include "mesh.h"
+#include "mesh_subdiv_loop_cpu.h"
+
+Mesh_Subdiv_Loop_CPU::Mesh_Subdiv_Loop_CPU(const std::string &filename, uint depth):
+	Mesh_Subdiv_Loop(filename, depth),
+	Mesh_Subdiv_CPU(filename, depth),
+	Mesh_Subdiv(filename, depth)
+{}
 
 void
 Mesh_Subdiv_Loop_CPU::refine_halfedges()

@@ -1,4 +1,15 @@
-#include "mesh.h"
+#include "mesh_subdiv_loop.h"
+
+Mesh_Subdiv_Loop::Mesh_Subdiv_Loop(const std::string &filename, uint max_depth):
+	Mesh_Subdiv(filename, max_depth)
+{
+	if (!is_tri_only())
+	{
+		std::cerr << "ERROR Mesh_Subdiv_Loop: The mesh is not valid or not fully triangular" << std::endl ;
+		exit(0) ;
+	}
+	halfedges_cage.clear() ;
+}
 
 int
 Mesh_Subdiv_Loop::H(int depth) const

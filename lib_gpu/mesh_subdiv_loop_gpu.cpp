@@ -1,4 +1,4 @@
-#include "mesh.h"
+#include "mesh_subdiv_loop_gpu.h"
 
 Mesh_Subdiv_Loop_GPU::Mesh_Subdiv_Loop_GPU(const std::string& filename, uint depth):
 	Mesh_Subdiv_Loop(filename, depth),

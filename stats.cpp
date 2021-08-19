@@ -17,16 +17,16 @@ int main(int argc, char* argv[])
 
 	std::cout << "Loading " << f_name << std::endl ;
 
-	const Mesh_Loop S0(f_name) ;
-	const bool is_tri = S0.is_tri_only() ;
-	const bool is_quad = S0.is_quad_only() ;
-	const int borders = S0.count_border_edges() ;
-	const int H = S0.H() ;
-	const int V = S0.V() ;
-	const int E = S0.E() ;
-	const int F = S0.F() ;
-	const int C = S0.C() ;
-	const int sharp_creases = S0.count_sharp_creases() ;
+	const Mesh M(f_name) ;
+	const bool is_tri = M.is_tri_only() ;
+	const bool is_quad = M.is_quad_only() ;
+	const int borders = M.count_border_edges() ;
+	const int H = M.H() ;
+	const int V = M.V() ;
+	const int E = M.E() ;
+	const int F = M.F() ;
+	const int C = M.C() ;
+	const int sharp_creases = M.count_sharp_creases() ;
 
 	if (is_tri)
 		std::cout << "Triangle-only mesh" << std::endl ;

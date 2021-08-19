@@ -1,4 +1,8 @@
-#include "mesh.h"
+#include "mesh_subdiv_cpu.h"
+
+Mesh_Subdiv_CPU::Mesh_Subdiv_CPU(const std::string &filename, uint max_depth):
+	Mesh_Subdiv(filename,max_depth)
+{}
 
 void
 Mesh_Subdiv_CPU::allocate_subdiv_buffers()
@@ -85,5 +89,3 @@ _ATOMIC
 		v[c] += v_increm[c] ;
 	}
 }
-
-

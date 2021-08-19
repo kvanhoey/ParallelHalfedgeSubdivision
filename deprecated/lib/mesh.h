@@ -162,4 +162,123 @@ private:
 };
 
 
+class MeshSubdivision: public Mesh
+{
+public:
+	MeshSubdivision(int H, int V, int E, int F): Mesh(H,V,E,F) {}
+	MeshSubdivision(const std::string& filename): Mesh(filename) {}
+
+	virtual void refine_step() final ;
+   virtual void refine_step_inplace() final ;
+
+protected:
+	static void init_vertex_buffer(vertex_buffer& V, uint start_index = 0) ;
+
+	virtual void refine_halfedges(halfedge_buffer&) const = 0 ;
+	virtual void refine_vertices(vertex_buffer&) const = 0 ;
+	virtual void refine_vertices_with_creases(vertex_buffer&) const = 0 ;
+	virtual void refine_vertices_inplace() = 0 ;
+	// virtual void refine_vertices_with_creases_inplace() = 0 ;
+
+	virtual void refine_creases(crease_buffer&) const  ;
+	virtual void refine_creases_branchless(crease_buffer&) const  ;
+
+   static void apply_atomic_vec3_increment(vec3& v_old, const vec3& v_increm) ;
+
+protected:
+	typedef std::chrono::high_resolution_clock timer;
+	typedef std::chrono::duration<double, std::milli> duration;
+public:
+	virtual Timings bench_refine_step(bool refine_he, bool refine_cr, bool refine_vx, uint repetitions, bool save_result=false) final ;
+};
+
+class Mesh_CC: public MeshSubdivision
+{
+
+public:
+	Mesh_CC(int H, int V, int E, int F): MeshSubdivision(H,V,E,F) {}
+	Mesh_CC(const std::string& filename): MeshSubdivision(filename) {}
+
+	int H(int depth = -1) const ;
+	int V(int depth = -1) const ;
+	int F(int depth = -1) const ;
+	int E(int depth = -1) const ;
+
+	// override with analytic versions
+	int Prev(int h) const ;
+	int Next(int h) const ;
+	int Face(int h) const ;
+
+//	static Mesh_CC quad() ;
+//	static Mesh_CC cube() ;
+//	static Mesh_CC fig1_left() ;
+
+private:
+	void refine_halfedges(halfedge_buffer&) const ;
+	void refine_vertices(vertex_buffer&) const ;
+	void refine_vertices_with_creases(vertex_buffer&) const ;
+	void refine_vertices_inplace() ;
+
+	void facepoints(vertex_buffer&) const ;
+	void edgepoints(vertex_buffer&) const ;
+	void edgepoints_with_creases(vertex_buffer&) const ;
+	void vertexpoints(vertex_buffer&) const ;
+	void vertexpoints_with_creases(vertex_buffer&) const ;
+	void vertexpoints_inplace() ;
+	void vertexpoints_inplace_pass1() ;
+	void vertexpoints_inplace_pass2() ;
+
+	int n_vertex_of_polygon(int h) const ;
+};
+
+class Mesh_Loop: public MeshSubdivision
+{
+public:
+	Mesh_Loop(int H, int V, int E, int F): MeshSubdivision(H,V,E,F) {}
+	Mesh_Loop(const std::string& filename): MeshSubdivision(filename) {}
+
+	int H(int depth = -1) const ;
+	int V(int depth = -1) const ;
+	int F(int depth = -1) const ;
+	int E(int depth = -1) const ;
+
+	// override with analytic versions
+	int Prev(int h) const ;
+	int Next(int h) const ;
+	int Face(int h) const ;
+
+private:
+	void refine_halfedges(halfedge_buffer& new_he) const ;
+	void refine_halfedges_old(halfedge_buffer& new_he) const ;
+	void refine_vertices(vertex_buffer& V_new) const ;
+	void refine_vertices_with_creases(vertex_buffer& V_new) const ;
+	void refine_vertices_twosteps(vertex_buffer& V_new) const ;
+	void refine_vertices_with_creases_twosteps(vertex_buffer& V_new) const ;
+	void refine_vertices_with_creases_twosteps_branchless(vertex_buffer& V_new) const ;
+	void refine_vertices_inplace() ;
+
+	void edgepoints(vertex_buffer& V_new) const ;
+	void edgepoints_with_creases(vertex_buffer& V_new) const ;
+	void edgepoints_with_creases_branchless(vertex_buffer& V_new) const ;
+
+	void vertexpoints(vertex_buffer& V_new) const ;
+	void vertexpoints_with_creases(vertex_buffer& V_new) const ;
+	void vertexpoints_with_creases_branchless(vertex_buffer& V_new) const ;
+
+	void allpoints(vertex_buffer& V_new) const ;
+	void allpoints_with_creases(vertex_buffer& V_new) const ;
+	void allpoints_with_creases_branchless(vertex_buffer& V_new) const ;
+
+	void vertexpoints_inplace() ;
+	void vertexpoints_inplace_pass1() ;
+	void vertexpoints_inplace_pass2() ;
+
+   static float compute_beta(float one_over_n) ;
+	static float compute_gamma(float one_over_n) ;
+	static float compute_ngamma(float one_over_n) ;
+
+	int n_vertex_of_polygon(int h) const ;
+};
+
+
 #endif

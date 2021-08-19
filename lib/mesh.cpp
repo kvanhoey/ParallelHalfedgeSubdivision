@@ -32,45 +32,6 @@ Mesh::Mesh(const std::string& filename)
 	read_from_obj(filename) ;
 }
 
-//const int&
-//Mesh::depth() const
-//{
-//	return _depth ;
-//}
-
-//void
-//Mesh::set_depth(int d)
-//{
-//	if (d == 0)
-//		init_depth() ;
-//	else
-//	{
-//		_depth = d ;
-
-//		Hd = H(d) ;
-//		Vd = V(d) ;
-//		Ed = E(d) ;
-//		Fd = F(d) ;
-//		Cd = C(d) ;
-//	}
-//}
-
-//void
-//Mesh::init_depth()
-//{
-//	_depth = 0 ;
-//	Hd = H0 ;
-//	Vd = V0 ;
-//	Ed = E0 ;
-//	Fd = F0 ;
-//	Cd = E0 ;
-//}
-
-//bool
-//Mesh::is_cage() const
-//{
-//	return _depth == 0 ;
-//}
 
 int
 Mesh::Twin(const halfedge_buffer& buffer, int idx) const
@@ -213,6 +174,34 @@ Mesh::C(int depth) const
 {
 	const int& d = depth < 0 ? _depth : depth ;
 	return std::pow(2,d) * E0 ;
+}
+
+int
+Mesh::H(int depth) const
+{
+	assert(depth < 1) ;
+	return H0 ;
+}
+
+int
+Mesh::E(int depth) const
+{
+	assert(depth < 1) ;
+	return E0 ;
+}
+
+int
+Mesh::V(int depth) const
+{
+	assert(depth < 1) ;
+	return V0 ;
+}
+
+int
+Mesh::F(int depth) const
+{
+	assert(depth < 1) ;
+	return F0 ;
 }
 
 int

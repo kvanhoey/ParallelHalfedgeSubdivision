@@ -5,7 +5,7 @@
 
 #define MAX_VERTICES pow(2,28)
 
-#include "mesh.h"
+#include "mesh_subdiv_loop_gpu.h"
 
 int main(int argc, char* argv[])
 {

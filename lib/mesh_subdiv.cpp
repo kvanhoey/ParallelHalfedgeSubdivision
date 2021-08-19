@@ -1,4 +1,7 @@
-#include "mesh.h"
+#include "mesh_subdiv.h"
+
+Mesh_Subdiv::Mesh_Subdiv(const std::string &filename, uint max_depth):
+	Mesh(filename), D(max_depth) {}
 
 void
 Mesh_Subdiv::subdivide()

@@ -29,11 +29,10 @@ if (OPENMP_FOUND)
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
-
 file(GLOB lib_cpu lib/*.cpp)
 include_directories(lib/)
 add_executable(loop_cpu loop_cpu.cpp ${lib_cpu})
-add_executable(stats stats.cpp ${lib_cpu})
+add_executable(stats stats.cpp lib/mesh.cpp)
 
 file(GLOB lib_gpu lib_gpu/*.cpp lib_gpu/glad/glad.c)
 file(GLOB shaders shaders/*.glsl)
