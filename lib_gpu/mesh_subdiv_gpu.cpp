@@ -1,7 +1,14 @@
 #include "mesh.h"
 
+#define DJ_OPENGL_IMPLEMENTATION
+#include "dj_opengl.h"
+
 Mesh_Subdiv_GPU::~Mesh_Subdiv_GPU()
 {
+	glDeleteProgram(refine_halfedges_step_program) ;
+	glDeleteProgram(refine_creases_step_program) ;
+	glDeleteProgram(refine_vertices_step_program) ;
+
 	for (uint d = 0 ; d <= D ; ++d)
 	{
 		release_buffer(halfedge_subdiv_buffers[d]) ;
@@ -72,12 +79,114 @@ Mesh_Subdiv_GPU::readback_from_subdiv_buffers()
 	}
 }
 
+GLuint
+Mesh_Subdiv_GPU::create_program(const std::string &shader_file, GLuint in_buffer, GLuint out_buffer, bool is_vertex_program)
+{
+	GLuint program = glCreateProgram() ;
+
+	djg_program* builder = djgp_create() ;
+	djgp_push_string(builder,"#define BUFFER_IN %d\n", in_buffer) ;
+	djgp_push_string(builder,"#define BUFFER_OUT %d\n", out_buffer) ;
+	if (is_vertex_program)
+	{
+		djgp_push_string(builder, "#define HALFEDGE_BUFFER %d\n", BUFFER_HALFEDGES_IN) ;
+		djgp_push_string(builder, "#define CREASE_BUFFER %d\n", BUFFER_CREASES_IN) ;
+		djgp_push_string(builder, "#extension GL_NV_shader_atomic_float: require\n");
+	}
+
+	djgp_push_file(builder, shader_file.c_str()) ;
+	djgp_to_gl(builder, 450, false, true, &program) ;
+
+	djgp_release(builder) ;
+
+	return program ;
+}
+
+void
+Mesh_Subdiv_GPU::refine_halfedges()
+{
+	for (uint d = 0 ; d < D; ++d)
+	{
+		const uint Hd = H(d) ;
+		const uint Vd = V(d) ;
+		const uint Ed = E(d) ;
+
+		// bind input and output buffers
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BUFFER_HALFEDGES_IN,	halfedge_subdiv_buffers[d]) ;
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BUFFER_HALFEDGES_OUT,halfedge_subdiv_buffers[d+1]) ;
+
+		glUseProgram(refine_halfedges_step_program) ;
+
+		// set uniforms
+		const GLint u_Hd = glGetUniformLocation(refine_halfedges_step_program, "Hd");
+		const GLint u_Vd = glGetUniformLocation(refine_halfedges_step_program, "Vd");
+		const GLint u_Ed = glGetUniformLocation(refine_halfedges_step_program, "Ed");
+		glUniform1i(u_Hd, Hd) ;
+		glUniform1i(u_Ed, Ed) ;
+		glUniform1i(u_Vd, Vd) ;
+
+		// execute program
+		const uint n_dispatch_groups = std::ceil(Hd / 256.0f) ;
+		glDispatchCompute(n_dispatch_groups,1,1) ;
+		glMemoryBarrier(GL_ALL_BARRIER_BITS) ;
+	}
+}
+
 void
 Mesh_Subdiv_GPU::refine_creases()
 {
 	for (uint d = 0 ; d < D; ++d)
 	{
-		assert(false) ;
+		const uint Cd = C(d) ;
+		// bind input and output buffers
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BUFFER_CREASES_IN,	crease_subdiv_buffers[d]) ;
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BUFFER_CREASES_OUT,	crease_subdiv_buffers[d+1]) ;
+
+		glUseProgram(refine_creases_step_program) ;
+
+		// set uniforms
+		const GLint u_Cd = glGetUniformLocation(refine_creases_step_program, "Cd");
+		glUniform1i(u_Cd, Cd) ;
+
+		// execute program
+		const uint n_dispatch_groups = std::ceil(Cd / 256.0f) ;
+		glDispatchCompute(n_dispatch_groups,1,1) ;
+		glMemoryBarrier(GL_ALL_BARRIER_BITS) ;
+	}
+}
+
+void
+Mesh_Subdiv_GPU::refine_vertices()
+{
+	for (uint d = 0 ; d < D; ++d)
+	{
+		const uint Hd = H(d) ;
+		const uint Ed = E(d) ;
+		const uint Vd = V(d) ;
+		const uint Cd = C(d) ;
+
+		// bind input and output buffers
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BUFFER_HALFEDGES_IN,	halfedge_subdiv_buffers[d]) ;
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BUFFER_CREASES_IN,	crease_subdiv_buffers[d]) ;
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BUFFER_VERTICES_IN,	vertex_subdiv_buffers[d]) ;
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BUFFER_VERTICES_OUT,	vertex_subdiv_buffers[d+1]) ;
+
+		glUseProgram(refine_vertices_step_program) ;
+
+		// set uniforms
+		const GLint u_Hd = glGetUniformLocation(refine_vertices_step_program, "Hd");
+		const GLint u_Vd = glGetUniformLocation(refine_vertices_step_program, "Vd");
+		const GLint u_Ed = glGetUniformLocation(refine_vertices_step_program, "Ed");
+		const GLint u_Cd = glGetUniformLocation(refine_vertices_step_program, "Cd");
+		glUniform1i(u_Hd, Hd) ;
+		glUniform1i(u_Ed, Ed) ;
+		glUniform1i(u_Vd, Vd) ;
+		glUniform1i(u_Cd, Cd) ;
+
+		// execute program
+		const uint n_dispatch_groups = std::ceil(Hd / 256.0f) ;
+		glDispatchCompute(n_dispatch_groups,1,1) ;
+		glMemoryBarrier(GL_ALL_BARRIER_BITS) ;
 	}
 }
 

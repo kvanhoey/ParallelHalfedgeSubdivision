@@ -228,7 +228,9 @@ class Mesh_Subdiv_GPU: virtual public Mesh_Subdiv
 public:
 	Mesh_Subdiv_GPU(const std::string& filename, uint max_depth):
 		Mesh_Subdiv(filename,max_depth)
-	{}
+	{
+		refine_creases_step_program = create_program("../shaders/refine_creases.glsl", BUFFER_CREASES_IN, BUFFER_CREASES_OUT) ;
+	}
 
 	~Mesh_Subdiv_GPU() ;
 
@@ -236,6 +238,8 @@ protected:
 	void allocate_subdiv_buffers() final ;
 	void readback_from_subdiv_buffers() final ;
 	void refine_creases() ;
+	void refine_halfedges() ;
+	void refine_vertices() ;
 
 	static GLuint create_buffer(GLuint buffer_bind_id, uint size, void* data, bool clear_buffer = false, bool enable_readback = true) ;
 	static void release_buffer(GLuint buffer) ;
@@ -243,10 +247,16 @@ protected:
 
 	static GLuint create_program(const std::string& shader_file, GLuint in_buffer, GLuint out_buffer, bool is_vertex_program = false) ;
 
-protected:
 	std::vector<GLuint> halfedge_subdiv_buffers	;
 	std::vector<GLuint> crease_subdiv_buffers	;
 	std::vector<GLuint> vertex_subdiv_buffers	;
+
+	GLuint refine_halfedges_step_program ;
+	GLuint refine_creases_step_program ;
+	GLuint refine_vertices_step_program ;
+
+private:
+	void create_crease_program() ;
 };
 
 class Mesh_Subdiv_Loop: virtual public Mesh_Subdiv
@@ -295,14 +305,7 @@ protected:
 class Mesh_Subdiv_Loop_GPU: public Mesh_Subdiv_Loop, Mesh_Subdiv_GPU
 {
 public:
-	Mesh_Subdiv_Loop_GPU(const std::string& filename, uint depth):
-		Mesh_Subdiv_Loop(filename, depth),
-		Mesh_Subdiv_GPU(filename, depth),
-		Mesh_Subdiv(filename, depth) {}
-
-protected:
-	void refine_halfedges() ;
-	void refine_vertices() ;
+	Mesh_Subdiv_Loop_GPU(const std::string& filename, uint depth) ;
 };
 
 

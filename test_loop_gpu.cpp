@@ -47,8 +47,9 @@ int main(int argc, char* argv[])
 	}
 
 	{ // encapsulates what requires GL context
-		std::cout << "Loading " << f_name << std::endl ;
+		std::cout << "Loading " << f_name << " ... " << std::flush ;
 		Mesh_Subdiv_Loop_GPU M(f_name, D) ;
+		std::cout << "[OK]" << std::endl ;
 
 		if (M.V(D) > MAX_VERTICES)
 		{
@@ -69,7 +70,9 @@ int main(int argc, char* argv[])
 		std::cout << "[OK]" << std::endl ;
 
 		// subdiv down to depth D
+		std::cout << "Processing subdivision ... " << std::flush ;
 		M.subdivide() ;
+		std::cout << "[OK]" << std::endl ;
 
 		// Check & export output
 		M.check() ;
