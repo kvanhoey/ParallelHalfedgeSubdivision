@@ -1,9 +1,8 @@
 #include "mesh.h"
 
 Mesh::Mesh(int H, int V, int E, int F):
-	H0(H), V0(V), E0(E), F0(F)
+	H0(H), V0(V), E0(E), F0(F), _depth(0)
 {
-	set_depth(0) ;
 	alloc_halfedge_buffer(H0) ;
 	alloc_vertex_buffer(V0) ;
 	alloc_crease_buffer(E0) ;
@@ -33,62 +32,139 @@ Mesh::Mesh(const std::string& filename)
 	read_from_obj(filename) ;
 }
 
-const int&
-Mesh::depth() const
+//const int&
+//Mesh::depth() const
+//{
+//	return _depth ;
+//}
+
+//void
+//Mesh::set_depth(int d)
+//{
+//	if (d == 0)
+//		init_depth() ;
+//	else
+//	{
+//		_depth = d ;
+
+//		Hd = H(d) ;
+//		Vd = V(d) ;
+//		Ed = E(d) ;
+//		Fd = F(d) ;
+//		Cd = C(d) ;
+//	}
+//}
+
+//void
+//Mesh::init_depth()
+//{
+//	_depth = 0 ;
+//	Hd = H0 ;
+//	Vd = V0 ;
+//	Ed = E0 ;
+//	Fd = F0 ;
+//	Cd = E0 ;
+//}
+
+//bool
+//Mesh::is_cage() const
+//{
+//	return _depth == 0 ;
+//}
+
+int
+Mesh::Twin(const halfedge_buffer& buffer, int idx) const
 {
-	return _depth ;
+	return buffer[idx].Twin ;
 }
 
-void
-Mesh::set_depth(int d)
+int
+Mesh::Prev(const halfedge_buffer_cage& buffer, int idx) const
 {
-	if (d == 0)
-		init_depth() ;
-	else
-	{
-		_depth = d ;
-
-		Hd = H(d) ;
-		Vd = V(d) ;
-		Ed = E(d) ;
-		Fd = F(d) ;
-		Cd = C(d) ;
-	}
+	return buffer[idx].Prev ;
 }
 
-void
-Mesh::init_depth()
+
+int
+Mesh::Next(const halfedge_buffer_cage& buffer, int idx) const
 {
-	_depth = 0 ;
-	Hd = H0 ;
-	Vd = V0 ;
-	Ed = E0 ;
-	Fd = F0 ;
-	Cd = E0 ;
+	return buffer[idx].Next ;
 }
 
-bool
-Mesh::is_cage() const
+int
+Mesh::Next_safe(const halfedge_buffer_cage& buffer, int idx) const
 {
-	return depth() == 0 ;
+	if (idx < 0)
+		return idx ;
+
+	return Next(buffer,idx) ;
+}
+
+
+int
+Mesh::Vert(const halfedge_buffer& buffer, int idx) const
+{
+	return buffer[idx].Vert ;
+}
+
+
+
+
+int
+Mesh::Edge(const halfedge_buffer& buffer, int idx) const
+{
+	return buffer[idx].Edge ;
+}
+
+int
+Mesh::Face(const halfedge_buffer_cage& buffer, int idx) const
+{
+	return buffer[idx].Face ;
 }
 
 int
 Mesh::Twin(int idx) const
 {
-	return halfedges[idx].Twin ;
+	return Twin(halfedges,idx) ;
 }
+
+
+
+float
+Mesh::Sharpness(const crease_buffer& buffer, int idx) const
+{
+	return idx > buffer.size() ? 0. : buffer[idx].Sharpness ;
+}
+
+float
+Mesh::Sharpness(int idx) const
+{
+	return Sharpness(creases, idx) ;
+}
+
+int
+Mesh::NextC(const crease_buffer& buffer, int idx) const
+{
+	return buffer[idx].Next ;
+}
+
+int
+Mesh::PrevC(const crease_buffer& buffer, int idx) const
+{
+	return buffer[idx].Prev ;
+}
+
 
 int
 Mesh::Prev(int idx) const
 {
-	return halfedges_cage[idx].Prev ;
+	return Prev(halfedges_cage,idx) ;
 }
 
 int
 Mesh::Next(int idx) const
 {
-	return halfedges_cage[idx].Next ;
+	return Next(halfedges_cage,idx) ;
 }
 
 int
@@ -103,93 +179,95 @@ Mesh::Next_safe(int idx) const
 int
 Mesh::Vert(int idx) const
 {
-	return halfedges[idx].Vert ;
+	return Vert(halfedges,idx) ;
 }
-
-int 
+int
 Mesh::Edge(int idx) const
 {
-	return halfedges[idx].Edge ;
+	return Edge(halfedges,idx) ;
 }
+
 
 int
 Mesh::Face(int idx) const
 {
-	return halfedges_cage[idx].Face ;
-}
-
-float
-Mesh::Sigma(int idx) const
-{
-	return idx > Cd ? 0. : creases[idx].Sigma ;
+	return Face(halfedges_cage,idx) ;
 }
 
 int
 Mesh::NextC(int idx) const
 {
-	return creases[idx].Next ;
+	return NextC(creases,idx) ;
 }
+
 
 int
 Mesh::PrevC(int idx) const
 {
-	return creases[idx].Prev ;
+	return PrevC(creases, idx) ;
 }
+
 
 int
 Mesh::C(int depth) const
 {
-	const int& d = depth < 0 ? this->depth() : depth ;
+	const int& d = depth < 0 ? _depth : depth ;
 	return std::pow(2,d) * E0 ;
 }
 
 int
-Mesh::vertex_halfedge_valence(int h) const
+Mesh::vertex_halfedge_valence(const halfedge_buffer& h_buffer, int h) const
 {
 	int n = 1 ;
 
 	int h_back_valid = h ;
-	int h_back = Twin(Prev(h)) ;
+	int h_back = Twin(h_buffer,Prev(h)) ;
 
 	// rewind to border (if any)
 	while ((h_back != h) && (h_back >= 0))
 	{
 		h_back_valid = h_back ;
-		h_back = Twin(Prev(h_back)) ;
+		h_back = Twin(h_buffer,Prev(h_back)) ;
 	}
 
 	// fw to border or back to start and count
-	int h_fw = Next_safe(Twin(h_back_valid)) ;
+	int h_fw = Next_safe(Twin(h_buffer,h_back_valid)) ;
 	while ((h_fw != h_back_valid) && (h_fw >= 0))
 	{
 		n++ ;
-		h_fw = Next_safe(Twin(h_fw)) ;
+		h_fw = Next_safe(Twin(h_buffer,h_fw)) ;
 	}
 
 	return n ;
 }
 
+//int
+//Mesh::vertex_edge_valence(int h) const
+//{
+//	return vertex_edge_valence(halfedges, h) ;
+//}
+
 int
-Mesh::vertex_edge_valence(int h) const
+Mesh::vertex_edge_valence(const halfedge_buffer& buffer, int h) const
 {
 	int n = 1 ;
 
 	int h_back_valid = h ;
-	int h_back = Twin(Prev(h)) ;
+	int h_back = Twin(buffer,Prev(h)) ;
 	
 	// rewind to border (if any)
 	while ((h_back != h) && (h_back >= 0))
 	{
 		h_back_valid = h_back ;
-		h_back = Twin(Prev(h_back)) ;
+		h_back = Twin(buffer,Prev(h_back)) ;
 	}
 
 	// fw to border or back to start and count
-	int h_fw = Next_safe(Twin(h_back_valid)) ;
+	int h_fw = Next_safe(Twin(buffer,h_back_valid)) ;
 	while ((h_fw != h_back_valid) && (h_fw >= 0))
 	{
 		n++ ;
-		h_fw = Next_safe(Twin(h_fw)) ;
+		h_fw = Next_safe(Twin(buffer,h_fw)) ;
 	}
 
 	if (h_fw < 0)
@@ -199,7 +277,7 @@ Mesh::vertex_edge_valence(int h) const
 }
 
 int
-Mesh::vertex_edge_valence_or_border(int h) const
+Mesh::vertex_edge_valence_or_border(const halfedge_buffer& h_buffer, int h) const
 {
 	int n = 0 ;
 
@@ -221,17 +299,17 @@ Mesh::vertex_edge_valence_or_border(int h) const
 }
 
 int
-Mesh::vertex_crease_valence_or_border(int h) const
+Mesh::vertex_crease_valence_or_border(const halfedge_buffer& h_buffer, const crease_buffer& c_buffer, int h) const
 {
 	int n = 0 ;
 
 	int hh = h ;
 	do
 	{
-		if (is_crease_halfedge(hh))
+		if (is_crease_halfedge(h_buffer, c_buffer, hh))
 			n++ ;
 
-		int hh_twin = Twin(hh) ;
+		int hh_twin = Twin(h_buffer, hh) ;
 		bool is_border = hh_twin < 0 ;
 		if (is_border)
 			return -1 ;
@@ -244,28 +322,28 @@ Mesh::vertex_crease_valence_or_border(int h) const
 }
 
 int
-Mesh::vertex_crease_valence(int h) const
+Mesh::vertex_crease_valence(const halfedge_buffer& h_buffer, const crease_buffer& c_buffer, int h) const
 {
-	int n = int(is_crease_halfedge(h)) ;
+	int n = int(is_crease_halfedge(h_buffer, c_buffer, h)) ;
 
 	int h_it ;
-	for (h_it = Twin(h) ; h_it >= 0 ; h_it = Twin(h_it))
+	for (h_it = Twin(h_buffer,h) ; h_it >= 0 ; h_it = Twin(h_buffer, h_it))
 	{
 		h_it = Next(h_it) ;
 
 		if (h_it == h)
 			break ;
 
-		if (is_crease_halfedge(h_it))
+		if (is_crease_halfedge(h_buffer, c_buffer, h_it))
 			n++ ;
 	}
 
 	if (h_it < 0)
 	{	// do backward iteration too
-		for (h_it = h ; h_it >= 0 ; h_it = Twin(h_it))
+		for (h_it = h ; h_it >= 0 ; h_it = Twin(h_buffer, h_it))
 		{
 			h_it = Prev(h_it) ;
-			if (is_crease_halfedge(h_it))
+			if (is_crease_halfedge(h_buffer, c_buffer, h_it))
 				n++ ;
 		}
 	}
@@ -274,7 +352,7 @@ Mesh::vertex_crease_valence(int h) const
 }
 
 float
-Mesh::vertex_sharpness_or_border(int h) const
+Mesh::vertex_sharpness_or_border(const halfedge_buffer& h_buffer, const crease_buffer& c_buffer, int h) const
 {
 	float edge_valence = 0.0 ;
 	float sharpness = 0 ;
@@ -282,10 +360,10 @@ Mesh::vertex_sharpness_or_border(int h) const
 	int hh = h ;
 	do
 	{
-		sharpness += Sigma(Edge(hh)) ;
+		sharpness += Sharpness(c_buffer, Edge(h_buffer, hh)) ;
 		++edge_valence ;
 
-		const int hh_twin = Twin(hh) ;
+		const int hh_twin = Twin(h_buffer, hh) ;
 		const bool is_border = hh_twin < 0 ;
 		if (is_border)
 			return -1. ;
@@ -298,29 +376,29 @@ Mesh::vertex_sharpness_or_border(int h) const
 }
 
 float
-Mesh::vertex_sharpness(int h) const
+Mesh::vertex_sharpness(const halfedge_buffer& h_buffer, const crease_buffer& c_buffer, int h) const
 {
 	float edge_valence = 1.0 ;
-	float sharpness = Sigma(Edge(h)) ;
+	float sharpness = Sharpness(c_buffer, Edge(h_buffer, h)) ;
 
 	int h_it ;
-	for (h_it = Twin(h) ; h_it >= 0 ; h_it = Twin(h_it))
+	for (h_it = Twin(h_buffer, h) ; h_it >= 0 ; h_it = Twin(h_buffer, h_it))
 	{
 		h_it = Next(h_it) ;
 		if (h_it == h)
 			break ;
 
 		edge_valence++ ;
-		sharpness += Sigma(Edge(h_it)) ;
+		sharpness += Sharpness(c_buffer, Edge(h_buffer, h_it)) ;
 	}
 
 	if (h_it < 0)
 	{	// do backward iteration too
-		for (h_it = h ; h_it >= 0 ; h_it = Twin(h_it))
+		for (h_it = h ; h_it >= 0 ; h_it = Twin(h_buffer, h_it))
 		{
 			h_it = Prev(h_it) ;
 			edge_valence++ ;
-			sharpness += Sigma(Edge(h_it)) ;
+			sharpness += Sharpness(c_buffer, Edge(h_buffer, h_it)) ;
 		}
 	}
 
@@ -330,30 +408,43 @@ Mesh::vertex_sharpness(int h) const
 bool
 Mesh::is_border_halfedge(int h) const
 {
-	return Twin(h) < 0 ;
+	return is_border_halfedge(halfedges, h) ;
+}
+
+
+bool
+Mesh::is_border_halfedge(const halfedge_buffer& buffer, int h) const
+{
+	return Twin(buffer,h) < 0 ;
 }
 
 bool
-Mesh::is_border_vertex(int h) const
+Mesh::is_border_vertex(const halfedge_buffer& buffer, int h) const
 {
-	return vertex_edge_valence_or_border(Vert(h)) < 0 ;
+	return vertex_edge_valence_or_border(buffer, Vert(buffer, h)) < 0 ;
+}
+
+//bool
+//Mesh::is_crease_halfedge(int h) const
+//{
+//	return is_crease_halfedge(halfedges, creases, h) ;
+//}
+
+bool
+Mesh::is_crease_halfedge(const halfedge_buffer& h_buffer, const crease_buffer& c_buffer, int h) const
+{
+	return Sharpness(c_buffer,Edge(h_buffer,h)) > 1e-6 ;
 }
 
 bool
-Mesh::is_crease_halfedge(int h) const
+Mesh::is_crease_edge(const crease_buffer& buffer, int h) const
 {
-	return Sigma(Edge(h)) > 1e-6 ;
-}
-
-bool
-Mesh::is_crease_edge(int h) const
-{
-	return Sigma(h) > 1e-6 ;
+	return Sharpness(buffer,h) > 1e-6 ;
 }
 
 
 int
-Mesh::n_vertex_of_polygon_check(int h) const
+Mesh::n_vertex_of_polygon_cage(int h) const
 {
 	int n = 1 ;
 	for (int h_fw = Mesh::Next(h) ; h_fw != h ; h_fw = Mesh::Next(h_fw))
@@ -363,17 +454,17 @@ Mesh::n_vertex_of_polygon_check(int h) const
 	return n ;
 }
 
-
 int
 Mesh::n_vertex_of_polygon(int h) const
 {
-	return n_vertex_of_polygon_check(h) ;
+	return n_vertex_of_polygon_cage(h) ;
 }
 
 bool
 Mesh::check() const
 {
 	bool valid = true ;
+	const int Hd = H() ;
 	if (Hd < 2)
 	{
 		std::cerr << "The mesh is empty" << std::endl ;
@@ -429,7 +520,7 @@ Mesh::count_sharp_creases() const
 	int counter = 0 ;
 	for (int c = 0; c < E0 ; ++c)
 	{
-		if (Sigma(c) > 1e-6)
+		if (Sharpness(c) > 1e-6)
 			counter ++ ;
 	}
 
@@ -455,12 +546,12 @@ Mesh::all_faces_are_ngons(int n) const
 {
 	for (int h = 0; h < H0 ; ++h)
 	{
-		bool is_ngon = n_vertex_of_polygon_check(h) == n ;
+		bool is_ngon = n_vertex_of_polygon_cage(h) == n ;
 		if (!is_ngon)
 			return false ;
 	}
 
-	return H0 > 0 ? true : false ;
+	return H0 > 0 ;
 }
 
 void
@@ -582,7 +673,7 @@ Mesh::read_obj_data(std::ifstream& file)
 
 				// temporary storage
 				Crease cr ;
-				cr.Sigma = sharpness ;
+				cr.Sharpness = sharpness ;
 				cr.Next = v0 ;
 				cr.Prev = v1 ;
 				Cr.push_back(cr) ;
@@ -624,7 +715,7 @@ Mesh::read_from_obj(const std::string& filename)
 	file.close() ;
 
 	// Twins
-	compute_and_set_twins_optim() ;
+	compute_and_set_twins() ;
 
 	// Edge
 	this->E0 = compute_and_set_edges() ;
@@ -636,11 +727,11 @@ Mesh::read_from_obj(const std::string& filename)
 	compute_and_set_crease_neighbors() ;
 
 	// set depth
-	set_depth(0) ;
+	_depth = 0 ;
 }
 
 void
-Mesh::compute_and_set_twins_optim()
+Mesh::compute_and_set_twins()
 {
 	halfedge_buffer& He = this->halfedges ;
 
@@ -687,43 +778,6 @@ Mesh::compute_and_set_twins_optim()
 	}
 }
 
-void
-Mesh::compute_and_set_twins()
-{
-	halfedge_buffer& He = this->halfedges ;
-
-	uint16_t table[V0][V0] ;
-
-	// init table
-	for (int i = 0 ; i < V0 ; ++i)
-	{
-		for (int j = 0 ; j < V0 ; ++j)
-		{
-			table[i][j] = -1 ;
-		}
-	}
-
-	for (int h=0 ; h < H0 ; ++h)
-	{
-		const int nextID = Next(h) ;
-		const int i = Vert(h) ;
-		const int j = Vert(nextID) ;
-
-		const int twinID = table[i][j] ;
-		if (twinID < 0)
-		{
-			table[j][i] = h ; // twin of j->i known
-			He[h].Twin = -1 ;
-		}
-		else // known
-		{
-			He[h].Twin = twinID ;
-			He[twinID].Twin = h ;
-		}
-
-	}
-}
-
 int
 Mesh::compute_and_set_edges()
 {
@@ -767,7 +821,7 @@ Mesh::set_creases(const Mesh::crease_buffer& list_of_creases)
 	{
 		const int v0 = C.Prev ;
 		const int v1 = C.Next ;
-		const float sharpness = C.Sigma ;
+		const float sharpness = C.Sharpness ;
 
 		for (int h_id=0 ; h_id < H0 ; ++h_id)
 		{
@@ -794,7 +848,7 @@ Mesh::set_creases(const Mesh::crease_buffer& list_of_creases)
 					const int e_id = Edge(h) ;
 
 					Crease& cr = Cr[e_id] ;
-					cr.Sigma = sharpness ;
+					cr.Sharpness = sharpness ;
 					cr.Next = e_id ;
 					cr.Prev = e_id ;
 				}
@@ -812,7 +866,7 @@ Mesh::find_second_crease(int h) const
 		 h_vx_it = Twin(Next(h_vx_it)))
 	{
 		c_second = Edge(h_vx_it) ;
-		const int sharpness_second = creases[c_second].Sigma ;
+		const int sharpness_second = creases[c_second].Sharpness ;
 		if (sharpness_second > 1e-6)
 			return c_second ;
 	}
@@ -828,7 +882,7 @@ Mesh::compute_and_set_crease_neighbors()
 	for (int h = 0 ; h < H0 ; ++h)
 	{
 		const int c = Edge(h) ;
-		const float sharpness = Cr[c].Sigma ;
+		const float sharpness = Cr[c].Sharpness ;
 		int h_vx_it ;
 
 		// only treat creases through their biggest halfedge_id
@@ -842,7 +896,7 @@ Mesh::compute_and_set_crease_neighbors()
 		     h_vx_it >= 0 && h_vx_it != h;
 		     h_vx_it = Next_safe(Twin(h_vx_it)))
 		{
-			float c_prev_sharpness = Cr[Edge(h_vx_it)].Sigma ;
+			float c_prev_sharpness = Cr[Edge(h_vx_it)].Sharpness ;
 			if (c_prev_sharpness > 1e-06)
 			{
 				++prev_creases ;
@@ -859,7 +913,7 @@ Mesh::compute_and_set_crease_neighbors()
 					break ;
 
 				int c_id = Edge(h_vx_it) ;
-				float c_prev_sharpness = Cr[c_id].Sigma ;
+				float c_prev_sharpness = Cr[c_id].Sharpness ;
 				if (c_prev_sharpness > 1e-06)
 				{
 					++prev_creases ;
@@ -886,7 +940,7 @@ Mesh::compute_and_set_crease_neighbors()
 		     h_vx_it = Next_safe(Twin(h_vx_it)))
 		{
 			int c_id = Edge(h_vx_it) ;
-			float c_next_sharpness = Cr[c_id].Sigma ;
+			float c_next_sharpness = Cr[c_id].Sharpness ;
 			if (c_next_sharpness > 1e-06)
 			{
 				++next_creases ;
@@ -905,7 +959,7 @@ Mesh::compute_and_set_crease_neighbors()
 						break ;
 
 					int c_id = Edge(h_vx_it) ;
-					float c_next_sharpness = Cr[c_id].Sigma ;
+					float c_next_sharpness = Cr[c_id].Sharpness ;
 					if (c_next_sharpness > 1e-06)
 					{
 						++next_creases ;
@@ -915,7 +969,7 @@ Mesh::compute_and_set_crease_neighbors()
 					h_vx_it_twin = Twin(h_vx_it) ;
 					if (h_vx_it_twin < 0)
 						break ;
-					h_vx_it = Prev(h_vx_it) ;
+					h_vx_it = Prev(h_vx_it_twin) ;
 				}
 			}
 		}
@@ -952,7 +1006,7 @@ Mesh::set_boundaries_sharp()
 		{
 			const int e = Edge(h) ;
 			Crease& c = creases[e] ;
-			c.Sigma = 16.0 ;
+			c.Sharpness = 16.0 ;
 			c.Next = e ;
 			c.Prev = e ;
 		}
@@ -962,52 +1016,16 @@ Mesh::set_boundaries_sharp()
 void Mesh::export_to_obj(const std::string& filename) const
 {
 	std::ofstream file(filename) ;
-	export_to_obj_contig_faces(file);
-	file.close() ;
-}
-
-void
-Mesh::export_to_obj_tri(std::ofstream& file) const
-{
-	//	allocate F x 3
-	if (Fd >= 1024*1024)
-	{
-		std::cerr << "ERROR Mesh::export_to_obj_tri: mesh size too large" << std::endl ;
-		return ;
-	}
-	int face_buffer[Fd][3] ;
-	for (int h = 0 ; h < Hd ; ++h)
-	{
-		face_buffer[Face(h)][0] = 1 + Vert(h) ;
-		face_buffer[Face(h)][1] = 1 + Vert(Next(h)) ;
-		face_buffer[Face(h)][2] = 1 + Vert(Prev(h)) ;
-	}
 
 	file << "# Vertices" << std::endl ;
-	for (int v = 0 ; v < Vd ; ++v)
-	{
-		file << "v " << vertices[v][0] << " " << vertices[v][1] << " " << vertices[v][2] << std::endl ;
-	}
-
-	file << "# Topology" << std::endl ;
-	for (int f = 0 ; f < Fd ; ++f)
-	{
-		file << "f " << face_buffer[f][0] << " " << face_buffer[f][1] << " " << face_buffer[f][2] << std::endl ;
-	}
-}
-
-void
-Mesh::export_to_obj_contig_faces(std::ofstream& file) const
-{
-	file << "# Vertices" << std::endl ;
-	for (int v = 0 ; v < Vd ; ++v)
+	for (int v = 0 ; v < vertices.size() ; ++v)
 	{
 		file << "v " << vertices[v][0] << " " << vertices[v][1] << " " << vertices[v][2] << std::endl ;
 	}
 
 	file << "# Topology" ;
 	int f_id_prev = -1 ;
-	for (int h = 0 ; h < Hd ; ++h)
+	for (int h = 0 ; h < halfedges.size() ; ++h)
 	{
 		const int f_id = Face(h) ;
 		if (f_id != f_id_prev)
@@ -1017,5 +1035,8 @@ Mesh::export_to_obj_contig_faces(std::ofstream& file) const
 		}
 		file << 1+Vert(h) << " " ;
 	}
+
+
+	file.close() ;
 }
 

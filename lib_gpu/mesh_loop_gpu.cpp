@@ -297,7 +297,11 @@ Mesh_Loop_GPU::bench_refine_step_gpu(bool bench_halfedges, bool bench_creases, b
 		median_he = timings_he[repetitions / 2] ;
 		min_he = timings_he.front() ;
 		max_he = timings_he.back() ;
-		sum_he = std::accumulate(timings_he.begin(), timings_he.end(), duration(0)) ;
+		for (int i = 0 ; i < timings_he.size() ; ++i)
+		{
+			sum_he += timings_he[i] ;
+		}
+		//sum_he = std::accumulate(timings_he.begin(), timings_he.end(), duration(0)) ;
 	}
 
 	// execute crease refinement
@@ -345,7 +349,11 @@ Mesh_Loop_GPU::bench_refine_step_gpu(bool bench_halfedges, bool bench_creases, b
 		median_cr = timings_cr[repetitions / 2] ;
 		min_cr = timings_cr.front() ;
 		max_cr = timings_cr.back() ;
-		sum_cr = std::accumulate(timings_cr.begin(), timings_cr.end(), duration(0)) ;
+//		sum_cr = std::accumulate(timings_cr.begin(), timings_cr.end(), duration(0)) ;
+		for (int i = 0 ; i < timings_cr.size() ; ++i)
+		{
+			sum_cr += timings_cr[i] ;
+		}
 	}
 
 	// execute vertex refinement
@@ -414,7 +422,11 @@ Mesh_Loop_GPU::bench_refine_step_gpu(bool bench_halfedges, bool bench_creases, b
             median_clear = timings_clear[repetitions / 2] ;
             min_clear = timings_clear.front() ;
             max_clear = timings_clear.back() ;
-            sum_clear = std::accumulate(timings_clear.begin(), timings_clear.end(), duration(0)) ;
+//            sum_clear = std::accumulate(timings_clear.begin(), timings_clear.end(), duration(0)) ;
+			for (int i = 0 ; i < timings_clear.size() ; ++i)
+			{
+				sum_clear += timings_clear[i] ;
+			}
         }
 
         if (bench_vertices)
@@ -424,7 +436,11 @@ Mesh_Loop_GPU::bench_refine_step_gpu(bool bench_halfedges, bool bench_creases, b
             median_vx = timings_vx[repetitions / 2] ;
             min_vx = timings_vx.front() ;
             max_vx = timings_vx.back() ;
-            sum_vx = std::accumulate(timings_vx.begin(), timings_vx.end(), duration(0)) ;
+//            sum_vx = std::accumulate(timings_vx.begin(), timings_vx.end(), duration(0)) ;
+			for (int i = 0 ; i < timings_vx.size() ; ++i)
+			{
+				sum_vx += timings_vx[i] ;
+			}
         }
 	}
 

@@ -1,16 +1,15 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.8)
 
 project (ParallelHalfedgeSubdivision CXX C)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Debugging off
-set(CMAKE_CXX_FLAGS "-Os -march=native")
-add_definitions(-DNDEBUG)
+#set(CMAKE_CXX_FLAGS "-Os -march=native")
+#add_definitions(-DNDEBUG)
 # Debugging on
-#set(CMAKE_CXX_FLAGS "-g") # Debug
-
+set(CMAKE_CXX_FLAGS "-g") # Debug
 
 option(BUILD_DOC "Build documentation" OFF)
 
@@ -30,27 +29,32 @@ if (OPENMP_FOUND)
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
+
 file(GLOB lib_cpu lib/*.cpp)
 file(GLOB lib_gpu lib_gpu/*.cpp lib_gpu/glad/glad.c)
 
-include_directories(lib/)
-add_executable(cc_cpu cc_cpu.cpp ${lib_cpu})
-add_executable(loop_cpu loop_cpu.cpp ${lib_cpu})
+include_directories(lib/ lib_gpu/)
+#add_executable(cc_cpu cc_cpu.cpp ${lib_cpu})
 
-add_executable(bench_cc_cpu bench_cc_cpu.cpp ${lib_cpu})
-add_executable(bench_loop_cpu bench_loop_cpu.cpp ${lib_cpu})
+#add_executable(loop_cpu loop_cpu.cpp ${lib_cpu})
+add_executable(test_loop_cpu test_loop_cpu.cpp lib/mesh.cpp lib/mesh_subdiv.cpp lib/mesh_subdiv_cpu.cpp lib/mesh_subdiv_loop.cpp lib/mesh_subdiv_loop_cpu.cpp)
+add_executable(test_loop_gpu test_loop_gpu.cpp lib/mesh.cpp lib/mesh_subdiv.cpp lib_gpu/mesh_subdiv_gpu.cpp lib/mesh_subdiv_loop.cpp lib_gpu/mesh_subdiv_loop_gpu.cpp lib_gpu/glad/glad.c)
+target_link_libraries(test_loop_gpu glfw)
 
-add_executable(stats stats.cpp ${lib_cpu})
+#add_executable(bench_cc_cpu bench_cc_cpu.cpp ${lib_cpu})
+#add_executable(bench_loop_cpu bench_loop_cpu.cpp ${lib_cpu})
+
+#add_executable(stats stats.cpp ${lib_cpu})
 
 
-include_directories(lib_gpu/)
-file(GLOB shaders shaders/*.glsl)
+#include_directories(lib_gpu/)
+#file(GLOB shaders shaders/*.glsl)
 
-add_executable(loop_gpu loop_gpu.cpp ${shaders} ${lib_gpu} ${lib_cpu})
-target_link_libraries(loop_gpu glfw)
+#add_executable(loop_gpu loop_gpu.cpp ${shaders} ${lib_gpu} ${lib_cpu})
+#target_link_libraries(loop_gpu glfw)
 
-add_executable(bench_loop_gpu bench_loop_gpu.cpp ${shaders} ${lib_gpu} ${lib_cpu})
-target_link_libraries(bench_loop_gpu glfw)
+#add_executable(bench_loop_gpu bench_loop_gpu.cpp ${shaders} ${lib_gpu} ${lib_cpu})
+#target_link_libraries(bench_loop_gpu glfw)
 
 
 # check if Doxygen is installed

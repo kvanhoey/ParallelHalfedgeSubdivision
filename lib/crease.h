@@ -3,7 +3,7 @@
 
 struct Crease
 {
-	float Sigma ;
+	float Sharpness ;
 	int Next ;
 	int Prev ;
 };

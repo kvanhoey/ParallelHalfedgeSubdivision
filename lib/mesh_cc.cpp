@@ -42,7 +42,7 @@ int
 Mesh_CC::Next(int h) const
 {
 	if (is_cage()) // TODO: optimize to avoid this branch
-		return Mesh::Next(h) ;
+		return Mesh::Next(halfedges_cage,h) ;
 
 	return h % 4 == 3 ? h - 3 : h + 1 ;
 }
@@ -51,7 +51,7 @@ int
 Mesh_CC::Prev(int h) const
 {
 	if (is_cage()) // TODO: optimize to avoid this branch
-		return Mesh::Prev(h) ;
+		return Mesh::Prev(halfedges_cage,h) ;
 
 	return h % 4 == 0 ? h + 3 : h - 1 ;
 }
@@ -60,7 +60,7 @@ int
 Mesh_CC::Face(int h) const
 {
 	if (is_cage()) // TODO: optimize to avoid this branch
-		return Mesh::Face(h) ;
+		return Mesh::Face(halfedges_cage, h) ;
 
 	return h / 4 ;
 }
@@ -80,7 +80,7 @@ Mesh_CC::refine_halfedges(halfedge_buffer& new_he) const
 {
 	const int _2Ed = 2 * Ed ;
 
-CC_PARALLEL_FOR
+_PARALLEL_FOR
 	for (int h = 0; h < Hd ; ++h)
 	{
 		const int _4h = 4 * h + 0 ;
@@ -113,7 +113,7 @@ CC_PARALLEL_FOR
 		h2.Edge = _2Ed + h_prev ;
 		h3.Edge = 2 * h_prev_edge + (int(h_prev) > h_prev_twin ? 1 : 0) ;
 	}
-CC_BARRIER
+_BARRIER
 }
 
 
@@ -151,7 +151,7 @@ Mesh_CC::facepoints(vertex_buffer& V_new) const
 {
 	const vertex_buffer& V_old = this->vertices ;
 
-CC_PARALLEL_FOR
+_PARALLEL_FOR
 	for (int h = 0; h < Hd ; ++h)
 	{
 		const int v = Vert(h) ;
@@ -161,11 +161,11 @@ CC_PARALLEL_FOR
 		for (int c=0; c < 3; ++c)
 		{
 			float increm = V_old[v][c] / m ;
-CC_ATOMIC
+_ATOMIC
 			V_new[i][c] += increm ;
 		}
 	}
-CC_BARRIER
+_BARRIER
 }
 
 void
@@ -173,7 +173,7 @@ Mesh_CC::edgepoints(vertex_buffer& V_new) const
 {
 	const vertex_buffer& V_old = this->vertices ;
 
-CC_PARALLEL_FOR
+_PARALLEL_FOR
 	for (int h = 0; h < Hd ; ++h)
 	{
 		const int v = Vert(h) ;
@@ -192,12 +192,12 @@ CC_PARALLEL_FOR
 			for (int c=0; c < 3; ++c)
 			{
 				float increm = (V_old[v][c] + V_new[i][c]) / 4.0f ;
-CC_ATOMIC
+_ATOMIC
 				V_new[j][c] += increm ;
 			}
 		}
 	}
-CC_BARRIER
+_BARRIER
 }
 
 void
@@ -205,7 +205,7 @@ Mesh_CC::edgepoints_with_creases(vertex_buffer& V_new) const
 {
 	const vertex_buffer& V_old = this->vertices ;
 
-CC_PARALLEL_FOR
+_PARALLEL_FOR
 	for (int h = 0; h < Hd ; ++h)
 	{
 		const int v = Vert(h) ;
@@ -226,7 +226,7 @@ CC_PARALLEL_FOR
 		}
 		else
 		{
-			const float& sharpness = Sigma(c_id) ;
+			const float& sharpness = Sharpness(c_id) ;
 			if (sharpness < 1e-6) // Smooth rule B.2
 			{
 				const int i = Vd + Face(h) ;
@@ -234,7 +234,7 @@ CC_PARALLEL_FOR
 				for (int c=0; c < 3; ++c)
 				{
 					float increm = 0.25f * (v_old[c] + i_new[c]) ;
-CC_ATOMIC
+_ATOMIC
 					j_new[c] += increm ;
 				}
 			}
@@ -243,7 +243,7 @@ CC_ATOMIC
 				for (int c=0; c < 3; ++c)
 				{
 					float increm = 0.5f * v_old[c] ;
-CC_ATOMIC
+_ATOMIC
 					j_new[c] += increm ;
 				}
 			}
@@ -256,14 +256,14 @@ CC_ATOMIC
 					const float& vc_old = v_old[c] ;
 					float increm_sharp = 0.5f * vc_old ;
 					float increm_smooth = 0.25f * (vc_old + i_new[c]) ;
-					float increm = std::lerp(increm_smooth,increm_sharp,sharpness) ;
-CC_ATOMIC
+					float increm = lerp(increm_smooth,increm_sharp,sharpness) ;
+_ATOMIC
 					j_new[c] += increm ;
 				}
 			}
 		}
 	}
-CC_BARRIER
+_BARRIER
 }
 
 
@@ -272,7 +272,7 @@ Mesh_CC::vertexpoints(vertex_buffer& V_new) const
 {
 	const vertex_buffer& V_old = this->vertices ;
 
-CC_PARALLEL_FOR
+_PARALLEL_FOR
 	for (int h = 0; h < Hd ; ++h)
 	{
 		const int n = vertex_edge_valence_or_border(h) ;
@@ -284,7 +284,7 @@ CC_PARALLEL_FOR
 			for (int c=0; c < 3; ++c)
 			{
 				float increm = V_old[v][c] / h_valence ;
-CC_ATOMIC
+_ATOMIC
 				V_new[v][c] += increm ;
 			}
 		}
@@ -296,12 +296,12 @@ CC_ATOMIC
 			for (int c=0; c < 3; ++c)
 			{
 				const float increm = (4.0f * V_new[j][c] - V_new[i][c] + (n-3.0f)*V_old[v][c]) * n2_ ;
-CC_ATOMIC
+_ATOMIC
 				V_new[v][c] += increm ;
 			}
 		}
 	}
-CC_BARRIER
+_BARRIER
 }
 
 
@@ -310,7 +310,7 @@ Mesh_CC::vertexpoints_with_creases(vertex_buffer& V_new) const
 {
 	const vertex_buffer& V_old = this->vertices ;
 
-CC_PARALLEL_FOR
+_PARALLEL_FOR
 	for (int h = 0; h < Hd ; ++h)
 	{
 		const int n = vertex_edge_valence_or_border(h) ;
@@ -336,7 +336,7 @@ CC_PARALLEL_FOR
 				for (int c=0; c < 3; ++c)
 				{
 					float increm = vx_halfedge_valence * v_old[c] ;
-CC_ATOMIC
+_ATOMIC
 					v_new[c] += increm ;
 				}
 			}
@@ -357,14 +357,14 @@ CC_ATOMIC
 					for (int c=0; c < 3; ++c)
 					{
 						const float increm = (4.0f * j_new[c] - i_new[c] + (n_ - 3.0f)*v_old[c]) * _n2 ;
-CC_ATOMIC
+_ATOMIC
 						v_new[c] += increm ;
 					}
 				}
 				else // creased case
 				{
 					const int c_id = Edge(h) ;
-					float edge_sharpness = Sigma(c_id) ;
+					float edge_sharpness = Sharpness(c_id) ;
 					if (edge_sharpness > 1e-6) // current edge is crease and contributes
 					{
 						const int j = Vd + Fd + Edge(h) ;
@@ -375,7 +375,7 @@ CC_ATOMIC
 							for (int c=0; c < 3; ++c)
 							{
 								const float increm = 0.25f * (j_new[c] + v_old[c]) ;
-CC_ATOMIC
+_ATOMIC
 								v_new[c] += increm ;
 							}
 						}
@@ -385,8 +385,8 @@ CC_ATOMIC
 							{
 								const float increm_creased = 0.25f * (j_new[c] + v_old[c]) ;
 								const float increm_corner = 0.5f * v_old[c] ;
-								float increm = std::lerp(increm_corner,increm_creased,vx_sharpness) ;
-CC_ATOMIC
+								float increm = lerp(increm_corner,increm_creased,vx_sharpness) ;
+_ATOMIC
 								v_new[c] += increm ;
 							}
 						}
@@ -396,7 +396,7 @@ CC_ATOMIC
 			}
 		}
 	}
-CC_BARRIER
+_BARRIER
 }
 
 void
@@ -411,7 +411,7 @@ Mesh_CC::vertexpoints_inplace_pass1()
 {
 	vertex_buffer& V_new = this->vertices ;
 
-CC_PARALLEL_FOR
+_PARALLEL_FOR
 	for (int h = 0; h < Hd ; ++h)
 	{
 		const int n = vertex_edge_valence_or_border(h) ;
@@ -423,12 +423,12 @@ CC_PARALLEL_FOR
 			const float prod = std::pow((n_ - 3.0f) / n_, 1.0f/n_) ; // sqrt_n((n-3) / n)
 			for (int c=0; c < 3; ++c)
 			{
-CC_ATOMIC
+_ATOMIC
 				V_new[v][c] *= prod ;
 			}
 		}
 	}
-CC_BARRIER
+_BARRIER
 }
 
 void
@@ -436,7 +436,7 @@ Mesh_CC::vertexpoints_inplace_pass2()
 {
 	vertex_buffer& V_new = this->vertices ;
 
-CC_PARALLEL_FOR
+_PARALLEL_FOR
 	for (int h = 0; h < Hd ; ++h)
 	{
 		const int n = vertex_edge_valence_or_border(h) ;
@@ -450,12 +450,12 @@ CC_PARALLEL_FOR
 			for (int c=0; c < 3; ++c)
 			{
 				const float increm = (4*V_new[j][c] - V_new[i][c]) / n2 ;
-CC_ATOMIC
+_ATOMIC
 				V_new[v][c] += increm ;
 			}
 		}
 	}
-CC_BARRIER
+_BARRIER
 }
 
 

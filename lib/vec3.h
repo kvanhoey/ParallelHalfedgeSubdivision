@@ -15,18 +15,20 @@ class vec3
 	}
 
 public:
-	std::array<float,3> val ;
+	float val[3] = {};
 
 	vec3()	{}
 
 	vec3(float a, float b, float c)
 	{
-		val = {a, b, c} ;
+		val[0] = a ;
+		val[1] = b ;
+		val[2] = c ;
 	}
 
 	vec3 operator/(const float& c) const
 	{
-		vec3 new_val(val) ;
+		vec3 new_val(val[0],val[1],val[2]) ;
 		new_val[0] /= c ;
 		new_val[1] /= c ;
 		new_val[2] /= c ;
@@ -35,7 +37,7 @@ public:
 
 	vec3 operator*(const float& c) const
 	{
-		vec3 new_val(val) ;
+		vec3 new_val(val[0],val[1],val[2]) ;
 		new_val[0] *= c ;
 		new_val[1] *= c ;
 		new_val[2] *= c ;
@@ -44,7 +46,7 @@ public:
 
 	vec3 operator+(const float& c) const
 	{
-		vec3 new_val(val) ;
+		vec3 new_val(val[0],val[1],val[2]) ;
 		new_val[0] += c ;
 		new_val[1] += c ;
 		new_val[2] += c ;
@@ -53,7 +55,7 @@ public:
 
 	vec3 operator+(const vec3& v) const
 	{
-		vec3 new_val(val) ;
+		vec3 new_val(val[0],val[1],val[2]) ;
 		new_val[0] += v[0] ;
 		new_val[1] += v[1] ;
 		new_val[2] += v[2] ;
@@ -81,12 +83,6 @@ public:
 	float& operator[](const int& i)
 	{
 		return val[i] ;
-	}
-
-private:
-	vec3(const std::array<float,3>& v)
-	{
-		val = v ;
 	}
 };
 

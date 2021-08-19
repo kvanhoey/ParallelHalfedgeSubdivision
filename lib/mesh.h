@@ -13,37 +13,11 @@
 #include "halfedge.h"
 #include "crease.h"
 #include "timings.h"
+#include "helpers.h"
 #include <array>
 #include <cmath>
 #include <chrono>
 #include <algorithm>
-#include <bits/stdc++.h>
-
-#include <omp.h>
-
-#define ENABLE_PARALLEL
-
-# ifdef ENABLE_PARALLEL
-#       ifndef CC_ATOMIC
-#           define CC_ATOMIC          _Pragma("omp atomic" )
-#       endif
-#       ifndef CC_PARALLEL_FOR
-#           define CC_PARALLEL_FOR    _Pragma("omp parallel for")
-#       endif
-#       ifndef CC_BARRIER
-#           define CC_BARRIER         _Pragma("omp barrier")
-#       endif
-# else
-#		define CC_ATOMIC
-#		define CC_PARALLEL_FOR
-#		define CC_BARRIER
-# endif
-
-#define _5_o_8 0.625f
-#define _8_o_5 1.6f
-#define _3_o_8 0.375f
-#define _2pi 6.28318530718f
-
 
 class Mesh
 {
@@ -55,12 +29,12 @@ protected:
 
 public:
 	int H0, V0, E0, F0 ;
-	int Hd, Vd, Ed, Fd, Cd ;
-private:
-	int _depth ;
-	void init_depth() ;
 protected:
-	const int& depth() const ;
+	//int Hd, Vd, Ed, Fd, Cd ; // todo remove
+	int _depth ;
+//	void init_depth() ;
+
+//	const int& depth() const ;
 
 public:
 	virtual int H(int depth = -1) const = 0 ;
@@ -79,17 +53,14 @@ public:
 	virtual ~Mesh() = default ;
 
 	bool check() const ;
-	bool is_cage() const ;
+	//bool is_cage() const ;
 
 	int count_border_edges() const ;
 	int count_sharp_creases() const ;
 	bool is_tri_only() const ;
 	bool is_quad_only() const ;
-	bool all_faces_are_ngons(int n) const ;
 
 	void export_to_obj(const std::string& filename) const ;
-	void export_to_obj_tri(std::ofstream& file) const ;
-	void export_to_obj_contig_faces(std::ofstream& file) const ;
 
 private:
 	void read_from_obj(const std::string& filename) ;
@@ -97,11 +68,12 @@ private:
 	crease_buffer read_obj_data(std::ifstream& open_file) ;
 
 	void compute_and_set_twins() ;
-	void compute_and_set_twins_optim() ;
 	int compute_and_set_edges() ;
 	void set_creases(const crease_buffer&) ;
 	void compute_and_set_crease_neighbors() ;
 	void set_boundaries_sharp() ;
+
+	bool all_faces_are_ngons(int n) const ;
 
 	/**
 	 * @brief find_second_crease
@@ -111,24 +83,40 @@ private:
 	 */
 	int find_second_crease(int h) const ;
 
-protected:
+private:
 	void alloc_halfedge_buffer(int H) ;
 	void alloc_vertex_buffer(int V) ;
 	void alloc_crease_buffer(int E) ;
 
-	virtual void set_depth(int d) ;
+//protected:
+//	virtual void set_depth(int d) ;
 
+private:
 	virtual int Twin(int h) const final ;
 	virtual int Prev(int h) const ;
 	virtual int Next(int h) const ;
-	virtual int Next_safe(int h) const final ;
 	virtual int Vert(int h) const final ;
 	virtual int Edge(int h) const final ;
 	virtual int Face(int h) const ;
 
-	virtual float Sigma(int c) const final ;
+	virtual float Sharpness(int c) const final ;
 	virtual int NextC(int c) const final ;
 	virtual int PrevC(int c) const final ;
+
+protected:
+	virtual int Next_safe(int h) const final ;
+
+	virtual int Twin(const halfedge_buffer& buffer, int h) const final ;
+	virtual int Prev(const halfedge_buffer_cage& buffer, int h) const ;
+	virtual int Next(const halfedge_buffer_cage& buffer, int h) const ;
+	virtual int Next_safe(const halfedge_buffer_cage& buffer, int h) const final ;
+	virtual int Vert(const halfedge_buffer& buffer, int h) const final ;
+	virtual int Edge(const halfedge_buffer& buffer, int h) const final ;
+	virtual int Face(const halfedge_buffer_cage& buffer, int h) const ;
+
+	virtual float Sharpness(const crease_buffer& buffer, int c) const final ;
+	virtual int NextC(const crease_buffer& buffer, int c) const final ;
+	virtual int PrevC(const crease_buffer& buffer, int c) const final ;
 
 	/**
 	 * @brief vertex_edge_valence_or_border returns the valence of Vert(h), or -1 if v is a border vertex.
@@ -136,8 +124,33 @@ protected:
 	 * @param h a halfedge index
 	 * @return valence of the vertex Vert(h), or -1 if it is along a mesh border
 	 */
-	int vertex_edge_valence_or_border(int h) const ;
+	int vertex_edge_valence_or_border(const halfedge_buffer& h_buffer, int h) const ;
 
+	float vertex_sharpness_or_border(const halfedge_buffer& h_buffer, const crease_buffer&, int h) const ;
+
+	bool is_border_vertex(const halfedge_buffer& h_buffer, int h) const ;
+	/**
+	 * @brief vertex_halfedge_valence compute vertex valence in terms of adjacent halfedges (as opposed to edges, which is usually targeted).
+	 * @note vertex_halfedge_valence is equivalent to valence if it is not a border vertex. Otherwise, it is equivalent to valence(h) - 1.
+	 * @param h a halfedge index
+	 * @return halfedge valence of the vertex Vert(h)
+	 */
+	int vertex_halfedge_valence(const halfedge_buffer& h_buffer, int h) const ;
+
+	int vertex_crease_valence_or_border(const halfedge_buffer& h_buffer, const crease_buffer& c_buffer, int h) const ;
+	bool is_crease_halfedge(const halfedge_buffer& h_buffer, const crease_buffer& c_buffer, int h) const ;
+	int vertex_crease_valence(const halfedge_buffer& h_buffer, const crease_buffer& c_buffer, int h) const ;
+	int vertex_edge_valence(const halfedge_buffer& buffer, int h) const ;
+
+	float vertex_sharpness(const halfedge_buffer& h_buffer, const crease_buffer& c_buffer, int h) const ;
+
+	bool is_border_halfedge(const halfedge_buffer& buffer, int h) const ;
+	bool is_crease_edge(const crease_buffer& buffer, int e) const ;
+
+	int n_vertex_of_polygon_cage(int h) const ;
+	virtual int n_vertex_of_polygon(int h) const ;
+
+private:
 	/**
 	 * @brief vertex_edge_valence returns the valence of Vert(h), robust wrt borders.
 	 * @note see also: vertex_edge_valence_or_border
@@ -146,30 +159,154 @@ protected:
 	 */
 	int vertex_edge_valence(int h) const ;
 
-	/**
-	 * @brief vertex_halfedge_valence compute vertex valence in terms of adjacent halfedges (as opposed to edges, which is usually targeted).
-	 * @note vertex_halfedge_valence is equivalent to valence if it is not a border vertex. Otherwise, it is equivalent to valence(h) - 1.
-	 * @param h a halfedge index
-	 * @return halfedge valence of the vertex Vert(h)
-	 */
-	int vertex_halfedge_valence(int h) const ;
 
 
-	int vertex_crease_valence_or_border(int h) const ;
 	int vertex_crease_valence(int h) const ;
 
-	float vertex_sharpness_or_border(int h) const ;
-	float vertex_sharpness(int h) const ;
-
+//	bool is_crease_halfedge(int h) const ;
 	bool is_border_halfedge(int h) const ;
-	bool is_border_vertex(int h) const ;
-	bool is_crease_halfedge(int h) const ;
-	bool is_crease_edge(int e) const ;
-
-	int n_vertex_of_polygon_check(int h) const ;
-	virtual int n_vertex_of_polygon(int h) const ;
 
 };
+
+class Mesh_Subdiv: public Mesh
+{
+public:
+	Mesh_Subdiv(const std::string& filename, uint max_depth):
+		Mesh(filename), D(max_depth) {}
+
+	virtual void subdivide() final ;
+
+protected:
+	const uint D ;
+	virtual void allocate_subdiv_buffers() = 0 ;
+	virtual void readback_from_subdiv_buffers() = 0 ;
+
+protected:
+	virtual void refine_halfedges() = 0 ;
+	virtual void refine_creases() = 0 ;
+	virtual void refine_vertices() = 0 ;
+};
+
+class Mesh_Subdiv_CPU: virtual public Mesh_Subdiv
+{
+public:
+	Mesh_Subdiv_CPU(const std::string& filename, uint max_depth):
+		Mesh_Subdiv(filename,max_depth)
+	{}
+
+protected:
+	std::vector<halfedge_buffer> halfedge_subdiv_buffers ;
+	std::vector<crease_buffer> crease_subdiv_buffers ;
+	std::vector<vertex_buffer> vertex_subdiv_buffers ;
+
+	void allocate_subdiv_buffers() final ;
+	void readback_from_subdiv_buffers() final ;
+	void refine_creases() ;
+
+	static void apply_atomic_vec3_increment(vec3& v, const vec3& v_increm) ;
+
+};
+
+
+#include "glad/glad.h"
+#include "GLFW/glfw3.h"
+#include <cstring>
+
+enum {
+	BUFFER_HALFEDGES_IN,
+	BUFFER_HALFEDGES_OUT,
+	BUFFER_CREASES_IN,
+	BUFFER_CREASES_OUT,
+	BUFFER_VERTICES_IN,
+	BUFFER_VERTICES_OUT,
+
+	BUFFER_COUNT
+};
+
+class Mesh_Subdiv_GPU: virtual public Mesh_Subdiv
+{
+public:
+	Mesh_Subdiv_GPU(const std::string& filename, uint max_depth):
+		Mesh_Subdiv(filename,max_depth)
+	{}
+
+	~Mesh_Subdiv_GPU() ;
+
+protected:
+	void allocate_subdiv_buffers() final ;
+	void readback_from_subdiv_buffers() final ;
+	void refine_creases() ;
+
+	static GLuint create_buffer(GLuint buffer_bind_id, uint size, void* data, bool clear_buffer = false, bool enable_readback = true) ;
+	static void release_buffer(GLuint buffer) ;
+	void release_buffers(GLuint buffer) ;
+
+	static GLuint create_program(const std::string& shader_file, GLuint in_buffer, GLuint out_buffer, bool is_vertex_program = false) ;
+
+protected:
+	std::vector<GLuint> halfedge_subdiv_buffers	;
+	std::vector<GLuint> crease_subdiv_buffers	;
+	std::vector<GLuint> vertex_subdiv_buffers	;
+};
+
+class Mesh_Subdiv_Loop: virtual public Mesh_Subdiv
+{
+public:
+	Mesh_Subdiv_Loop(const std::string& filename, uint max_depth):
+		Mesh_Subdiv(filename, max_depth)
+	{
+		if (!is_tri_only())
+		{
+			std::cerr << "ERROR Mesh_Subdiv_Loop: The mesh is not valid or not fully triangular" << std::endl ;
+			exit(0) ;
+		}
+		halfedges_cage.clear() ;
+	}
+
+	int H(int depth = -1) const ;
+	int V(int depth = -1) const ;
+	int F(int depth = -1) const ;
+	int E(int depth = -1) const ;
+
+protected:
+	// override with analytic versions
+	int Prev(int h) const ;
+	int Next(int h) const ;
+	int Face(int h) const ;
+};
+
+class Mesh_Subdiv_Loop_CPU: public Mesh_Subdiv_Loop, Mesh_Subdiv_CPU
+{
+public:
+	Mesh_Subdiv_Loop_CPU(const std::string& filename, uint depth):
+		Mesh_Subdiv_Loop(filename, depth),
+		Mesh_Subdiv_CPU(filename, depth),
+		Mesh_Subdiv(filename, depth) {}
+
+protected:
+	void refine_halfedges() ;
+	void refine_vertices() ;
+
+	static float compute_beta(float one_over_n) ;
+	static float compute_gamma(float one_over_n) ;
+	static float compute_ngamma(float one_over_n) ;
+};
+
+class Mesh_Subdiv_Loop_GPU: public Mesh_Subdiv_Loop, Mesh_Subdiv_GPU
+{
+public:
+	Mesh_Subdiv_Loop_GPU(const std::string& filename, uint depth):
+		Mesh_Subdiv_Loop(filename, depth),
+		Mesh_Subdiv_GPU(filename, depth),
+		Mesh_Subdiv(filename, depth) {}
+
+protected:
+	void refine_halfedges() ;
+	void refine_vertices() ;
+};
+
+
+
 
 class MeshSubdivision: public Mesh
 {
@@ -255,9 +392,6 @@ public:
 	int Prev(int h) const ;
 	int Next(int h) const ;
 	int Face(int h) const ;
-
-//	static Mesh_Loop tri() ;
-//	static Mesh_Loop polyhedron() ;
 
 private:
 	void refine_halfedges(halfedge_buffer& new_he) const ;
