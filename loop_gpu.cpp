@@ -1,24 +1,27 @@
+// basic file operations
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 #define MAX_VERTICES pow(2,28)
 
-#include "mesh_loop_gpu.h"
-#ifndef NDEBUG
-	#include "gpu_debug_logger.h"
-#endif
+#include "mesh.h"
 
-int main(int argc, char **argv)
+int main(int argc, char* argv[])
 {
-	// Fetch arguments
 	if (argc < 3)
 	{
-		std::cout << "Usage: " << argv[0] << " <filename>.obj <depth> <export_all_levels=0>" << std::endl ;
+		std::cout << "Usage: " << argv[0] << " <filename>.obj <depth>" << std::endl ;
 		return 0 ;
 	}
 
 	const std::string f_name(argv[1]) ;
 	const uint D = atoi(argv[2]) ;
-	const bool enable_export = argc < 4 ? false : atoi(argv[3]) ;
+
+	std::stringstream fname_out_ss ;
+	fname_out_ss << "S" << D << "_gpu.obj" ;
+	std::string fname_out = fname_out_ss.str() ;
+
 
 	// Init GL
 	glfwInit();
@@ -43,64 +46,40 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	// encapsulates what requires GL context
-	{
-		// Load data
-		std::cout << "Loading " << f_name << std::endl ;
-		Mesh_Loop_GPU S0(f_name) ;
-		if (!S0.is_tri_only())
-		{
-			std::cerr << "ERROR: The provided mesh should be triangle-only" << std::endl ;
-			exit(0) ;
-		}
+	{ // encapsulates what requires GL context
+		std::cout << "Loading " << f_name << " ... " << std::flush ;
+		Mesh_Subdiv_Loop_GPU M(f_name, D) ;
+		std::cout << "[OK]" << std::endl ;
 
-		if (S0.V(D) > MAX_VERTICES)
+		if (M.V(D) > MAX_VERTICES)
 		{
 			std::cout << std::endl << "ERROR: Mesh may exceed memory limits at depth " << D << std::endl ;
 			return 0 ;
 		}
 
-		S0.check() ;
-		if (enable_export)
-		{
-			std::cout << "Exporting S0.obj ... " << std::flush ;
-			S0.export_to_obj("S0.obj") ;
-			std::cout << "[OK]" << std::endl ;
-		}
-#ifndef NDEBUG
-		gpu_log_debug_output() ;
-#endif
+		const char* num_threads_str = std::getenv("OMP_NUM_THREADS") ;
+		if (num_threads_str != NULL)
+			std::cout << "Using " << atoi(num_threads_str) << " threads" << std::endl ;
+		else
+			std::cout << "Using default number of threads" << std::endl ;
 
-		Mesh_Loop_GPU S = S0 ;
-		for (int d = 1 ; d <= D ; d++)
-		{
-			bool export_mesh = (enable_export || d == D) ;
-			std::cout << "Subdividing level " << d << " ... " << std::flush;
-			S.refine_step_gpu(export_mesh) ; // <-- subdivision happens here
-			std::cout << "[OK]" << std::endl ;
+		// Check & export input
+		M.check() ;
+		std::cout << "Exporting input S0_input.obj ... " << std::flush ;
+		M.export_to_obj("S0_input.obj") ;
+		std::cout << "[OK]" << std::endl ;
 
-			if (export_mesh)
-			{
-				assert(S.check()) ;
+		// subdiv down to depth D
+		std::cout << "Processing subdivision ... " << std::flush ;
+		M.subdivide() ;
+		std::cout << "[OK]" << std::endl ;
 
-				std::stringstream ss ;
-				ss << "S" << d << ".obj" ;
-
-				std::cout << "Exporting " << ss.str() << " ... " << std::flush ;
-				S.export_to_obj(ss.str()) ;
-				std::cout << "[OK]" << std::endl ;
-			}
-		}
+		// Check & export output
+		M.check() ;
+		std::cout << "Exporting output " << fname_out << " ... " << std::flush ;
+		M.export_to_obj(fname_out) ;
+		std::cout << "[OK]" << std::endl ;
 	}
 
-	glfwTerminate();
-
-	return 0;
+	return 0 ;
 }
-
-
-
-
-
-
-
