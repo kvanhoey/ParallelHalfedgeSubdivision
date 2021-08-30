@@ -45,7 +45,7 @@
 #define _2pi 6.28318530718f
 
 template <typename T>
-static T lerp(const T& a, const T& b, const T& alpha)
+static T lerp(const T& a, const T& b, const float& alpha)
 {
 	return (1 - alpha) * a + alpha * b;
 }

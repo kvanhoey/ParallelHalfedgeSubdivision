@@ -5,7 +5,7 @@
 
 #define MAX_VERTICES pow(2,28)
 
-#include "mesh_subdiv_loop_gpu.h"
+#include "mesh_subdiv_catmull-clark_gpu.h"
 
 int main(int argc, char* argv[])
 {
@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
 	const uint D = atoi(argv[2]) ;
 
 	std::stringstream fname_out_ss ;
-	fname_out_ss << "S" << D << "_gpu.obj" ;
+	fname_out_ss << "S" << D << "_catmull-clark_gpu.obj" ;
 	std::string fname_out = fname_out_ss.str() ;
 
 
@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
 
 	{ // encapsulates what requires GL context
 		std::cout << "Loading " << f_name << " ... " << std::flush ;
-		Mesh_Subdiv_Loop_GPU M(f_name, D) ;
+		Mesh_Subdiv_CatmullClark_GPU M(f_name, D) ;
 		std::cout << "[OK]" << std::endl ;
 
 		if (M.V(D) > MAX_VERTICES)

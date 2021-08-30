@@ -9,6 +9,12 @@ Mesh::Mesh(int H, int V, int E, int F):
 }
 
 void
+Mesh::set_current_depth(int depth)
+{
+	_depth = depth ;
+}
+
+void
 Mesh::alloc_halfedge_buffer(int H)
 {
 	halfedges_cage.resize(H) ;
@@ -274,7 +280,7 @@ Mesh::vertex_edge_valence_or_border(const halfedge_buffer& h_buffer, int h) cons
 	do
 	{
 		n++ ;
-		const int hh_twin = Twin(hh) ;
+		const int hh_twin = Twin(h_buffer, hh) ;
 
 		bool is_border = hh_twin < 0 ;
 		if (is_border)
@@ -444,8 +450,9 @@ Mesh::n_vertex_of_polygon_cage(int h) const
 }
 
 int
-Mesh::n_vertex_of_polygon(int h) const
+Mesh::n_vertex_of_polygon(int h, int is_cage) const
 {
+	assert(is_cage) ;
 	return n_vertex_of_polygon_cage(h) ;
 }
 
@@ -457,6 +464,7 @@ Mesh::check() const
 	if (Hd < 2)
 	{
 		std::cerr << "The mesh is empty" << std::endl ;
+		return false ;
 	}
 
 	for (int h = 0; h < Hd ; ++h)

@@ -41,6 +41,7 @@ Mesh_Subdiv_CPU::refine_creases()
 {
 	for (uint d = 0 ; d < D; ++d)
 	{
+		set_current_depth(d) ;
 		const crease_buffer& Cr = crease_subdiv_buffers[d] ;
 		crease_buffer& C_new = crease_subdiv_buffers[d + 1] ;
 		const uint Cd = C(d) ;

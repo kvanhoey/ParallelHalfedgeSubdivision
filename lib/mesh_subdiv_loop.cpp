@@ -56,3 +56,10 @@ Mesh_Subdiv_Loop::Face(int h) const
 {
 	return h / 3 ;
 }
+
+
+int
+Mesh_Subdiv_Loop::n_vertex_of_polygon(int h, bool is_cage) const
+{
+	return 3 ;
+}

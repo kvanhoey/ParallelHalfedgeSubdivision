@@ -14,5 +14,5 @@ Mesh_Subdiv::subdivide()
 
 	readback_from_subdiv_buffers() ;
 
-	_depth = D ;
+	set_current_depth(D) ;
 }

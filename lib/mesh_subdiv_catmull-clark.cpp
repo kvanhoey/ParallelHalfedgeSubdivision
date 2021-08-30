@@ -2,21 +2,12 @@
 
 Mesh_Subdiv_CatmullClark::Mesh_Subdiv_CatmullClark(const std::string &filename, uint max_depth):
 	Mesh_Subdiv(filename, max_depth)
-{
-	assert(false) ;
-	if (!is_tri_only())
-	{
-		std::cerr << "ERROR Mesh_Subdiv_CatmullClark: The mesh is not valid or not fully triangular" << std::endl ;
-		exit(0) ;
-	}
-	halfedges_cage.clear() ;
-}
+{}
 
 int
 Mesh_Subdiv_CatmullClark::H(int depth) const
 {
 	const int& d = depth < 0 ? _depth : depth ;
-	assert(false) ;
 	return std::pow(4,d) * H0 ;
 }
 
@@ -24,43 +15,77 @@ int
 Mesh_Subdiv_CatmullClark::F(int depth) const
 {
 	const int& d = depth < 0 ? _depth : depth ;
-	assert(false) ;
-	return std::pow(4,d) * F0 ;
+	return d == 0 ? F0 : std::pow(4,d - 1) * H0 ;
 }
 
 int
 Mesh_Subdiv_CatmullClark::E(int depth) const
 {
 	const int& d = depth < 0 ? _depth : depth ;
-	assert(false) ;
-	return pow(2,d)*E0 + 3*(pow(2,2*d-1) - pow(2,d-1))*F0 ;
+	return d == 0 ? E0 : std::pow(2,d-1) * (2*E0 + (std::pow(2,d) - 1)*H0) ;
 }
 
 int
 Mesh_Subdiv_CatmullClark::V(int depth) const
 {
 	const int& d = depth < 0 ? _depth : depth ;
-	assert(false) ;
-	return V0 + (pow(2,d) - 1)*E0 + (pow(2,2*d-1) - 3*pow(2,d-1) + 1)*F0 ;
+	switch(d)
+	{
+		case (0):
+			return V0 ;
+			break ;
+		case (1):
+			return V(0) + F(0) + E(0) ;
+			break;
+		default:
+			return V(1) + pow(2,d - 1)*(E(1) + (pow(2,d) - 1)*F(1)) ;
+	}
 }
 
 int
 Mesh_Subdiv_CatmullClark::Next(int h) const
 {
-	assert(false) ;
-	return h % 3 == 2 ? h - 2 : h + 1 ;
+	if (_depth < 1) // not quad-only
+		return Mesh::Next(halfedges_cage,h) ;
+
+	return h % 4 == 3 ? h - 3 : h + 1 ;
 }
 
 int
 Mesh_Subdiv_CatmullClark::Prev(int h) const
 {
-	assert(false) ;
-	return h % 3 == 0 ? h + 2 : h - 1 ;
+	if (_depth < 1) // not quad-only
+		return Mesh::Prev(halfedges_cage,h) ;
+
+	return h % 4 == 0 ? h + 3 : h - 1 ;
 }
 
 int
 Mesh_Subdiv_CatmullClark::Face(int h) const
 {
-	assert(false) ;
-	return h / 3 ;
+	if (_depth < 1) // not quad-only
+		return Mesh::Face(halfedges_cage, h) ;
+
+	return h / 4 ;
+}
+
+int
+Mesh_Subdiv_CatmullClark::n_vertex_of_polygon(int h) const
+{
+	if (_depth < 1) // not quad-only
+		return Mesh::n_vertex_of_polygon(h) ;
+
+	return 4 ;
+}
+
+void
+Mesh_Subdiv_CatmullClark::refine_vertices()
+{
+	for (uint d = 0 ; d < D; ++d)
+	{
+		set_current_depth(d) ;
+		refine_vertices_facepoints(d) ;
+		refine_vertices_edgepoints(d) ;
+		refine_vertices_vertexpoints(d) ;
+	}
 }

@@ -31,8 +31,8 @@ if (OPENMP_FOUND)
 endif()
 
 include_directories(lib/)
-add_executable(loop_cpu loop_cpu.cpp lib/mesh.cpp lib/mesh_subdiv.cpp lib/mesh_subdiv_loop.cpp lib/mesh_subdiv_loop_cpu.cpp)
-add_executable(catmull-clark_cpu catmull-clark_cpu.cpp lib/mesh.cpp lib/mesh_subdiv.cpp lib/mesh_subdiv_catmull-clark.cpp lib/mesh_subdiv_catmull-clark_cpu.cpp)
+add_executable(loop_cpu loop_cpu.cpp lib/mesh.cpp lib/mesh_subdiv_cpu.cpp lib/mesh_subdiv.cpp lib/mesh_subdiv_loop.cpp lib/mesh_subdiv_loop_cpu.cpp)
+add_executable(catmull-clark_cpu catmull-clark_cpu.cpp lib/mesh.cpp lib/mesh_subdiv_cpu.cpp lib/mesh_subdiv.cpp lib/mesh_subdiv_catmull-clark.cpp lib/mesh_subdiv_catmull-clark_cpu.cpp)
 add_executable(stats stats.cpp lib/mesh.cpp)
 
 file(GLOB lib_gpu lib_gpu/*.cpp lib_gpu/glad/glad.c)
@@ -42,7 +42,7 @@ include_directories(lib_gpu/)
 add_executable(loop_gpu loop_gpu.cpp lib/mesh.cpp lib/mesh_subdiv.cpp lib/mesh_subdiv_loop.cpp lib/mesh_subdiv_gpu.cpp lib/mesh_subdiv_loop_gpu.cpp ${lib_gpu})
 target_link_libraries(loop_gpu glfw)
 
-add_executable(catmull-clark_gpu catmull-clark_gpu.cpp lib/mesh.cpp lib/mesh_subdiv.cpp lib/mesh_subdiv_catmull-clark.cpp lib/mesh_subdiv_catmull-clark_gpu.cpp ${lib_gpu})
+add_executable(catmull-clark_gpu catmull-clark_gpu.cpp lib/mesh.cpp lib/mesh_subdiv.cpp lib/mesh_subdiv_gpu.cpp lib/mesh_subdiv_catmull-clark.cpp lib/mesh_subdiv_catmull-clark_gpu.cpp ${lib_gpu})
 target_link_libraries(catmull-clark_gpu glfw)
 
 # check if Doxygen is installed

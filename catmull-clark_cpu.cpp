@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
 	const uint D = atoi(argv[2]) ;
 
 	std::stringstream fname_out_ss ;
-	fname_out_ss << "S" << D << "_cpu.obj" ;
+	fname_out_ss << "S" << D << "_catmull-clark_cpu.obj" ;
 	std::string fname_out = fname_out_ss.str() ;
 
 	std::cout << "Loading " << f_name << std::endl ;

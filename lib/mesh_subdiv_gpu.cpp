@@ -113,6 +113,7 @@ Mesh_Subdiv_GPU::refine_halfedges()
 {
 	for (uint d = 0 ; d < D; ++d)
 	{
+		set_current_depth(d) ;
 		const uint Hd = H(d) ;
 		const uint Vd = V(d) ;
 		const uint Ed = E(d) ;
@@ -143,6 +144,8 @@ Mesh_Subdiv_GPU::refine_creases()
 {
 	for (uint d = 0 ; d < D; ++d)
 	{
+		set_current_depth(d) ;
+
 		const uint Cd = C(d) ;
 		// bind input and output buffers
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BUFFER_CREASES_IN,	crease_subdiv_buffers[d]) ;
@@ -166,6 +169,8 @@ Mesh_Subdiv_GPU::refine_vertices()
 {
 	for (uint d = 0 ; d < D; ++d)
 	{
+		set_current_depth(d) ;
+
 		const uint Hd = H(d) ;
 		const uint Ed = E(d) ;
 		const uint Vd = V(d) ;

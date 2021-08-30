@@ -62,18 +62,14 @@ public:
 		return new_val ;
 	}
 
-    static vec3 lerp(const vec3& a, const vec3& b, const float alpha)
-    {
-        vec3 res ;
-
-        for (int c=0; c < 3; ++c)
-        {
-            res[c] = (1 - alpha) * a[c] + alpha * b[c];
-        }
-
-        return res ;
-    }
-
+	vec3 operator-(const vec3& v) const
+	{
+		vec3 new_val(val[0],val[1],val[2]) ;
+		new_val[0] -= v[0] ;
+		new_val[1] -= v[1] ;
+		new_val[2] -= v[2] ;
+		return new_val ;
+	}
 
 	const float& operator[](const int& i) const
 	{

@@ -11,6 +11,8 @@ Mesh_Subdiv_Loop_CPU::refine_halfedges()
 {
 	for (uint d = 0 ; d < D; ++d)
 	{
+		set_current_depth(d) ;
+
 		halfedge_buffer& H_old = halfedge_subdiv_buffers[d] ;
 		halfedge_buffer& H_new = halfedge_subdiv_buffers[d+1] ;
 		const int Hd = H(d) ;
@@ -64,6 +66,8 @@ Mesh_Subdiv_Loop_CPU::refine_vertices()
 
 	for (uint d = 0 ; d < D; ++d)
 	{
+		set_current_depth(d) ;
+
 		const halfedge_buffer& H_old = halfedge_subdiv_buffers[d] ;
 		const crease_buffer& C_old = crease_subdiv_buffers[d] ;
 		const vertex_buffer& V_old = vertex_subdiv_buffers[d] ;
@@ -92,7 +96,7 @@ Mesh_Subdiv_Loop_CPU::refine_vertices()
 
 			const vec3 increm_smooth_edge = 0.375f * v_old_vx + 0.125f * vp_old_vx ;
 			const vec3 increm_sharp_edge = 0.5f * (is_border ? v_old_vx + vn_old_vx : v_old_vx) ;
-			vec3 increm = vec3::lerp(increm_smooth_edge,increm_sharp_edge,sharpness) ;
+			vec3 increm = lerp(increm_smooth_edge,increm_sharp_edge,sharpness) ;
 			apply_atomic_vec3_increment(v_new, increm) ;
 
 			// vertex points
@@ -155,11 +159,13 @@ Mesh_Subdiv_Loop_CPU::refine_vertices()
 			}
 			else // creased or blend
 			{
-				const vec3 incremV = vec3::lerp(increm_corner_vx,increm_sharp_vx,lerp_alpha) ;
+				const vec3 incremV = lerp<vec3>(increm_corner_vx,increm_sharp_vx,lerp_alpha) ;
 				apply_atomic_vec3_increment(v_new_vx, incremV) ;
 			}
 		}
 	_BARRIER
+
+	_depth = D ;
 	}
 }
 

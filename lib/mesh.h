@@ -33,6 +33,13 @@ public:
 protected:
 	int _depth ;
 
+	/**
+	 * @brief set_current_depth sets an internal state on which many low-level routines rely.
+	 * Whenever iterating over subdivision depth, remember to first call set_current_depth().
+	 * @param depth
+	 */
+	void set_current_depth(int depth) ;
+
 public:
 	virtual int H(int depth = -1) const ;
 	virtual int V(int depth = -1) const ;
@@ -141,7 +148,7 @@ protected:
 	bool is_crease_edge(const crease_buffer& buffer, int e) const ;
 
 	int n_vertex_of_polygon_cage(int h) const ;
-	virtual int n_vertex_of_polygon(int h) const ;
+	virtual int n_vertex_of_polygon(int h, int is_cage = true) const ;
 
 private:
 	/**
