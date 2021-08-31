@@ -71,15 +71,108 @@ _PARALLEL_FOR
 	for (int h = 0; h < Hd ; ++h)
 	{
 		const int v = Vert(H_old, h) ;
-		const int i = Vd + Face(h) ;
+		const int new_face_pt_vx  = Vd + Face(h) ;
 
 		const int m = n_vertex_of_polygon(h) ;
 		const vec3 increm = V_old[v] / m ;
 
-		apply_atomic_vec3_increment(V_new[i], increm) ;
+		apply_atomic_vec3_increment(V_new[new_face_pt_vx], increm) ;
 	}
 _BARRIER
 }
+
+//void
+//Mesh_Subdiv_CatmullClark_CPU::refine_vertices_edgepoints(uint d)
+//{
+//	const halfedge_buffer& H_old = halfedge_subdiv_buffers[d] ;
+//	const crease_buffer& C_old = crease_subdiv_buffers[d] ;
+//	const vertex_buffer& V_old = vertex_subdiv_buffers[d] ;
+//	vertex_buffer& V_new = vertex_subdiv_buffers[d+1] ;
+
+//	const int Vd = V(d) ;
+//	const int Hd = H(d) ;
+//	const int Fd = F(d) ;
+
+//	std::cout << "depth" << _depth << std::endl ;
+
+//_PARALLEL_FOR
+//	for (int h = 0; h < Hd ; ++h)
+//	{
+//		const int e = Edge(H_old, h) ;
+//		const int new_edge_pt_vx = Vd + Fd + e ;
+//		vec3& v_new = V_new[new_edge_pt_vx] ;
+
+//		const int v = Vert(H_old,h) ;
+//		const int vn = Vert(H_old,Next(h)) ;
+
+//		const vec3& v_old_vx = V_old[v] ;
+//		const vec3& vn_old_vx = V_old[vn] ;
+
+//		vec3 increm = 0.5 * v_old_vx ;
+//		if (is_border_halfedge(H_old, h))
+//		{
+//			increm = 0.5 * (v_old_vx + vn_old_vx) ;
+//		}
+
+//		apply_atomic_vec3_increment(v_new, increm);
+
+
+////		const int v = Vert(H_old,h) ;
+////		const int vn = Next(v) ;
+////		const int e_id = Edge(H_old, h) ;
+////		const int& c_id = e_id ;
+////		const int j = Vd + Fd + e_id ;
+
+////		const vec3& v_old = V_old[v] ;
+////		const vec3& vn_old = V_old[vn] ;
+////		vec3& j_new = V_new[j] ;
+
+
+////		const float sharpness = Sharpness(C_old, c_id) ;
+////		const int i = Vd + Face(h) ;
+////		const vec3& i_new = V_new[i] ;
+////		vec3 increm_sharp = 0.5f * v_old ; // Crease rule: B.3
+////		if (is_border_halfedge(H_old,h))
+////			increm_sharp = increm_sharp + 0.5f * vn_old ;
+////		const vec3 increm_smooth = 0.25f * (v_old + i_new) ;
+////		const vec3 increm = lerp(increm_smooth,increm_sharp,sharpness) ; // Blending crease rule: B.4
+////		apply_atomic_vec3_increment(j_new, increm_sharp) ;
+
+////		if (is_border_halfedge(H_old,h)) // Boundary rule: B.1
+////		{
+////			const int vn = Vert(H_old, Next(h)) ;
+////			const vec3& vn_old = V_old[vn] ;
+////			const vec3 increm = 0.5f * (v_old + vn_old) ;
+////			j_new = increm ;
+////		}
+////		else
+////		{
+////			const float sharpness = Sharpness(C_old, c_id) ;
+////			if (sharpness < 1e-6) // Smooth rule B.2
+////			{
+////				const int i = Vd + Face(h) ;
+////				const vec3& i_new = V_new[i] ;
+////				const vec3 increm_smooth = 0.25f * (v_old + i_new) ; // Smooth rule B.2
+////				apply_atomic_vec3_increment(j_new, increm_smooth) ;
+////			}
+////			else if (sharpness > 1.0) // Crease rule: B.3
+////			{
+////				const vec3 increm_sharp = 0.5f * v_old ; // Crease rule: B.3
+////				apply_atomic_vec3_increment(j_new, increm_sharp) ;
+////			}
+////			else // Blending crease rule: B.4
+////			{
+////				const int i = Vd + Face(h) ;
+////				const vec3& i_new = V_new[i] ;
+////				const vec3 increm_sharp = 0.5f * v_old ; // Crease rule: B.3
+////				const vec3 increm_smooth = 0.25f * (v_old + i_new) ;
+////				const vec3 increm = lerp(increm_smooth,increm_sharp,sharpness) ; // Blending crease rule: B.4
+////				apply_atomic_vec3_increment(j_new, increm) ;
+////			}
+////		}
+//	}
+//_BARRIER
+//}
 
 void
 Mesh_Subdiv_CatmullClark_CPU::refine_vertices_edgepoints(uint d)
@@ -108,35 +201,20 @@ _PARALLEL_FOR
 		{
 			const int vn = Vert(H_old, Next(h)) ;
 			const vec3& vn_old = V_old[vn] ;
-			for (int c=0; c < 3; ++c)
-			{
-				j_new[c] = (v_old[c] + vn_old[c])  / 2.0f ;
-			}
+			j_new = 0.5f * (v_old + vn_old) ;
 		}
 		else
 		{
-			const float& sharpness = Sharpness(C_old, c_id) ;
-			if (sharpness < 1e-6) // Smooth rule B.2
-			{
-				const int i = Vd + Face(h) ;
-				const vec3& i_new = V_new[i] ;
-				const vec3 increm = 0.25f * (v_old + i_new) ;
-				apply_atomic_vec3_increment(j_new, increm) ;
-			}
-			else if (sharpness > 1.0) // Crease rule: B.3
-			{
-				const vec3 increm = 0.5f * v_old ;
-				apply_atomic_vec3_increment(j_new, increm) ;
-			}
-			else // Blending crease rule: B.4
-			{
-				const int i = Vd + Face(h) ;
-				const vec3& i_new = V_new[i] ;
-				const vec3 increm_sharp = 0.5f * v_old ;
-				const vec3 increm_smooth = 0.25f * (v_old + i_new) ;
-				const vec3 increm = lerp(increm_smooth,increm_sharp,sharpness) ;
-				apply_atomic_vec3_increment(j_new, increm) ;
-			}
+			const int i = Vd + Face(h) ;
+			const vec3& i_new = V_new[i] ;
+			const vec3 increm_smooth = 0.25f * (v_old + i_new) ; // Smooth rule B.2
+			const vec3 increm_sharp = 0.5f * v_old ; // Crease rule: B.3
+
+			const float sharpness = Sharpness(C_old, c_id) ;
+			const float alpha = std::clamp(sharpness,0.0f,1.0f) ;
+			const vec3 increm = lerp(increm_smooth,increm_sharp,alpha) ; // Blending crease rule: B.4
+
+			apply_atomic_vec3_increment(j_new, increm) ;
 		}
 	}
 _BARRIER
@@ -165,11 +243,8 @@ Mesh_Subdiv_CatmullClark_CPU::refine_vertices_vertexpoints(uint d)
 		if (n < 0) // Boundary rule: C.1
 		{
 			const float vertex_he_valence = float(vertex_halfedge_valence(H_old, h)) ;
-			for (int c=0; c < 3; ++c)
-			{
-				float increm = v_old[c] / vertex_he_valence ;
-				v_new[c] += increm ;
-			}
+			const vec3 increm_border = v_old / vertex_he_valence ;
+			apply_atomic_vec3_increment(v_new, increm_border) ;
 		}
 		else
 		{
@@ -177,8 +252,8 @@ Mesh_Subdiv_CatmullClark_CPU::refine_vertices_vertexpoints(uint d)
 			if ((n == 2) || n_creases > 2) // Corner vertex rule: C.3
 			{
 				const float vx_halfedge_valence = 1.0f / float(vertex_halfedge_valence(H_old, h)) ;
-				const vec3 increm = vx_halfedge_valence * v_old ;
-				apply_atomic_vec3_increment(v_new, increm)  ;
+				const vec3 increm_corner = vx_halfedge_valence * v_old ; // Corner vertex rule: C.3
+				apply_atomic_vec3_increment(v_new, increm_corner) ;
 			}
 			else
 			{
@@ -194,8 +269,8 @@ Mesh_Subdiv_CatmullClark_CPU::refine_vertices_vertexpoints(uint d)
 					const vec3& i_new = V_new[i] ;
 					const vec3& j_new = V_new[j] ;
 
-					const vec3 increm = (4.0f * j_new - i_new + (n_ - 3.0f)*v_old) * _n2 ;
-					apply_atomic_vec3_increment(v_new, increm) ;
+					const vec3 increm_smooth = (4.0f * j_new - i_new + (n_ - 3.0f)*v_old) * _n2 ; // Smooth rule: C.2
+					apply_atomic_vec3_increment(v_new, increm_smooth) ;
 				}
 				else // creased case
 				{
@@ -206,14 +281,14 @@ Mesh_Subdiv_CatmullClark_CPU::refine_vertices_vertexpoints(uint d)
 						const int j = Vd + Fd + Edge(H_old, h) ;
 						const vec3& j_new = V_new[j] ;
 
-						if (vx_sharpness > 1.0) // Creased vertex rule: C.5
+						if (vx_sharpness > 1.0)
 						{
-							const vec3 increm = 0.25f * (j_new + v_old) ;
-							apply_atomic_vec3_increment(v_new, increm) ;
+							const vec3 increm_creased = 0.25f * (j_new + v_old) ; // Creased vertex rule: C.5
+							apply_atomic_vec3_increment(v_new, increm_creased) ;
 						}
 						else // Blended vertex rule: C.4
 						{
-							const vec3 increm_creased = 0.25f * (j_new + v_old) ;
+							const vec3 increm_creased = 0.25f * (j_new + v_old) ; // Creased vertex rule: C.5
 							const vec3 increm_corner = 0.5f * v_old ;
 							const vec3 increm = lerp(increm_corner,increm_creased,vx_sharpness) ;
 							apply_atomic_vec3_increment(v_new, increm) ;

@@ -19,7 +19,7 @@ protected:
 	int Next(int h) const ;
 	int Face(int h) const ;
 
-	virtual int n_vertex_of_polygon(int h, bool is_cage = false) const final ;
+	virtual int n_vertex_of_polygon(int h) const final ;
 };
 
 

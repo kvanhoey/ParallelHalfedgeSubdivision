@@ -7,9 +7,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Debugging off
 set(CMAKE_CXX_FLAGS "-Os -march=native")
-add_definitions(-DNDEBUG)
+# add_definitions(-DNDEBUG)
 # Debugging on
-# set(CMAKE_CXX_FLAGS "-g") # Debug
+set(CMAKE_CXX_FLAGS "-g") # Debug
 
 option(BUILD_DOC "Build documentation" OFF)
 
@@ -42,8 +42,8 @@ include_directories(lib_gpu/)
 add_executable(loop_gpu loop_gpu.cpp lib/mesh.cpp lib/mesh_subdiv.cpp lib/mesh_subdiv_loop.cpp lib/mesh_subdiv_gpu.cpp lib/mesh_subdiv_loop_gpu.cpp ${lib_gpu})
 target_link_libraries(loop_gpu glfw)
 
-add_executable(catmull-clark_gpu catmull-clark_gpu.cpp lib/mesh.cpp lib/mesh_subdiv.cpp lib/mesh_subdiv_gpu.cpp lib/mesh_subdiv_catmull-clark.cpp lib/mesh_subdiv_catmull-clark_gpu.cpp ${lib_gpu})
-target_link_libraries(catmull-clark_gpu glfw)
+#add_executable(catmull-clark_gpu catmull-clark_gpu.cpp lib/mesh.cpp lib/mesh_subdiv.cpp lib/mesh_subdiv_gpu.cpp lib/mesh_subdiv_catmull-clark.cpp lib/mesh_subdiv_catmull-clark_gpu.cpp ${lib_gpu})
+#target_link_libraries(catmull-clark_gpu glfw)
 
 # check if Doxygen is installed
 find_package(Doxygen)

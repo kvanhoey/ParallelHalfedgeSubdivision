@@ -67,15 +67,21 @@ Mesh::Next_safe(const halfedge_buffer_cage& buffer, int idx) const
 	return Next(buffer,idx) ;
 }
 
+int
+Mesh::Next_safe(int idx) const
+{
+	if (idx < 0)
+		return idx ;
+
+	return Next(idx) ;
+}
+
 
 int
 Mesh::Vert(const halfedge_buffer& buffer, int idx) const
 {
 	return buffer[idx].Vert ;
 }
-
-
-
 
 int
 Mesh::Edge(const halfedge_buffer& buffer, int idx) const
@@ -89,24 +95,10 @@ Mesh::Face(const halfedge_buffer_cage& buffer, int idx) const
 	return buffer[idx].Face ;
 }
 
-int
-Mesh::Twin(int idx) const
-{
-	return Twin(halfedges,idx) ;
-}
-
-
-
 float
 Mesh::Sharpness(const crease_buffer& buffer, int idx) const
 {
 	return idx > buffer.size() ? 0. : buffer[idx].Sharpness ;
-}
-
-float
-Mesh::Sharpness(int idx) const
-{
-	return Sharpness(creases, idx) ;
 }
 
 int
@@ -122,6 +114,16 @@ Mesh::PrevC(const crease_buffer& buffer, int idx) const
 }
 
 
+
+
+
+
+int
+Mesh::Twin(int idx) const
+{
+	return Twin(halfedges,idx) ;
+}
+
 int
 Mesh::Prev(int idx) const
 {
@@ -135,30 +137,27 @@ Mesh::Next(int idx) const
 }
 
 int
-Mesh::Next_safe(int idx) const
-{
-	if (idx < 0)
-		return idx ;
-
-	return Next(idx) ;
-}
-
-int
 Mesh::Vert(int idx) const
 {
 	return Vert(halfedges,idx) ;
 }
+
 int
 Mesh::Edge(int idx) const
 {
 	return Edge(halfedges,idx) ;
 }
 
-
 int
 Mesh::Face(int idx) const
 {
 	return Face(halfedges_cage,idx) ;
+}
+
+float
+Mesh::Sharpness(int idx) const
+{
+	return Sharpness(creases, idx) ;
 }
 
 int
@@ -173,6 +172,9 @@ Mesh::PrevC(int idx) const
 {
 	return PrevC(creases, idx) ;
 }
+
+
+
 
 
 int
@@ -450,9 +452,8 @@ Mesh::n_vertex_of_polygon_cage(int h) const
 }
 
 int
-Mesh::n_vertex_of_polygon(int h, int is_cage) const
+Mesh::n_vertex_of_polygon(int h) const
 {
-	assert(is_cage) ;
 	return n_vertex_of_polygon_cage(h) ;
 }
 
@@ -469,9 +470,13 @@ Mesh::check() const
 
 	for (int h = 0; h < Hd ; ++h)
 	{
-		bool check_twin = (is_border_halfedge(h) || Twin(Twin(h)) == h) ;
+		const int h_twin = Twin(h) ;
+		const int h_edge = Edge(h) ;
+		const int h_vert = Vert(h) ;
+
+		bool check_twin = (is_border_halfedge(h) || h == Twin(h_twin)) ;
 		if (!check_twin)
-			std::cout << h << " : Twin(h)=" << Twin(h) << " ; Twin(Twin(h))=" << Twin(Twin(h)) << std::endl ;
+			std::cout << h << " : Twin(h)=" << h_twin << " ; Twin(Twin(h))=" << Twin(h_twin) << std::endl ;
 		assert(check_twin) ;
 		valid &= check_twin ;
 
@@ -482,13 +487,13 @@ Mesh::check() const
 		valid &= check_prevnext ;
 
 		// two twins have same edge
-		bool check_twinedge = (is_border_halfedge(h) || (Edge(Twin(h)) == Edge(h))) ;
+		bool check_twinedge = (is_border_halfedge(h) || (Edge(h_twin) == h_edge)) ;
 		if (!check_twinedge)
 			std::cerr << "Assert: TwinEdge" << std::endl ;
 		assert(check_twinedge) ;
 		valid &= check_twinedge ;
 
-		bool check_valid_ids = (Twin(h) < H() && Next(h) < H() && Prev(h) < H() && Vert(h) < V() && Edge(h) < E() && Face(h) < F()) ;
+		bool check_valid_ids = (h_twin < H() && Next(h) < H() && Prev(h) < H() && h_vert < V() && h_edge < E() && Face(h) < F()) ;
 		if (!check_valid_ids)
 			std::cerr << "Assert: Invalid Ids" << std::endl ;
 		valid &= check_valid_ids ;
@@ -828,7 +833,7 @@ Mesh::set_creases(const Mesh::crease_buffer& list_of_creases)
 				int h ;
 				for (h = Next_safe(Twin(h_id)) ;
 					 (h >= 0 && Vert(Next(h)) != v1 && h != h_id);
-				     h = Next_safe(Twin(h)))
+					 h = Next_safe(Twin(h)))
 				{}
 
 				if (h < 0)
@@ -836,7 +841,7 @@ Mesh::set_creases(const Mesh::crease_buffer& list_of_creases)
 					// backward
 					for (h = Twin(Prev(h_id)) ;
 						 (h >= 0 && Vert(Next(h)) != v1 && h != h_id);
-					     h = Twin(Prev(h)))
+						 h = Twin(Prev(h)))
 					{}
 				}
 

@@ -34,7 +34,8 @@ protected:
 	int _depth ;
 
 	/**
-	 * @brief set_current_depth sets an internal state on which many low-level routines rely.
+	 * @brief set_current_depth sets an internal state with the current depth.
+	 * This allows to write low-level routines (e.g., Next, Prev, Face) that rely on this state.
 	 * Whenever iterating over subdivision depth, remember to first call set_current_depth().
 	 * @param depth
 	 */
@@ -148,7 +149,7 @@ protected:
 	bool is_crease_edge(const crease_buffer& buffer, int e) const ;
 
 	int n_vertex_of_polygon_cage(int h) const ;
-	virtual int n_vertex_of_polygon(int h, int is_cage = true) const ;
+	virtual int n_vertex_of_polygon(int h) const ;
 
 private:
 	/**

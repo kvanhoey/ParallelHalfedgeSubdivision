@@ -59,7 +59,7 @@ Mesh_Subdiv_Loop::Face(int h) const
 
 
 int
-Mesh_Subdiv_Loop::n_vertex_of_polygon(int h, bool is_cage) const
+Mesh_Subdiv_Loop::n_vertex_of_polygon(int h) const
 {
 	return 3 ;
 }
