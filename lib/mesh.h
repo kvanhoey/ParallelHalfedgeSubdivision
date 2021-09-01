@@ -146,7 +146,7 @@ protected:
 	float vertex_sharpness(const halfedge_buffer& h_buffer, const crease_buffer& c_buffer, int h) const ;
 
 	bool is_border_halfedge(const halfedge_buffer& buffer, int h) const ;
-	bool is_crease_edge(const crease_buffer& buffer, int e) const ;
+	bool is_crease_edge(const crease_buffer& buffer, int crease_id) const ;
 
 	int n_vertex_of_polygon_cage(int h) const ;
 	virtual int n_vertex_of_polygon(int h) const ;

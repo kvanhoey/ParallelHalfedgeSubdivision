@@ -434,9 +434,9 @@ Mesh::is_crease_halfedge(const halfedge_buffer& h_buffer, const crease_buffer& c
 }
 
 bool
-Mesh::is_crease_edge(const crease_buffer& buffer, int h) const
+Mesh::is_crease_edge(const crease_buffer& buffer, int crease_id) const
 {
-	return Sharpness(buffer,h) > 1e-6 ;
+	return Sharpness(buffer,crease_id) > 1e-6 ;
 }
 
 

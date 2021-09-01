@@ -70,7 +70,7 @@ Mesh_Subdiv_CatmullClark_CPU::refine_vertices_facepoints(uint d)
 _PARALLEL_FOR
 	for (int h = 0; h < Hd ; ++h)
 	{
-		const int v = Vert(H_old, h) ;
+		const int vert_id = Vert(H_old, h) ;
 		const int new_face_pt_id = Vd + Face(h) ;
 		vec3& new_face_pt = V_new[new_face_pt_id] ;
 
@@ -97,27 +97,27 @@ Mesh_Subdiv_CatmullClark_CPU::refine_vertices_edgepoints(uint d)
 _PARALLEL_FOR
 	for (int h = 0; h < Hd ; ++h)
 	{
-		const int v = Vert(H_old,h) ;
+		const int v_id = Vert(H_old,h) ;
 		const int e_id = Edge(H_old, h) ;
 		const int& c_id = e_id ;
 
 		const int new_edge_pt_id = Vd + Fd + e_id ;
 
-		const vec3& v_old = V_old[v] ;
+		const vec3& v_old = V_old[v_id] ;
 		vec3& new_edge_pt = V_new[new_edge_pt_id] ;
 
 		if (is_border_halfedge(H_old,h)) // Boundary rule: B.1
 		{
-			const int vn = Vert(H_old, Next(h)) ;
-			const vec3& vn_old = V_old[vn] ;
+			const int vn_id = Vert(H_old, Next(h)) ;
+			const vec3& vn_old = V_old[vn_id] ;
 
-			new_edge_pt = 0.5f * (v_old + vn_old) ;
+			new_edge_pt = 0.5f * (v_old + vn_old) ; // at border, there is a single write, no need for atomic
 		}
 		else
 		{
-			const int i = Vd + Face(h) ;
-			const vec3& i_new = V_new[i] ;
-			const vec3 increm_smooth = 0.25f * (v_old + i_new) ; // Smooth rule B.2
+			const int new_face_pt_id = Vd + Face(h) ;
+			const vec3& new_face_pt = V_new[new_face_pt_id] ;
+			const vec3 increm_smooth = 0.25f * (v_old + new_face_pt) ; // Smooth rule B.2
 			const vec3 increm_sharp = 0.5f * v_old ; // Crease rule: B.3
 
 			const float sharpness = Sharpness(C_old, c_id) ;

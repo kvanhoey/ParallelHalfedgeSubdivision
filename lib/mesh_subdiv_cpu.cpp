@@ -42,31 +42,30 @@ Mesh_Subdiv_CPU::refine_creases()
 	for (uint d = 0 ; d < D; ++d)
 	{
 		set_current_depth(d) ;
-		const crease_buffer& Cr = crease_subdiv_buffers[d] ;
+		const crease_buffer& C_old = crease_subdiv_buffers[d] ;
 		crease_buffer& C_new = crease_subdiv_buffers[d + 1] ;
 		const uint Cd = C(d) ;
+
 		_PARALLEL_FOR
-		for (int c = 0; c < Cd; ++c)
+		for (int c_id = 0; c_id < Cd; ++c_id)
 		{
-			const int _2c = 2*c ;
-
-			Crease& c0 = C_new[_2c + 0] ;
-			Crease& c1 = C_new[_2c + 1] ;
-			if (is_crease_edge(Cr,c))
+			Crease& c0 = C_new[2*c_id + 0] ;
+			Crease& c1 = C_new[2*c_id + 1] ;
+			if (is_crease_edge(C_old,c_id))
 			{
-				const int c_next = Cr[c].Next ;
-				const int c_prev = Cr[c].Prev ;
-				const bool b1 = c == Cr[c_next].Prev && c != c_next ;
-				const bool b2 = c == Cr[c_prev].Next && c != c_prev;
-				const float thisS = 3.0f * Cr[c].Sharpness ;
-				const float nextS = Cr[c_next].Sharpness ;
-				const float prevS = Cr[c_prev].Sharpness ;
+				const int c_next_id = C_old[c_id].Next ;
+				const int c_prev_id = C_old[c_id].Prev ;
+				const bool b1 = c_id == C_old[c_next_id].Prev && c_id != c_next_id ;
+				const bool b2 = c_id == C_old[c_prev_id].Next && c_id != c_prev_id;
+				const float thisS = 3.0f * C_old[c_id].Sharpness ;
+				const float nextS = C_old[c_next_id].Sharpness ;
+				const float prevS = C_old[c_prev_id].Sharpness ;
 
-				c0.Next = _2c + 1 ;
-				c1.Next = 2 * c_next + (b1 ? 0 : 1) ;
+				c0.Next = 2*c_id + 1 ;
+				c1.Next = 2 * c_next_id + (b1 ? 0 : 1) ;
 
-				c0.Prev = 2 * c_prev + (b2 ? 1 : 0) ;
-				c1.Prev = _2c + 0 ;
+				c0.Prev = 2 * c_prev_id + (b2 ? 1 : 0) ;
+				c1.Prev = 2*c_id + 0 ;
 
 				c0.Sharpness = std::max(0.0f, 0.250f * (prevS + thisS ) - 1.0f) ;
 				c1.Sharpness = std::max(0.0f, 0.250f * (nextS + thisS ) - 1.0f) ;
