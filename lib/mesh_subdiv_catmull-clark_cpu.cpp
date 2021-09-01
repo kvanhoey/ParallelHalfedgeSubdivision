@@ -75,7 +75,7 @@ _PARALLEL_FOR
 		vec3& new_face_pt = V_new[new_face_pt_id] ;
 
 		const int m = n_vertex_of_polygon(h) ;
-		const vec3 increm = V_old[v] / m ;
+		const vec3 increm = V_old[vert_id] / m ;
 
 		apply_atomic_vec3_increment(new_face_pt, increm) ;
 	}
