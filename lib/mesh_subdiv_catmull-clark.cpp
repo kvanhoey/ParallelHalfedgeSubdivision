@@ -38,7 +38,8 @@ Mesh_Subdiv_CatmullClark::V(int depth) const
 			return V(0) + F(0) + E(0) ;
 			break;
 		default:
-			return V(1) + (pow(2,d - 1) - 1)*E(1) + pow(pow(2,d-1) - 1,2)*F(1) ;
+			const float tmp_pow = pow(2,d - 1) - 1 ;
+			return V(1) + tmp_pow * (E(1) + tmp_pow * F(1)) ;
 	}
 }
 

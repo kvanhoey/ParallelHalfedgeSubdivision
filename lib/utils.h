@@ -50,5 +50,11 @@ static T lerp(const T& a, const T& b, const float& alpha)
 	return (1 - alpha) * a + alpha * b;
 }
 
+template <typename T>
+int sgn(T val)
+{
+	return (T(1e-9) < val) - (val < T(-1e-9));
+}
+
 
 #endif

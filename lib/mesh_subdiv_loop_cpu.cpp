@@ -24,12 +24,12 @@ Mesh_Subdiv_Loop_CPU::refine_halfedges()
 		_PARALLEL_FOR
 		for (int h_id = 0; h_id < Hd ; ++h_id)
 		{
-			const int h_twin_id = Twin(H_old,h_id) ;
-			const int h_edge_id = Edge(H_old,h_id) ;
+			const int twin_id = Twin(H_old,h_id) ;
+			const int edge_id = Edge(H_old,h_id) ;
 
-			const int h_prev_id = Prev(h_id) ;
-			const int h_prev_twin_id = Twin(H_old,h_prev_id) ;
-			const int h_prev_edge_id = Edge(H_old,h_prev_id) ;
+			const int prev_id = Prev(h_id) ;
+			const int prev_twin_id = Twin(H_old,prev_id) ;
+			const int prev_edge_id = Edge(H_old,prev_id) ;
 
 			const int _3h = 3 * h_id ;
 			const int _3h_p_1 = _3h + 1 ;
@@ -39,19 +39,19 @@ Mesh_Subdiv_Loop_CPU::refine_halfedges()
 			HalfEdge& h2 = H_new[_3h + 2] ;
 			HalfEdge& h3 = H_new[_3Hd + h_id] ;
 
-			h0.Twin = 3 * Next_safe(h_twin_id) + 2 ;
+			h0.Twin = 3 * Next_safe(twin_id) + 2 ;
 			h1.Twin = _3Hd + h_id ;
-			h2.Twin = 3 * h_prev_twin_id ;
+			h2.Twin = 3 * prev_twin_id ;
 			h3.Twin = _3h_p_1 ;
 
 			h0.Vert = Vert(H_old,h_id) ;
-			h1.Vert = Vd + h_edge_id ;
-			h2.Vert = Vd + h_prev_edge_id ;
+			h1.Vert = Vd + edge_id ;
+			h2.Vert = Vd + prev_edge_id ;
 			h3.Vert = h2.Vert ;
 
-			h0.Edge = 2 * h_edge_id + (int(h_id) > h_twin_id ? 0 : 1)  ;
+			h0.Edge = 2 * edge_id + (int(h_id) > twin_id ? 0 : 1)  ;
 			h1.Edge = 2 * Ed + h_id ;
-			h2.Edge = 2 * h_prev_edge_id + (int(h_prev_id) > h_prev_twin_id ? 1 : 0) ;
+			h2.Edge = 2 * prev_edge_id + (int(prev_id) > prev_twin_id ? 1 : 0) ;
 			h3.Edge = h1.Edge ;
 		}
 		_BARRIER

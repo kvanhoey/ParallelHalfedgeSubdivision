@@ -13,7 +13,7 @@
 #include "halfedge.h"
 #include "crease.h"
 #include "timings.h"
-#include "helpers.h"
+#include "utils.h"
 #include <array>
 #include <cmath>
 #include <chrono>
