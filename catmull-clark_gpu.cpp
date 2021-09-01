@@ -9,7 +9,6 @@
 
 int main(int argc, char* argv[])
 {
-	assert(false) ;
 	if (argc < 3)
 	{
 		std::cout << "Usage: " << argv[0] << " <filename>.obj <depth>" << std::endl ;

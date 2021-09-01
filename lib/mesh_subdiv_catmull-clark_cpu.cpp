@@ -55,7 +55,17 @@ Mesh_Subdiv_CatmullClark_CPU::refine_halfedges()
 	}
 }
 
-
+void
+Mesh_Subdiv_CatmullClark_CPU::refine_vertices()
+{
+	for (uint d = 0 ; d < D; ++d)
+	{
+		set_current_depth(d) ;
+		refine_vertices_facepoints(d) ;
+		refine_vertices_edgepoints(d) ;
+		refine_vertices_vertexpoints(d) ;
+	}
+}
 
 void
 Mesh_Subdiv_CatmullClark_CPU::refine_vertices_facepoints(uint d)

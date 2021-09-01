@@ -13,7 +13,6 @@ set(CMAKE_CXX_FLAGS "-g") # Debug
 
 option(BUILD_DOC "Build documentation" OFF)
 
-
 # disable GLFW docs, examples and tests
 # see http://www.glfw.org/docs/latest/build_guide.html
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
@@ -36,14 +35,15 @@ add_executable(catmull-clark_cpu catmull-clark_cpu.cpp lib/mesh.cpp lib/mesh_sub
 add_executable(stats stats.cpp lib/mesh.cpp)
 
 file(GLOB lib_gpu lib_gpu/*.cpp lib_gpu/glad/glad.c)
-file(GLOB shaders shaders/*.glsl)
+file(GLOB loop_shaders shaders/*loop*.glsl shaders/*crease*.glsl)
+file(GLOB catmull-clark_shaders shaders/*catmull*.glsl shaders/*crease*.glsl)
 include_directories(lib_gpu/)
 
-add_executable(loop_gpu loop_gpu.cpp lib/mesh.cpp lib/mesh_subdiv.cpp lib/mesh_subdiv_loop.cpp lib/mesh_subdiv_gpu.cpp lib/mesh_subdiv_loop_gpu.cpp ${lib_gpu})
+add_executable(loop_gpu loop_gpu.cpp lib/mesh.cpp lib/mesh_subdiv.cpp lib/mesh_subdiv_loop.cpp lib/mesh_subdiv_gpu.cpp lib/mesh_subdiv_loop_gpu.cpp ${lib_gpu} ${loop_shaders})
 target_link_libraries(loop_gpu glfw)
 
-#add_executable(catmull-clark_gpu catmull-clark_gpu.cpp lib/mesh.cpp lib/mesh_subdiv.cpp lib/mesh_subdiv_gpu.cpp lib/mesh_subdiv_catmull-clark.cpp lib/mesh_subdiv_catmull-clark_gpu.cpp ${lib_gpu})
-#target_link_libraries(catmull-clark_gpu glfw)
+add_executable(catmull-clark_gpu catmull-clark_gpu.cpp lib/mesh.cpp lib/mesh_subdiv.cpp lib/mesh_subdiv_gpu.cpp lib/mesh_subdiv_catmull-clark.cpp lib/mesh_subdiv_catmull-clark_gpu.cpp ${lib_gpu} ${catmull-clark_shaders})
+target_link_libraries(catmull-clark_gpu glfw)
 
 # check if Doxygen is installed
 find_package(Doxygen)

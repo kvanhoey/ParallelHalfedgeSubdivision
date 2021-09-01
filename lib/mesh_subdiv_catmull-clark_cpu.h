@@ -12,6 +12,8 @@ public:
 protected:
 	void refine_halfedges() ;
 
+	void refine_vertices() ;
+
 	void refine_vertices_facepoints(uint d) ;
 	void refine_vertices_edgepoints(uint d) ;
 	void refine_vertices_vertexpoints(uint d) ;

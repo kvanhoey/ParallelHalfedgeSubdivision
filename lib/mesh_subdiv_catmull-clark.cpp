@@ -78,15 +78,3 @@ Mesh_Subdiv_CatmullClark::n_vertex_of_polygon(int h) const
 
 	return 4 ;
 }
-
-void
-Mesh_Subdiv_CatmullClark::refine_vertices()
-{
-	for (uint d = 0 ; d < D; ++d)
-	{
-		set_current_depth(d) ;
-		refine_vertices_facepoints(d) ;
-		refine_vertices_edgepoints(d) ;
-		refine_vertices_vertexpoints(d) ;
-	}
-}

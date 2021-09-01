@@ -15,6 +15,7 @@ Mesh_Subdiv_GPU::~Mesh_Subdiv_GPU()
 	glDeleteProgram(refine_creases_step_program) ;
 	glDeleteProgram(refine_vertices_step_program) ;
 
+	release_buffer(halfedgecage_subdiv_buffer) ;
 	for (uint d = 0 ; d <= D ; ++d)
 	{
 		release_buffer(halfedge_subdiv_buffers[d]) ;
@@ -33,6 +34,7 @@ Mesh_Subdiv_GPU::allocate_subdiv_buffers()
 
 	uint d = 0 ;
 	bool enable_readback = d == D ;
+	halfedgecage_subdiv_buffer = create_buffer(BUFFER_HALFEDGESCAGE_IN, H(d) * sizeof(HalfEdge_cage), halfedges_cage.data(), false, false) ;
 	halfedge_subdiv_buffers[d]	= create_buffer(BUFFER_HALFEDGES_IN	, H(d) * sizeof(HalfEdge)	, halfedges.data()	,	false,	enable_readback) ;
 	crease_subdiv_buffers[d]	= create_buffer(BUFFER_CREASES_IN	, C(d) * sizeof(Crease)		, creases.data()	,	false,	enable_readback) ;
 	vertex_subdiv_buffers[d]	= create_buffer(BUFFER_VERTICES_IN	, V(d) * sizeof(vec3)		, vertices.data()	,	false,	enable_readback) ;
@@ -91,6 +93,7 @@ Mesh_Subdiv_GPU::create_program(const std::string &shader_file, GLuint in_buffer
 	GLuint program = glCreateProgram() ;
 
 	djg_program* builder = djgp_create() ;
+	djgp_push_string(builder,"#define CAGE_BUFFER %d\n", BUFFER_HALFEDGESCAGE_IN) ;
 	djgp_push_string(builder,"#define BUFFER_IN %d\n", in_buffer) ;
 	djgp_push_string(builder,"#define BUFFER_OUT %d\n", out_buffer) ;
 	if (is_vertex_program)
@@ -111,12 +114,16 @@ Mesh_Subdiv_GPU::create_program(const std::string &shader_file, GLuint in_buffer
 void
 Mesh_Subdiv_GPU::refine_halfedges()
 {
+	// bind cage buffer once and for all
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BUFFER_HALFEDGESCAGE_IN,	halfedgecage_subdiv_buffer) ;
+
 	for (uint d = 0 ; d < D; ++d)
 	{
 		set_current_depth(d) ;
 		const uint Hd = H(d) ;
 		const uint Vd = V(d) ;
 		const uint Ed = E(d) ;
+		const uint Fd = F(d) ;
 
 		// bind input and output buffers
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BUFFER_HALFEDGES_IN,	halfedge_subdiv_buffers[d]) ;
@@ -125,12 +132,16 @@ Mesh_Subdiv_GPU::refine_halfedges()
 		glUseProgram(refine_halfedges_step_program) ;
 
 		// set uniforms
+		const GLint u_d = glGetUniformLocation(refine_halfedges_step_program, "d");
 		const GLint u_Hd = glGetUniformLocation(refine_halfedges_step_program, "Hd");
 		const GLint u_Vd = glGetUniformLocation(refine_halfedges_step_program, "Vd");
 		const GLint u_Ed = glGetUniformLocation(refine_halfedges_step_program, "Ed");
+		const GLint u_Fd = glGetUniformLocation(refine_halfedges_step_program, "Fd");
+		glUniform1i(u_d, d) ;
 		glUniform1i(u_Hd, Hd) ;
 		glUniform1i(u_Ed, Ed) ;
 		glUniform1i(u_Vd, Vd) ;
+		glUniform1i(u_Fd, Fd) ;
 
 		// execute program
 		const uint n_dispatch_groups = std::ceil(Hd / 256.0f) ;

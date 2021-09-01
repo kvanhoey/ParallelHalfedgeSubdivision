@@ -8,6 +8,7 @@
 #include <cstring>
 
 enum {
+	BUFFER_HALFEDGESCAGE_IN,
 	BUFFER_HALFEDGES_IN,
 	BUFFER_HALFEDGES_OUT,
 	BUFFER_CREASES_IN,
@@ -38,6 +39,7 @@ protected:
 
 	static GLuint create_program(const std::string& shader_file, GLuint in_buffer, GLuint out_buffer, bool is_vertex_program = false) ;
 
+	GLuint halfedgecage_subdiv_buffer ;
 	std::vector<GLuint> halfedge_subdiv_buffers	;
 	std::vector<GLuint> crease_subdiv_buffers	;
 	std::vector<GLuint> vertex_subdiv_buffers	;

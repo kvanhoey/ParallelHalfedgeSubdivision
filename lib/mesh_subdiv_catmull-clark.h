@@ -19,12 +19,6 @@ protected:
 	int Next(int h) const ;
 	int Face(int h) const ;
 
-	virtual void refine_vertices() final ;
-
-	virtual void refine_vertices_facepoints(uint d) = 0 ;
-	virtual void refine_vertices_edgepoints(uint d) = 0 ;
-	virtual void refine_vertices_vertexpoints(uint d) = 0 ;
-
 	virtual int n_vertex_of_polygon(int h) const final ;
 };
 
