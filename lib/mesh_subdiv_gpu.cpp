@@ -32,7 +32,6 @@ Mesh_Subdiv_GPU::allocate_subdiv_buffers()
 	crease_subdiv_buffers.resize(D + 1) ;
 	vertex_subdiv_buffers.resize(D + 1) ;
 
-
 	uint d = 0 ;
 	bool enable_readback = d == D ;
 	halfedgecage_subdiv_buffer = create_buffer(BUFFER_HALFEDGESCAGE_IN, H(d) * sizeof(HalfEdge_cage), halfedges_cage.data(), false, false) ;
@@ -120,7 +119,6 @@ Mesh_Subdiv_GPU::refine_halfedges()
 
 	for (uint d = 0 ; d < D; ++d)
 	{
-		set_current_depth(d) ;
 		const uint Hd = H(d) ;
 		const uint Vd = V(d) ;
 		const uint Ed = E(d) ;
@@ -156,8 +154,6 @@ Mesh_Subdiv_GPU::refine_creases()
 {
 	for (uint d = 0 ; d < D; ++d)
 	{
-		set_current_depth(d) ;
-
 		const uint Cd = C(d) ;
 		// bind input and output buffers
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BUFFER_CREASES_IN,	crease_subdiv_buffers[d]) ;
@@ -179,10 +175,11 @@ Mesh_Subdiv_GPU::refine_creases()
 void
 Mesh_Subdiv_GPU::refine_vertices()
 {
+	// bind cage buffer once and for all
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BUFFER_HALFEDGESCAGE_IN,	halfedgecage_subdiv_buffer) ;
+
 	for (uint d = 0 ; d < D; ++d)
 	{
-		set_current_depth(d) ;
-
 		const uint Hd = H(d) ;
 		const uint Ed = E(d) ;
 		const uint Vd = V(d) ;

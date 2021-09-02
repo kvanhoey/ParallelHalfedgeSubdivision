@@ -123,11 +123,18 @@ buffer VertexBufferOut
 	float vertices[] ;
 } VertexBuffer_out ;
 
-vec3 V(const int vertexID)
+vec3 V_old(const int vertexID)
 {
 	return vec3(VertexBuffer_in.vertices[3*vertexID+0],
 	                VertexBuffer_in.vertices[3*vertexID+1],
 	                VertexBuffer_in.vertices[3*vertexID+2]) ;
+}
+
+vec3 V_new(const int vertexID)
+{
+	return vec3(VertexBuffer_out.vertices[3*vertexID+0],
+	                VertexBuffer_out.vertices[3*vertexID+1],
+	                VertexBuffer_out.vertices[3*vertexID+2]) ;
 }
 
 void apply_atomic_vec3_increment(const int vertexID, const vec3 increm_value)
@@ -161,9 +168,9 @@ void main()
 		const int new_face_pt_id = Vd + Face(h_id) ;
 		const int new_edge_pt_id = Vd + Fd + edge_id ;
 		// vertex values
-		const vec3 v_old = V(vert_id) ;
-		const vec3 v_next_old = V(vert_next_id) ;
-		const vec3 new_face_pt = V(new_face_pt_id) ;
+		const vec3 v_old = V_old(vert_id) ;
+		const vec3 v_next_old = V_old(vert_next_id) ;
+		const vec3 new_face_pt = V_new(new_face_pt_id) ;
 
 		// --- computation
 		const bool is_border = is_border_halfedge(h_id) ;
@@ -172,7 +179,7 @@ void main()
 
 		const vec3 increm_smooth = 0.25f * (v_old + new_face_pt) ; // Smooth rule B.2
 		const vec3 increm_sharp = (is_border ? 1.0f : 0.5f) * mix(v_old, v_next_old, 0.5f) ; // Crease rule: B.3
-		const vec3 increm = mix(increm_smooth,increm_sharp,lerp_alpha) ; // Blending crease rule: B.4
+		vec3 increm = mix(increm_smooth,increm_sharp,lerp_alpha) ; // Blending crease rule: B.4
 
 		// --- scatter value to resulting vertex
 		apply_atomic_vec3_increment(new_edge_pt_id, increm) ;

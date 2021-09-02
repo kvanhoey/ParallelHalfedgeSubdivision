@@ -217,6 +217,11 @@ void loop_around_vertex(int h, out int edge_valence, out int halfedge_valence, o
 	vx_sharpness /= float(edge_valence) ;
 }
 
+int sgn(float val)
+{
+	return int(1e-9 < val) - int(val < -1e-9);
+}
+
 
 void main()
 {
@@ -239,7 +244,7 @@ void main()
 		// crease values
 		const float c_sharpness = Sharpness(crease_id) ;
 		const float prev_sharpness = Sharpness(crease_prev_id) ;
-		const float c_sharpness_sgn = sign(c_sharpness) ;
+		const int c_sharpness_sgn = sgn(c_sharpness) ;
 
 		// --- vertices
 		// ids
@@ -252,16 +257,15 @@ void main()
 		// vertex values
 		const vec3 v_old = V_old(vert_id) ;
 		const vec3 v_next_old = V_old(vert_next_id) ;
-		const vec3 new_vx_pt = V_old(new_vertex_pt_id) ;
-
 		const vec3 new_face_pt = V_new(new_face_pt_id) ;
 		const vec3 new_edge_pt = V_new(new_edge_pt_id) ;
 		const vec3 new_prev_edge_pt = V_new(new_prev_edge_pt_id) ;
+		const vec3 new_vx_pt = V_new(new_vertex_pt_id) ;
 
 		// --- computation
 
 		// determine local vertex configuration
-		int vx_n_creases = int(c_sharpness_sgn) ;
+		int vx_n_creases = c_sharpness_sgn ;
 		int vx_edge_valence = 1 ;
 		float vx_sharpness = c_sharpness ;
 
@@ -277,7 +281,7 @@ void main()
 
 			const float s = Sharpness(Edge(h_id_it)) ;
 			vx_sharpness += s ;
-			vx_n_creases += int(sign(s)) ;
+			vx_n_creases += sgn(s) ;
 		}
 		// if border, loop backward
 		if (h_id_it < 0)
@@ -290,13 +294,14 @@ void main()
 
 				const float s = Sharpness(Edge(h_id_it)) ;
 				vx_sharpness += s ;
-				vx_n_creases += int(sign(s)) ;
+				vx_n_creases += sgn(s) ;
 			}
 		}
 		vx_sharpness /= float(vx_edge_valence) ;
 
 		bool vx_is_border = h_id_it < 0 ;
 		const int vx_halfedge_valence = vx_edge_valence + (vx_is_border ? -1 : 0) ;
+		const float lerp_alpha = clamp(vx_sharpness,0.0f,1.0f) ;
 
 		// determine incrementations for all configurations
 		const vec3 increm_corner = v_old / float(vx_halfedge_valence) ; // corner vertex rule: C.3
@@ -304,7 +309,7 @@ void main()
 		vec3 increm_creased = c_sharpness_sgn * 0.25f * (new_edge_pt + v_old) ; // Creased vertex rule: C.5
 		if (vx_is_border)
 		{
-			increm_creased = increm_creased + 0.25f * sign(prev_sharpness) * (new_prev_edge_pt + v_old) ;
+			increm_creased = increm_creased + 0.25f * sgn(prev_sharpness) * (new_prev_edge_pt + v_old) ;
 		}
 
 		// choose the right incrementation
@@ -314,7 +319,7 @@ void main()
 		else if (vx_n_creases < 2)
 			increm = increm_smooth ;
 		else // vx_n_creases = 2
-			increm = mix(increm_corner, increm_creased, vx_sharpness) ;
+			increm = mix(increm_corner, increm_creased, lerp_alpha) ;
 
 		// --- scatter value to resulting vertex
 		apply_atomic_vec3_increment(new_vertex_pt_id, increm) ;

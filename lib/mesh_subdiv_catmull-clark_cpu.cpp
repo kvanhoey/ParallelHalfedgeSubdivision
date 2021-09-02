@@ -126,7 +126,7 @@ _PARALLEL_FOR
 
 		const float sharpness = Sharpness(C_old, crease_id) ;
 		const float lerp_alpha = std::clamp(sharpness,0.0f,1.0f) ;
-		const vec3 increm = lerp(increm_smooth,increm_sharp,lerp_alpha) ; // Blending crease rule: B.4
+		vec3 increm = lerp(increm_smooth,increm_sharp,lerp_alpha) ; // Blending crease rule: B.4
 
 		apply_atomic_vec3_increment(new_edge_pt, increm) ;
 	}
@@ -205,6 +205,7 @@ Mesh_Subdiv_CatmullClark_CPU::refine_vertices_vertexpoints(uint d)
 
 		bool vx_is_border = h_id_it < 0 ;
 		const int vx_halfedge_valence = vx_edge_valence + (vx_is_border ? -1 : 0) ;
+		const float lerp_alpha = std::clamp(vx_sharpness,0.0f,1.0f) ;
 
 		const vec3 increm_corner = v_old / float(vx_halfedge_valence) ; // corner vertex rule: C.3
 		const vec3 increm_smooth = (4.0f * new_edge_pt - new_face_pt + (float(vx_edge_valence) - 3.0f) * v_old) / float (vx_edge_valence*vx_edge_valence) ; // Smooth rule: C.2
@@ -221,7 +222,7 @@ Mesh_Subdiv_CatmullClark_CPU::refine_vertices_vertexpoints(uint d)
 		else if (vx_n_creases < 2)
 			increm = increm_smooth ;
 		else // vx_n_creases = 2
-			increm = lerp(increm_corner, increm_creased, vx_sharpness) ;
+			increm = lerp(increm_corner, increm_creased, lerp_alpha) ;
 
 		apply_atomic_vec3_increment(new_vx_pt, increm) ;
 	}
