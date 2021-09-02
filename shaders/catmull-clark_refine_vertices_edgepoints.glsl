@@ -13,6 +13,7 @@ uniform int d ;
 uniform int Hd ;
 uniform int Vd ;
 uniform int Ed ;
+uniform int Fd ;
 uniform int Cd ;
 
 // ------------ halfedges ------------
@@ -90,6 +91,25 @@ int Face(int h)
 	return h / 4 ;
 }
 
+// ------------ creases ------------
+struct Crease
+{
+	float Sharpness ;
+	int Next ;
+	int Prev ;
+};
+
+layout (binding = CREASE_BUFFER, std430)
+readonly buffer CreaseBufferIn
+{
+	Crease creases[] ;
+} CreaseBuffer_in ;
+
+float Sharpness(int idx)
+{
+	return idx > Cd ? 0. : CreaseBuffer_in.creases[idx].Sharpness ;
+}
+
 // ------------ vertices ------------
 layout (binding = BUFFER_IN, std430)
 readonly buffer VertexBufferIn
@@ -112,27 +132,14 @@ vec3 V(const int vertexID)
 
 void apply_atomic_vec3_increment(const int vertexID, const vec3 increm_value)
 {
-	atomicAdd(VertexBuffer_out.vertices[3*vertexID], increm_value.x) ;
+	atomicAdd(VertexBuffer_out.vertices[3*vertexID],   increm_value.x) ;
 	atomicAdd(VertexBuffer_out.vertices[3*vertexID+1], increm_value.y) ;
 	atomicAdd(VertexBuffer_out.vertices[3*vertexID+2], increm_value.z) ;
 }
 
-int n_vertex_of_polygon_cage(int h)
+bool is_border_halfedge(int h)
 {
-	int n = 1 ;
-	for (int h_fw = Next(h) ; h_fw != h ; h_fw = Next(h_fw))
-	{
-		++n ;
-	}
-	return n ;
-}
-
-int n_vertex_of_polygon(int h)
-{
-	if (d < 1) // not quad-only
-		return n_vertex_of_polygon_cage(h) ;
-
-	return 4 ;
+	return Twin(h) < 0 ;
 }
 
 void main()
@@ -142,22 +149,33 @@ void main()
 
 	if (h_id < Hd)
 	{
-		// --- halfedges
+		// --- creases
 		// ids
-		const int vert_id = Vert(h_id) ;
+		const int edge_id = Edge(h_id) ;
+		const int crease_id = edge_id ;
 
 		// --- vertices
 		// ids
-		const int v_id = Vert(h_id) ;
-		// vertex values
-		const vec3 v_old_vx = V(vert_id) ;
-
+		const int vert_id = Vert(h_id) ;
+		const int vert_next_id = Vert(Next(h_id)) ;
 		const int new_face_pt_id = Vd + Face(h_id) ;
+		const int new_edge_pt_id = Vd + Fd + edge_id ;
+		// vertex values
+		const vec3 v_old = V(vert_id) ;
+		const vec3 v_next_old = V(vert_next_id) ;
+		const vec3 new_face_pt = V(new_face_pt_id) ;
 
-		const int m = n_vertex_of_polygon(h_id) ;
-		const vec3 increm = v_old_vx / m ;
+		// --- computation
+		const bool is_border = is_border_halfedge(h_id) ;
+		const float sharpness = Sharpness(crease_id) ;
+		const float lerp_alpha = clamp(sharpness,0.0f,1.0f) ;
 
-		apply_atomic_vec3_increment(new_face_pt_id, increm) ;
+		const vec3 increm_smooth = 0.25f * (v_old + new_face_pt) ; // Smooth rule B.2
+		const vec3 increm_sharp = (is_border ? 1.0f : 0.5f) * mix(v_old, v_next_old, 0.5f) ; // Crease rule: B.3
+		const vec3 increm = mix(increm_smooth,increm_sharp,lerp_alpha) ; // Blending crease rule: B.4
+
+		// --- scatter value to resulting vertex
+		apply_atomic_vec3_increment(new_edge_pt_id, increm) ;
 	}
 }
 

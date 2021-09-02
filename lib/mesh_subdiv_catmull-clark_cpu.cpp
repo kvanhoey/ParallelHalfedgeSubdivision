@@ -107,24 +107,24 @@ Mesh_Subdiv_CatmullClark_CPU::refine_vertices_edgepoints(uint d)
 _PARALLEL_FOR
 	for (int h_id = 0; h_id < Hd ; ++h_id)
 	{
-		const int v_id = Vert(H_old,h_id) ;
-		const int e_id = Edge(H_old, h_id) ;
-		const int& c_id = e_id ;
-		const int v_next_id = Vert(H_old, Next(h_id)) ;
+		const int vert_id = Vert(H_old,h_id) ;
+		const int edge_id = Edge(H_old, h_id) ;
+		const int& crease_id = edge_id ;
+		const int vert_next_id = Vert(H_old, Next(h_id)) ;
 
-		const int new_edge_pt_id = Vd + Fd + e_id ;
+		const int new_edge_pt_id = Vd + Fd + edge_id ;
 		const int new_face_pt_id = Vd + Face(h_id) ;
 
 		vec3& new_edge_pt = V_new[new_edge_pt_id] ;
-		const vec3& v_old = V_old[v_id] ;
+		const vec3& v_old = V_old[vert_id] ;
 		const vec3& new_face_pt = V_new[new_face_pt_id] ;
-		const vec3& v_next_old = V_old[v_next_id] ;
+		const vec3& v_next_old = V_old[vert_next_id] ;
 
 		const bool is_border = is_border_halfedge(H_old, h_id) ;
 		const vec3 increm_smooth = 0.25f * (v_old + new_face_pt) ; // Smooth rule B.2
 		const vec3 increm_sharp = (is_border ? 1.0f : 0.5f) * lerp(v_old, v_next_old, 0.5f) ; // Crease rule: B.3
 
-		const float sharpness = Sharpness(C_old, c_id) ;
+		const float sharpness = Sharpness(C_old, crease_id) ;
 		const float lerp_alpha = std::clamp(sharpness,0.0f,1.0f) ;
 		const vec3 increm = lerp(increm_smooth,increm_sharp,lerp_alpha) ; // Blending crease rule: B.4
 
@@ -153,29 +153,29 @@ Mesh_Subdiv_CatmullClark_CPU::refine_vertices_vertexpoints(uint d)
 		const int new_face_pt_id = Vd + Face(h_id) ;
 		const int new_edge_pt_id = Vd + Fd + Edge(H_old, h_id) ;
 		const int new_prev_edge_pt_id = Vd + Fd + Edge(H_old, prev_id) ;
-		const int c_id = Edge(H_old, h_id) ;
-		const int c_prev_id = Edge(H_old, prev_id) ;
+		const int crease_id = Edge(H_old, h_id) ;
+		const int crease_prev_id = Edge(H_old, prev_id) ;
 
 		vec3& new_vx_pt = V_new[vert_id] ;
-		const vec3& old_vx_pt = V_old[vert_id] ;
+		const vec3& v_old = V_old[vert_id] ;
 		const vec3& new_face_pt = V_new[new_face_pt_id] ;
 		const vec3& new_edge_pt = V_new[new_edge_pt_id] ;
 		const vec3& new_prev_edge_pt = V_new[new_prev_edge_pt_id] ;
 
-		const float& c_sharpness = Sharpness(C_old, c_id) ;
-		const float& prev_sharpness = Sharpness(C_old, c_prev_id) ;
+		const float& c_sharpness = Sharpness(C_old, crease_id) ;
+		const float& prev_sharpness = Sharpness(C_old, crease_prev_id) ;
 		const float c_sharpness_sgn = sgn(c_sharpness) ;
 
-		const int h_id_twin = Twin(H_old, h_id) ;
+		const int twin_id = Twin(H_old, h_id) ;
 
 		// determine local vertex configuration
 		int vx_n_creases = int(c_sharpness_sgn) ;
-		int vx_edge_valence = 1.0 ;
+		int vx_edge_valence = 1 ;
 		float vx_sharpness = c_sharpness ;
 
 		// loop around vx
 		int h_id_it ;
-		for (h_id_it = h_id_twin ; h_id_it >= 0 ; h_id_it = Twin(H_old, h_id_it))
+		for (h_id_it = twin_id ; h_id_it >= 0 ; h_id_it = Twin(H_old, h_id_it))
 		{
 			h_id_it = Next(h_id_it) ;
 			if (h_id_it == h_id)
@@ -206,12 +206,12 @@ Mesh_Subdiv_CatmullClark_CPU::refine_vertices_vertexpoints(uint d)
 		bool vx_is_border = h_id_it < 0 ;
 		const int vx_halfedge_valence = vx_edge_valence + (vx_is_border ? -1 : 0) ;
 
-		const vec3 increm_corner = old_vx_pt / float(vx_halfedge_valence) ; // corner vertex rule: C.3
-		const vec3 increm_smooth = (4.0f * new_edge_pt - new_face_pt + (float(vx_edge_valence) - 3.0f) * old_vx_pt) / float (vx_edge_valence*vx_edge_valence) ; // Smooth rule: C.2
-		vec3 increm_creased = c_sharpness_sgn * 0.25f * (new_edge_pt + old_vx_pt) ; // Creased vertex rule: C.5
+		const vec3 increm_corner = v_old / float(vx_halfedge_valence) ; // corner vertex rule: C.3
+		const vec3 increm_smooth = (4.0f * new_edge_pt - new_face_pt + (float(vx_edge_valence) - 3.0f) * v_old) / float (vx_edge_valence*vx_edge_valence) ; // Smooth rule: C.2
+		vec3 increm_creased = c_sharpness_sgn * 0.25f * (new_edge_pt + v_old) ; // Creased vertex rule: C.5
 		if (vx_is_border)
 		{
-			increm_creased = increm_creased + 0.25f * sgn(prev_sharpness) * (new_prev_edge_pt + old_vx_pt) ;
+			increm_creased = increm_creased + 0.25f * sgn(prev_sharpness) * (new_prev_edge_pt + v_old) ;
 		}
 
 		// apply the right incrementation

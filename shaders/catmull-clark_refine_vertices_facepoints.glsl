@@ -142,21 +142,18 @@ void main()
 
 	if (h_id < Hd)
 	{
-		// --- halfedges
-		// ids
-		const int vert_id = Vert(h_id) ;
-
 		// --- vertices
 		// ids
-		const int v_id = Vert(h_id) ;
+		const int vert_id = Vert(h_id) ;
+		const int new_face_pt_id = Vd + Face(h_id) ;
 		// vertex values
 		const vec3 v_old_vx = V(vert_id) ;
 
-		const int new_face_pt_id = Vd + Face(h_id) ;
-
+		// --- computation
 		const int m = n_vertex_of_polygon(h_id) ;
 		const vec3 increm = v_old_vx / m ;
 
+		// --- scatter value to resulting vertex
 		apply_atomic_vec3_increment(new_face_pt_id, increm) ;
 	}
 }

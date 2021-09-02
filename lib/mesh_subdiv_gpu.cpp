@@ -187,6 +187,7 @@ Mesh_Subdiv_GPU::refine_vertices()
 		const uint Ed = E(d) ;
 		const uint Vd = V(d) ;
 		const uint Cd = C(d) ;
+		const uint Fd = F(d) ;
 
 		// bind input and output buffers
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BUFFER_HALFEDGES_IN,	halfedge_subdiv_buffers[d]) ;
@@ -203,12 +204,14 @@ Mesh_Subdiv_GPU::refine_vertices()
 			const GLint u_Hd = glGetUniformLocation(refine_vertices_program_stage, "Hd");
 			const GLint u_Vd = glGetUniformLocation(refine_vertices_program_stage, "Vd");
 			const GLint u_Ed = glGetUniformLocation(refine_vertices_program_stage, "Ed");
+			const GLint u_Fd = glGetUniformLocation(refine_vertices_program_stage, "Fd");
 			const GLint u_Cd = glGetUniformLocation(refine_vertices_program_stage, "Cd");
 			glUniform1i(u_d, d) ;
 			glUniform1i(u_Hd, Hd) ;
 			glUniform1i(u_Ed, Ed) ;
 			glUniform1i(u_Vd, Vd) ;
 			glUniform1i(u_Cd, Cd) ;
+			glUniform1i(u_Fd, Fd) ;
 
 			// execute program
 			const uint n_dispatch_groups = std::ceil(Hd / 256.0f) ;
