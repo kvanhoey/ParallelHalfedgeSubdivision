@@ -6,5 +6,5 @@ Mesh_Subdiv_Loop_GPU::Mesh_Subdiv_Loop_GPU(const std::string& filename, uint dep
 	Mesh_Subdiv(filename, depth)
 {
 	refine_halfedges_step_program	= create_program("../shaders/loop_refine_halfedges.glsl",BUFFER_HALFEDGES_IN, BUFFER_HALFEDGES_OUT	) ;
-	refine_vertices_step_program	= create_program("../shaders/loop_refine_vertices.glsl"	,BUFFER_VERTICES_IN	, BUFFER_VERTICES_OUT,	true) ;
+	refine_vertices_step_program.push_back(create_program("../shaders/loop_refine_vertices.glsl"	,BUFFER_VERTICES_IN	, BUFFER_VERTICES_OUT,	true)) ;
 }

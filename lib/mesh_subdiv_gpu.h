@@ -46,7 +46,7 @@ protected:
 
 	GLuint refine_halfedges_step_program ;
 	GLuint refine_creases_step_program ;
-	GLuint refine_vertices_step_program ;
+	std::vector<GLuint> refine_vertices_step_program ;
 
 private:
 	void create_crease_program() ;

@@ -13,7 +13,8 @@ Mesh_Subdiv_GPU::~Mesh_Subdiv_GPU()
 {
 	glDeleteProgram(refine_halfedges_step_program) ;
 	glDeleteProgram(refine_creases_step_program) ;
-	glDeleteProgram(refine_vertices_step_program) ;
+	for (uint i = 0 ; i < refine_vertices_step_program.size() ; ++i)
+		glDeleteProgram(refine_vertices_step_program[i]) ;
 
 	release_buffer(halfedgecage_subdiv_buffer) ;
 	for (uint d = 0 ; d <= D ; ++d)
@@ -193,22 +194,27 @@ Mesh_Subdiv_GPU::refine_vertices()
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BUFFER_VERTICES_IN,	vertex_subdiv_buffers[d]) ;
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BUFFER_VERTICES_OUT,	vertex_subdiv_buffers[d+1]) ;
 
-		glUseProgram(refine_vertices_step_program) ;
+		for(const auto& refine_vertices_program_stage: refine_vertices_step_program)
+		{
+			glUseProgram(refine_vertices_program_stage) ;
 
-		// set uniforms
-		const GLint u_Hd = glGetUniformLocation(refine_vertices_step_program, "Hd");
-		const GLint u_Vd = glGetUniformLocation(refine_vertices_step_program, "Vd");
-		const GLint u_Ed = glGetUniformLocation(refine_vertices_step_program, "Ed");
-		const GLint u_Cd = glGetUniformLocation(refine_vertices_step_program, "Cd");
-		glUniform1i(u_Hd, Hd) ;
-		glUniform1i(u_Ed, Ed) ;
-		glUniform1i(u_Vd, Vd) ;
-		glUniform1i(u_Cd, Cd) ;
+			// set uniforms
+			const GLint u_d = glGetUniformLocation(refine_vertices_program_stage, "d");
+			const GLint u_Hd = glGetUniformLocation(refine_vertices_program_stage, "Hd");
+			const GLint u_Vd = glGetUniformLocation(refine_vertices_program_stage, "Vd");
+			const GLint u_Ed = glGetUniformLocation(refine_vertices_program_stage, "Ed");
+			const GLint u_Cd = glGetUniformLocation(refine_vertices_program_stage, "Cd");
+			glUniform1i(u_d, d) ;
+			glUniform1i(u_Hd, Hd) ;
+			glUniform1i(u_Ed, Ed) ;
+			glUniform1i(u_Vd, Vd) ;
+			glUniform1i(u_Cd, Cd) ;
 
-		// execute program
-		const uint n_dispatch_groups = std::ceil(Hd / 256.0f) ;
-		glDispatchCompute(n_dispatch_groups,1,1) ;
-		glMemoryBarrier(GL_ALL_BARRIER_BITS) ;
+			// execute program
+			const uint n_dispatch_groups = std::ceil(Hd / 256.0f) ;
+			glDispatchCompute(n_dispatch_groups,1,1) ;
+			glMemoryBarrier(GL_ALL_BARRIER_BITS) ;
+		}
 	}
 }
 
