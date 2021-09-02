@@ -236,6 +236,9 @@ void main()
 		const int prev_id = Prev(h_id) ;
 		const int edge_id = Edge(h_id) ;
 		const int next_id = Edge(h_id) ;
+		const int face_id = Face(h_id) ;
+		// values
+		const int prev_edge_id = Edge(prev_id) ;
 
 		// --- creases
 		// ids
@@ -250,17 +253,16 @@ void main()
 		// ids
 		const int vert_id = Vert(h_id) ;
 		const int vert_next_id = Vert(next_id) ;
-		const int new_face_pt_id = Vd + Face(h_id) ;
+		const int new_face_pt_id = Vd + face_id ;
 		const int new_edge_pt_id = Vd + Fd + edge_id ;
 		const int new_vertex_pt_id = vert_id ;
-		const int new_prev_edge_pt_id = Vd + Fd + edge_id ;
+		const int new_prev_edge_pt_id = Vd + Fd + prev_edge_id ;
 		// vertex values
 		const vec3 v_old = V_old(vert_id) ;
 		const vec3 v_next_old = V_old(vert_next_id) ;
 		const vec3 new_face_pt = V_new(new_face_pt_id) ;
 		const vec3 new_edge_pt = V_new(new_edge_pt_id) ;
 		const vec3 new_prev_edge_pt = V_new(new_prev_edge_pt_id) ;
-		const vec3 new_vx_pt = V_new(new_vertex_pt_id) ;
 
 		// --- computation
 
