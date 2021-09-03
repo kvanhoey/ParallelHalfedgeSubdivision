@@ -7,7 +7,7 @@ This library is the implementation of the following two papers:
 * A Halfedge Refinement Rule for Parallel Loop Subdivision (under review)
 
 # Organization
-The `lib/` folder contains the library files: see lib/README.md
+The `lib/` folder contains the library files: see [lib/README.md](lib/README.md)
 
 The `root` folder contains several usage examples that do the following:
 * `catmull-clark_cpu` Catmull-Clark subdivision using the CPU backend
