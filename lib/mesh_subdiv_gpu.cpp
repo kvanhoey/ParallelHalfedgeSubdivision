@@ -17,7 +17,7 @@ Mesh_Subdiv_GPU::~Mesh_Subdiv_GPU()
 		glDeleteProgram(refine_vertices_step_program[i]) ;
 
 	release_buffer(halfedgecage_subdiv_buffer) ;
-	for (uint d = 0 ; d <= D ; ++d)
+	for (uint d = 0 ; d <= d_max ; ++d)
 	{
 		release_buffer(halfedge_subdiv_buffers[d]) ;
 		release_buffer(crease_subdiv_buffers[d]) ;
@@ -28,20 +28,20 @@ Mesh_Subdiv_GPU::~Mesh_Subdiv_GPU()
 void
 Mesh_Subdiv_GPU::allocate_subdiv_buffers()
 {
-	halfedge_subdiv_buffers.resize(D + 1) ;
-	crease_subdiv_buffers.resize(D + 1) ;
-	vertex_subdiv_buffers.resize(D + 1) ;
+	halfedge_subdiv_buffers.resize(d_max + 1) ;
+	crease_subdiv_buffers.resize(d_max + 1) ;
+	vertex_subdiv_buffers.resize(d_max + 1) ;
 
 	uint d = 0 ;
-	bool enable_readback = d == D ;
+	bool enable_readback = d == d_max ;
 	halfedgecage_subdiv_buffer = create_buffer(BUFFER_HALFEDGESCAGE_IN, H(d) * sizeof(HalfEdge_cage), halfedges_cage.data(), false, false) ;
 	halfedge_subdiv_buffers[d]	= create_buffer(BUFFER_HALFEDGES_IN	, H(d) * sizeof(HalfEdge)	, halfedges.data()	,	false,	enable_readback) ;
 	crease_subdiv_buffers[d]	= create_buffer(BUFFER_CREASES_IN	, C(d) * sizeof(Crease)		, creases.data()	,	false,	enable_readback) ;
 	vertex_subdiv_buffers[d]	= create_buffer(BUFFER_VERTICES_IN	, V(d) * sizeof(vec3)		, vertices.data()	,	false,	enable_readback) ;
 
-	for (d = 1 ; d <= D ; ++d)
+	for (d = 1 ; d <= d_max ; ++d)
 	{
-		bool enable_readback = d == D ;
+		bool enable_readback = d == d_max ;
 
 		halfedge_subdiv_buffers[d]	= create_buffer(BUFFER_HALFEDGES_IN	, H(d) * sizeof(HalfEdge)	, nullptr,	false,	enable_readback) ;
 		crease_subdiv_buffers[d]	= create_buffer(BUFFER_CREASES_IN	, C(d) * sizeof(Crease)		, nullptr,	false,	enable_readback) ;
@@ -52,38 +52,38 @@ Mesh_Subdiv_GPU::allocate_subdiv_buffers()
 void
 Mesh_Subdiv_GPU::readback_from_subdiv_buffers()
 {
-	const uint Hd = H(D) ;
-	const uint Cd = C(D) ;
-	const uint Vd = V(D) ;
+	const uint Hd = H(d_max) ;
+	const uint Cd = C(d_max) ;
+	const uint Vd = V(d_max) ;
 
 	// halfedges
 	{
-		HalfEdge* data = (HalfEdge*) glMapNamedBuffer(halfedge_subdiv_buffers[D], GL_READ_ONLY) ;
+		HalfEdge* data = (HalfEdge*) glMapNamedBuffer(halfedge_subdiv_buffers[d_max], GL_READ_ONLY) ;
 
 		halfedges.resize(Hd) ;
 		memcpy(&(halfedges[0]), data, Hd * sizeof(HalfEdge)) ;
 
-		glUnmapNamedBuffer(halfedge_subdiv_buffers[D]) ;
+		glUnmapNamedBuffer(halfedge_subdiv_buffers[d_max]) ;
 	}
 
 	// creases
 	{
-		Crease* data = (Crease*) glMapNamedBuffer(crease_subdiv_buffers[D], GL_READ_ONLY) ;
+		Crease* data = (Crease*) glMapNamedBuffer(crease_subdiv_buffers[d_max], GL_READ_ONLY) ;
 
 		creases.resize(Cd) ;
 		memcpy(&(creases[0]), data, Cd * sizeof(Crease)) ;
 
-		glUnmapNamedBuffer(crease_subdiv_buffers[D]) ;
+		glUnmapNamedBuffer(crease_subdiv_buffers[d_max]) ;
 	}
 
 	// vertices
 	{
-		vec3* data = (vec3*) glMapNamedBuffer(vertex_subdiv_buffers[D], GL_READ_ONLY) ;
+		vec3* data = (vec3*) glMapNamedBuffer(vertex_subdiv_buffers[d_max], GL_READ_ONLY) ;
 
 		vertices.resize(Vd) ;
 		memcpy(&(vertices[0]), data, Vd * sizeof(vec3)) ;
 
-		glUnmapNamedBuffer(vertex_subdiv_buffers[D]) ;
+		glUnmapNamedBuffer(vertex_subdiv_buffers[d_max]) ;
 	}
 }
 
@@ -117,7 +117,7 @@ Mesh_Subdiv_GPU::refine_halfedges()
 	// bind cage buffer once and for all
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BUFFER_HALFEDGESCAGE_IN,	halfedgecage_subdiv_buffer) ;
 
-	for (uint d = 0 ; d < D; ++d)
+	for (uint d = 0 ; d < d_max; ++d)
 	{
 		const uint Hd = H(d) ;
 		const uint Vd = V(d) ;
@@ -152,7 +152,7 @@ Mesh_Subdiv_GPU::refine_halfedges()
 void
 Mesh_Subdiv_GPU::refine_creases()
 {
-	for (uint d = 0 ; d < D; ++d)
+	for (uint d = 0 ; d < d_max; ++d)
 	{
 		const uint Cd = C(d) ;
 		// bind input and output buffers
@@ -178,7 +178,7 @@ Mesh_Subdiv_GPU::refine_vertices()
 	// bind cage buffer once and for all
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BUFFER_HALFEDGESCAGE_IN,	halfedgecage_subdiv_buffer) ;
 
-	for (uint d = 0 ; d < D; ++d)
+	for (uint d = 0 ; d < d_max; ++d)
 	{
 		const uint Hd = H(d) ;
 		const uint Ed = E(d) ;

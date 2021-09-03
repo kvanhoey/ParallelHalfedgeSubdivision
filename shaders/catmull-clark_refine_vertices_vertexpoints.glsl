@@ -31,7 +31,6 @@ struct HalfEdge
 	int Edge ;
 };
 
-
 layout (binding = CAGE_BUFFER, std430)
 readonly buffer HalfedgeCageBufferIn
 {

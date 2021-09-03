@@ -27,33 +27,21 @@ protected:
 	typedef std::vector<vec3> vertex_buffer ;
 	typedef std::vector<Crease> crease_buffer ;
 
-public:
-	int H0, V0, E0, F0 ;
-
-protected:
-	int _depth ;
-
-	/**
-	 * @brief set_current_depth sets an internal state with the current depth.
-	 * This allows to write low-level routines (e.g., Next, Prev, Face) that rely on this state.
-	 * Whenever iterating over subdivision depth, remember to first call set_current_depth().
-	 * @param depth
-	 */
-	void set_current_depth(int depth) ;
+	int H_count, V_count, E_count, F_count, C_count ;
 
 public:
 	virtual int H(int depth = -1) const ;
 	virtual int V(int depth = -1) const ;
 	virtual int F(int depth = -1) const ;
 	virtual int E(int depth = -1) const ;
-	virtual int C(int depth = -1) const final ;
+	virtual int C(int depth = -1) const ;
 
+public:
 	halfedge_buffer_cage halfedges_cage ;
 	halfedge_buffer halfedges ;
 	vertex_buffer vertices ;
 	crease_buffer creases ;
 
-	Mesh(int H, int V, int E, int F) ;
 	Mesh(const std::string& filename) ;
 	virtual ~Mesh() = default ;
 

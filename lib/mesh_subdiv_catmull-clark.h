@@ -8,10 +8,10 @@ class Mesh_Subdiv_CatmullClark: virtual public Mesh_Subdiv
 public:
 	Mesh_Subdiv_CatmullClark(const std::string& filename, uint max_depth) ;
 
-	int H(int depth = -1) const ;
-	int V(int depth = -1) const ;
-	int F(int depth = -1) const ;
-	int E(int depth = -1) const ;
+	virtual int H(int depth = -1) const final ;
+	virtual int V(int depth = -1) const final ;
+	virtual int F(int depth = -1) const final ;
+	virtual int E(int depth = -1) const final ;
 
 protected:
 	// override with analytic versions

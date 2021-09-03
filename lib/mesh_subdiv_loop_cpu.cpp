@@ -9,7 +9,7 @@ Mesh_Subdiv_Loop_CPU::Mesh_Subdiv_Loop_CPU(const std::string &filename, uint dep
 void
 Mesh_Subdiv_Loop_CPU::refine_halfedges()
 {
-	for (uint d = 0 ; d < D; ++d)
+	for (uint d = 0 ; d < d_max; ++d)
 	{
 		set_current_depth(d) ;
 
@@ -65,7 +65,7 @@ Mesh_Subdiv_Loop_CPU::refine_vertices()
 	// within the same loop on halfedges.
 	// TODO: one can probably exploit the single-loop case more optimally !
 
-	for (uint d = 0 ; d < D; ++d)
+	for (uint d = 0 ; d < d_max; ++d)
 	{
 		set_current_depth(d) ;
 
@@ -164,9 +164,9 @@ Mesh_Subdiv_Loop_CPU::refine_vertices()
 			}
 		}
 	_BARRIER
-
-	_depth = D ;
 	}
+
+	set_current_depth(d_max) ;
 }
 
 float

@@ -7,16 +7,16 @@ Mesh_Subdiv_CPU::Mesh_Subdiv_CPU(const std::string &filename, uint max_depth):
 void
 Mesh_Subdiv_CPU::allocate_subdiv_buffers()
 {
-	halfedge_subdiv_buffers.resize(D + 1) ;
-	crease_subdiv_buffers.resize(D + 1) ;
-	vertex_subdiv_buffers.resize(D + 1) ;
+	halfedge_subdiv_buffers.resize(d_max + 1) ;
+	crease_subdiv_buffers.resize(d_max + 1) ;
+	vertex_subdiv_buffers.resize(d_max + 1) ;
 
 	uint d = 0 ;
 	halfedge_subdiv_buffers[d]	= halfedges ;
 	crease_subdiv_buffers[d]	= creases	;
 	vertex_subdiv_buffers[d]	= vertices	;
 
-	for (d = 1 ; d <= D ; ++d)
+	for (d = 1 ; d <= d_max ; ++d)
 	{
 		const uint Hd = H(d) ;
 		const uint Vd = V(d) ;
@@ -31,15 +31,15 @@ Mesh_Subdiv_CPU::allocate_subdiv_buffers()
 void
 Mesh_Subdiv_CPU::readback_from_subdiv_buffers()
 {
-	halfedges	= halfedge_subdiv_buffers[D] ;
-	creases		= crease_subdiv_buffers[D] ;
-	vertices	= vertex_subdiv_buffers[D] ;
+	halfedges	= halfedge_subdiv_buffers[d_max] ;
+	creases		= crease_subdiv_buffers[d_max] ;
+	vertices	= vertex_subdiv_buffers[d_max] ;
 }
 
 void
 Mesh_Subdiv_CPU::refine_creases()
 {
-	for (uint d = 0 ; d < D; ++d)
+	for (uint d = 0 ; d < d_max; ++d)
 	{
 		set_current_depth(d) ;
 		const crease_buffer& C_old = crease_subdiv_buffers[d] ;

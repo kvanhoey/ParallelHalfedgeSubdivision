@@ -9,7 +9,7 @@ Mesh_Subdiv_CatmullClark_CPU::Mesh_Subdiv_CatmullClark_CPU(const std::string &fi
 void
 Mesh_Subdiv_CatmullClark_CPU::refine_halfedges()
 {
-	for (uint d = 0 ; d < D; ++d)
+	for (uint d = 0 ; d < d_max; ++d)
 	{
 		set_current_depth(d) ;
 		halfedge_buffer& H_old = halfedge_subdiv_buffers[d] ;
@@ -58,13 +58,14 @@ Mesh_Subdiv_CatmullClark_CPU::refine_halfedges()
 void
 Mesh_Subdiv_CatmullClark_CPU::refine_vertices()
 {
-	for (uint d = 0 ; d < D; ++d)
+	for (uint d = 0 ; d < d_max; ++d)
 	{
 		set_current_depth(d) ;
 		refine_vertices_facepoints(d) ;
 		refine_vertices_edgepoints(d) ;
 		refine_vertices_vertexpoints(d) ;
 	}
+	set_current_depth(d_max) ;
 }
 
 void

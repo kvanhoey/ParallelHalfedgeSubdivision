@@ -1,19 +1,5 @@
 #include "mesh.h"
 
-Mesh::Mesh(int H, int V, int E, int F):
-	H0(H), V0(V), E0(E), F0(F), _depth(0)
-{
-	alloc_halfedge_buffer(H0) ;
-	alloc_vertex_buffer(V0) ;
-	alloc_crease_buffer(E0) ;
-}
-
-void
-Mesh::set_current_depth(int depth)
-{
-	_depth = depth ;
-}
-
 void
 Mesh::alloc_halfedge_buffer(int H)
 {
@@ -113,11 +99,6 @@ Mesh::PrevC(const crease_buffer& buffer, int idx) const
 	return buffer[idx].Prev ;
 }
 
-
-
-
-
-
 int
 Mesh::Twin(int idx) const
 {
@@ -173,43 +154,39 @@ Mesh::PrevC(int idx) const
 	return PrevC(creases, idx) ;
 }
 
-
-
-
-
 int
 Mesh::C(int depth) const
 {
-	const int& d = depth < 0 ? _depth : depth ;
-	return std::pow(2,d) * E0 ;
+	assert(depth <= 0) ;
+	return E_count ;
 }
 
 int
 Mesh::H(int depth) const
 {
-	assert(depth < 1) ;
-	return H0 ;
+	assert(depth <= 0) ;
+	return H_count ;
 }
 
 int
 Mesh::E(int depth) const
 {
-	assert(depth < 1) ;
-	return E0 ;
+	assert(depth <= 0) ;
+	return E_count ;
 }
 
 int
 Mesh::V(int depth) const
 {
-	assert(depth < 1) ;
-	return V0 ;
+	assert(depth <= 0) ;
+	return V_count ;
 }
 
 int
 Mesh::F(int depth) const
 {
-	assert(depth < 1) ;
-	return F0 ;
+	assert(depth <= 0) ;
+	return F_count ;
 }
 
 int
@@ -237,12 +214,6 @@ Mesh::vertex_halfedge_valence(const halfedge_buffer& h_buffer, int h) const
 
 	return n ;
 }
-
-//int
-//Mesh::vertex_edge_valence(int h) const
-//{
-//	return vertex_edge_valence(halfedges, h) ;
-//}
 
 int
 Mesh::vertex_edge_valence(const halfedge_buffer& buffer, int h) const
@@ -461,14 +432,14 @@ bool
 Mesh::check() const
 {
 	bool valid = true ;
-	const int Hd = H() ;
-	if (Hd < 2)
+
+	if (H_count < 2)
 	{
 		std::cerr << "The mesh is empty" << std::endl ;
 		return false ;
 	}
 
-	for (int h = 0; h < Hd ; ++h)
+	for (int h = 0; h < H_count ; ++h)
 	{
 		const int h_twin = Twin(h) ;
 		const int h_edge = Edge(h) ;
@@ -493,7 +464,7 @@ Mesh::check() const
 		assert(check_twinedge) ;
 		valid &= check_twinedge ;
 
-		bool check_valid_ids = (h_twin < H() && Next(h) < H() && Prev(h) < H() && h_vert < V() && h_edge < E() && Face(h) < F()) ;
+		bool check_valid_ids = (h_twin < H_count && Next(h) < H_count && Prev(h) < H_count && h_vert < V_count && h_edge < E_count && Face(h) < F_count) ;
 		if (!check_valid_ids)
 			std::cerr << "Assert: Invalid Ids" << std::endl ;
 		valid &= check_valid_ids ;
@@ -520,7 +491,7 @@ int
 Mesh::count_sharp_creases() const
 {
 	int counter = 0 ;
-	for (int c = 0; c < E0 ; ++c)
+	for (int c = 0; c < E_count ; ++c)
 	{
 		if (Sharpness(c) > 1e-6)
 			counter ++ ;
@@ -533,7 +504,7 @@ int
 Mesh::count_border_edges() const
 {
 	int counter = 0 ;
-	for (int h = 0; h < H0 ; ++h)
+	for (int h = 0; h < H_count ; ++h)
 	{
 		if (Twin(h) < 0)
 			counter ++ ;
@@ -546,14 +517,14 @@ Mesh::count_border_edges() const
 bool
 Mesh::all_faces_are_ngons(int n) const
 {
-	for (int h = 0; h < H0 ; ++h)
+	for (int h = 0; h < H_count ; ++h)
 	{
 		bool is_ngon = n_vertex_of_polygon_cage(h) == n ;
 		if (!is_ngon)
 			return false ;
 	}
 
-	return H0 > 0 ;
+	return H_count > 0 ;
 }
 
 void
@@ -701,11 +672,11 @@ Mesh::read_from_obj(const std::string& filename)
 	read_obj_mesh_size(file,h_count,v_count,f_count) ;
 
 	// set constants and alloc
-	this->H0 = h_count ;
-	this->V0 = v_count ;
-	this->F0 = f_count ;
-	alloc_halfedge_buffer(this->H0) ;
-	alloc_vertex_buffer(this->V0) ;
+	this->H_count = h_count ;
+	this->V_count = v_count ;
+	this->F_count = f_count ;
+	alloc_halfedge_buffer(this->H_count) ;
+	alloc_vertex_buffer(this->V_count) ;
 
 	 // rewind
 	file.clear() ;
@@ -720,16 +691,14 @@ Mesh::read_from_obj(const std::string& filename)
 	compute_and_set_twins() ;
 
 	// Edge
-	this->E0 = compute_and_set_edges() ;
+	this->E_count = compute_and_set_edges() ;
 
 	// Creases
-	alloc_crease_buffer(this->E0) ;
+	alloc_crease_buffer(this->E_count) ;
 	set_creases(tmp_creases) ;
 	set_boundaries_sharp() ;
 	compute_and_set_crease_neighbors() ;
-
-	// set depth
-	_depth = 0 ;
+	this->C_count = this->E_count ;
 }
 
 void
@@ -744,7 +713,7 @@ Mesh::compute_and_set_twins()
 
 	mmap table ;
 
-	for (int h=0 ; h < H0 ; ++h)
+	for (int h=0 ; h < H_count ; ++h)
 	{
 		const int nextID = Next(h) ;
 		const int vh = Vert(h) ;
@@ -753,7 +722,7 @@ Mesh::compute_and_set_twins()
 		table.insert(map_item(vh,pi(vn,h))) ;
 	}
 
-	for (int vh=0 ; vh < V0 ; ++vh)
+	for (int vh=0 ; vh < V_count ; ++vh)
 	{
 		// for all elements <vh,vn> with key vh
 		range range_vh = table.equal_range(vh) ;
@@ -786,7 +755,7 @@ Mesh::compute_and_set_edges()
 	halfedge_buffer& He = this->halfedges;
 
 	int edge_count = 0 ;
-	for (int h_id=0 ; h_id < H0 ; ++h_id)
+	for (int h_id=0 ; h_id < H_count ; ++h_id)
 	{
 		HalfEdge& h = He[h_id] ;
 		if (h.Edge < 0) // if not yet set
@@ -825,7 +794,7 @@ Mesh::set_creases(const Mesh::crease_buffer& list_of_creases)
 		const int v1 = C.Next ;
 		const float sharpness = C.Sharpness ;
 
-		for (int h_id=0 ; h_id < H0 ; ++h_id)
+		for (int h_id=0 ; h_id < H_count ; ++h_id)
 		{
 			if (Vert(h_id) == v0)
 			{
@@ -881,7 +850,7 @@ void
 Mesh::compute_and_set_crease_neighbors()
 {
 	crease_buffer& Cr = creases ;
-	for (int h = 0 ; h < H0 ; ++h)
+	for (int h = 0 ; h < H_count ; ++h)
 	{
 		const int c = Edge(h) ;
 		const float sharpness = Cr[c].Sharpness ;
@@ -1002,7 +971,7 @@ Mesh::compute_and_set_crease_neighbors()
 void
 Mesh::set_boundaries_sharp()
 {
-	for (int h = 0 ; h < H0 ; ++h)
+	for (int h = 0 ; h < H_count ; ++h)
 	{
 		if (Twin(h) < 0)
 		{
