@@ -36,7 +36,7 @@ The `doc` folder contains a doxygen file to generate documentation.
 ###### Call cmake on the folder containing CMakeLists.txt
 `cmake ..`
 ###### Compile one or all of the executables
-`Make <name_of_executable>`
+`make [<name_of_executable>]`
 	
 Tested on Linux Ubuntu 20.04 LTS and on Windows 10 using Visual Studio.
 
