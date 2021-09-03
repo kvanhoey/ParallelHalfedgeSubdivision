@@ -6,7 +6,7 @@ This library is the implementation of the following two papers:
 * [A Halfedge Refinement Rule for Parallel Catmull-Clark Subdivision](http://kenneth.vanhoey.free.fr/index.php?page=research&lang=en#DV21), HPG 2021, by [Jonathan Dupuy](http://onrendering.com) and [Kenneth Vanhoey](http://kvanhoey.eu/)
 * A Halfedge Refinement Rule for Parallel Loop Subdivision (under review)
 
-![](loop_subdiv.jpg "Example of Loop subdivision")
+<img src="loop_subdiv.jpg" alt="Example of Loop subdivision" width="500"/>
 
 
 # Organization
