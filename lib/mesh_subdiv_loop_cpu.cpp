@@ -6,6 +6,7 @@ Mesh_Subdiv_Loop_CPU::Mesh_Subdiv_Loop_CPU(const std::string &filename, uint dep
 	Mesh_Subdiv(filename, depth)
 {}
 
+// ----------- Member functions that do the actual subdivision -----------
 void
 Mesh_Subdiv_Loop_CPU::refine_halfedges()
 {
@@ -169,6 +170,7 @@ Mesh_Subdiv_Loop_CPU::refine_vertices()
 	set_current_depth(d_max) ;
 }
 
+// ----------- Utility functions -----------
 float
 Mesh_Subdiv_Loop_CPU::compute_beta(float one_over_n)
 {

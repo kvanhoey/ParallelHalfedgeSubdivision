@@ -10,10 +10,11 @@ public:
 	Mesh_Subdiv_CatmullClark_CPU(const std::string& filename, uint depth);
 
 protected:
+	// ----------- Member functions that do the actual subdivision -----------
 	void refine_halfedges() ;
-
 	void refine_vertices() ;
 
+	// ----------- Utility functions -----------
 	void refine_vertices_facepoints(uint d) ;
 	void refine_vertices_edgepoints(uint d) ;
 	void refine_vertices_vertexpoints(uint d) ;

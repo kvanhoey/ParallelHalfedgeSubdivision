@@ -9,14 +9,17 @@ public:
 	Mesh_Subdiv_CPU(const std::string& filename, uint max_depth) ;
 
 protected:
+	// ----------- Subdivision buffers on the CPU -----------
 	std::vector<halfedge_buffer> halfedge_subdiv_buffers ;
 	std::vector<crease_buffer> crease_subdiv_buffers ;
 	std::vector<vertex_buffer> vertex_subdiv_buffers ;
 
+	// ----------- Buffer management -----------
 	void allocate_subdiv_buffers() final ;
 	void readback_from_subdiv_buffers() final ;
 	void refine_creases() ;
 
+	// ----------- Utility function for OpenMP atomic adds -----------
 	static void apply_atomic_vec3_increment(vec3& v, const vec3& v_increm) ;
 
 };

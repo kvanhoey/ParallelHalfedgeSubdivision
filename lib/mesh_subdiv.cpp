@@ -1,11 +1,21 @@
 #include "mesh_subdiv.h"
 
 Mesh_Subdiv::Mesh_Subdiv(const std::string &filename, uint max_depth):
-	Mesh(filename), d_max(max_depth), subdivided(false) {}
+	Mesh(filename), d_max(max_depth), subdivided(false), finalized(false) {}
+
+int
+Mesh_Subdiv::C(int depth) const
+{
+	const int& d = depth < 0 ? d_cur : depth ;
+	return std::pow(2,d) * C_count ;
+}
 
 void
 Mesh_Subdiv::subdivide()
 {
+	if (finalized)
+		return ;
+
 	allocate_subdiv_buffers() ;
 
 	refine_halfedges() ;
@@ -45,12 +55,7 @@ Mesh_Subdiv::finalize_subdivision()
 	assert(H() == halfedges.size()) ;
 	assert(C() == creases.size()) ;
 	assert(V() == vertices.size()) ;
+
+	finalized = true ;
 }
 
-
-int
-Mesh_Subdiv::C(int depth) const
-{
-	const int& d = depth < 0 ? d_cur : depth ;
-	return std::pow(2,d) * C_count ;
-}

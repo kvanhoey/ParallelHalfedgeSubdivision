@@ -6,6 +6,7 @@ Mesh_Subdiv_CatmullClark_CPU::Mesh_Subdiv_CatmullClark_CPU(const std::string &fi
 	Mesh_Subdiv(filename, depth)
 {}
 
+// ----------- Member functions that do the actual subdivision: halfedges -----------
 void
 Mesh_Subdiv_CatmullClark_CPU::refine_halfedges()
 {
@@ -55,6 +56,8 @@ Mesh_Subdiv_CatmullClark_CPU::refine_halfedges()
 	}
 }
 
+
+// ----------- Member functions that do the actual subdivision: vertices -----------
 void
 Mesh_Subdiv_CatmullClark_CPU::refine_vertices()
 {
