@@ -6,6 +6,9 @@ This library is the implementation of the following two papers:
 * [A Halfedge Refinement Rule for Parallel Catmull-Clark Subdivision](http://kenneth.vanhoey.free.fr/index.php?page=research&lang=en#DV21), HPG 2021, by [Jonathan Dupuy](http://onrendering.com) and [Kenneth Vanhoey](http://kvanhoey.eu/)
 * A Halfedge Refinement Rule for Parallel Loop Subdivision (under review)
 
+![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Logo Title Text 1")
+
+
 # Organization
 The `lib/` folder contains the library files: see [lib/README.md](lib/README.md)
 
@@ -22,6 +25,8 @@ Notes:
 * The resulting subdivision is written to disk as an OBJ file. It is triangular for Loop subdivision, and quad-only for Catmull-Clark subdivision.
 
 The `meshes` folder contains example meshes that can be used as inputs.
+
+The `doc` folder contains a doxygen file to generate documentation.
 
 # Compilation
 ###### Create compilation folder
