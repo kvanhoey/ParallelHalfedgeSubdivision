@@ -4,7 +4,7 @@ For most use cases, subdivision is real-time.
 It is the implementation of the paper
 * A Halfedge Refinement Rule for Parallel Loop Subdivision (under review), and  
 
-and an unofficial alternate implementation (for the reference, see: [here](https://github.com/jdupuy/HalfedgeCatmullClark)) of
+and an alternate implementation (for the officiel reference see [here](https://github.com/jdupuy/HalfedgeCatmullClark)) of
 * [A Halfedge Refinement Rule for Parallel Catmull-Clark Subdivision](http://kenneth.vanhoey.free.fr/index.php?page=research&lang=en#DV21), HPG 2021, by [Jonathan Dupuy](http://onrendering.com) and [Kenneth Vanhoey](http://kvanhoey.eu/)
 
 
