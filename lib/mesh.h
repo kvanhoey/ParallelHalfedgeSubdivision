@@ -212,39 +212,108 @@ protected:
 
 	// ----------- utility functions for evaluating local configurations -----------
 protected:
+	/**
+	 * @brief n_vertex_of_polygon computes how many vertices compose a polygon of the mesh (i.e.: it computes the 'n' in n-gon)
+	 * @param h the index of a halfedge of the polygon
+	 * @return the number of vertices of the polygon
+	 */
 	virtual int n_vertex_of_polygon(int h) const ;
 
-	bool is_border_halfedge(const halfedge_buffer& buffer, int h) const ;
-	bool is_border_vertex(const halfedge_buffer& h_buffer, int h) const ;
 	/**
-	 * @brief vertex_halfedge_valence compute vertex valence in terms of adjacent halfedges (as opposed to edges, which is usually targeted).
-	 * @note vertex_halfedge_valence is equivalent to valence if it is not a border vertex. Otherwise, it is equivalent to valence(h) - 1.
+	 * @brief is_border_halfedge determines if a halfedge lies at a border.
+	 * Computed by checking if its twin halfedge exists.
+	 * @param h_buffer a halfedge buffer
 	 * @param h a halfedge index
-	 * @return halfedge valence of the vertex Vert(h)
+	 * @return true if and only if h has no twin in buffer.
 	 */
-	bool is_crease_edge(const crease_buffer& buffer, int crease_id) const ;
+	bool is_border_halfedge(const halfedge_buffer& h_buffer, int h) const ;
+
+	/**
+	 * @brief is_border_vertex determines if a vertex lies at a border of the mesh
+	 * @param h_buffer a halfedge buffer
+	 * @param h index of a halfedge that points outward of the target vertex
+	 * @return true if and only if the vertex from which h departs lies at a border.
+	 */
+	bool is_border_vertex(const halfedge_buffer& h_buffer, int h) const ;
+
+	/**
+	 * @brief is_crease_edge determines if an edge is a sharp crease
+	 * @param c_buffer a crease buffer
+	 * @param crease_id an id in the c_buffer, or beyond its limits
+	 * @return false if the index does not point to a valid crease, or if the crease is not sharp (sharpness = 0).
+	 */
+	bool is_crease_edge(const crease_buffer& c_buffer, int crease_id) const ;
+
+	/**
+	 * @brief is_crease_halfedge determines if a halfedge spans a sharp crease edge
+	 * @param h_buffer a halfedge buffer
+	 * @param c_buffer a crease buffer
+	 * @param h an index into the h_buffer
+	 * @return false if the edge along h is not a crease.
+	 */
 	bool is_crease_halfedge(const halfedge_buffer& h_buffer, const crease_buffer& c_buffer, int h) const ;
 
+	/**
+	 * @brief vertex_sharpness computes the average sharpness of the edges around vertex Vert(h)
+	 * @param h_buffer a halfedge buffer
+	 * @param c_buffer a crease buffer
+	 * @param h index into h_buffer of a halfedge outgoing from the target vertex
+	 * @return a scalar that represents the vertex sharpness
+	 */
 	float vertex_sharpness(const halfedge_buffer& h_buffer, const crease_buffer& c_buffer, int h) const ;
+
+	/**
+	 * @brief vertex_sharpness_or_border is similar to #vertex_sharpness but returns a negative number instead of the vertex sharpness if the vertex is at the mesh border.
+	 * @note vertex_sharpness_or_border is cheaper to compute than vertex_sharpness
+	 * @param h_buffer a halfedge buffer
+	 * @param h index into h_buffer of a halfedge outgoing from the target vertex
+	 * @return a scalar that represents the vertex sharpness, or -1 if the vertex lies at a mesh border.
+	 */
 	float vertex_sharpness_or_border(const halfedge_buffer& h_buffer, const crease_buffer&, int h) const ;
 
 	/**
-	 * @brief vertex_edge_valence_or_border returns the valence of Vert(h), or -1 if v is a border vertex.
+	 * @brief vertex_edge_valence_or_border returns the valence of Vert(h), or -1 if Vert(h) is a border vertex.
 	 * @note vertex_edge_valence_or_border is cheaper to compute than vertex_edge_valence
-	 * @param h a halfedge index
+	 * @param h_buffer a halfedge buffer
+	 * @param h index into h_buffer of a halfedge outgoing from the target vertex
 	 * @return valence of the vertex Vert(h), or -1 if it is along a mesh border
 	 */
 	int vertex_edge_valence_or_border(const halfedge_buffer& h_buffer, int h) const ;
+
 	/**
 	 * @brief vertex_edge_valence returns the valence of Vert(h), robust wrt borders.
 	 * @note see also: vertex_edge_valence_or_border
-	 * @param h a halfedge index
+	 * @param h_buffer a halfedge buffer
+	 * @param h index into h_buffer of a halfedge outgoing from the target vertex
 	 * @return valence of the vertex Vert(h)
 	 */
-	int vertex_edge_valence(const halfedge_buffer& buffer, int h) const ;
+	int vertex_edge_valence(const halfedge_buffer& h_buffer, int h) const ;
 
+	/**
+	 * @brief vertex_halfedge_valence computes vertex valence in terms of adjacent halfedges (as opposed to edges, which is usually targeted).
+	 * @note vertex_halfedge_valence is equivalent to edge_valence if it is not a border vertex. Otherwise, it is equivalent to edge_valence(h) - 1.
+	 * @param h_buffer a halfedge buffer
+	 * @param h index into h_buffer of a halfedge outgoing from the target vertex
+	 * @return the vertex valence in terms of halfedges
+	 */
 	int vertex_halfedge_valence(const halfedge_buffer& h_buffer, int h) const ;
+
+	/**
+	 * @brief vertex_crease_valence_or_border returns similar to #vertex_crease_valence, or -1 if Vert(h) is a border vertex.
+	 * @param h_buffer a halfedge buffer
+	 * @param c_buffer a crease buffer
+	 * @param h index into h_buffer of a halfedge outgoing from the target vertex
+	 * @return
+	 */
 	int vertex_crease_valence_or_border(const halfedge_buffer& h_buffer, const crease_buffer& c_buffer, int h) const ;
+
+	/**
+	 * @brief vertex_crease_valence returns the number of sharp creases among the edges around Vert(h).
+	 * @param h_buffer a halfedge buffer
+	 * @param c_buffer a crease buffer
+	 * @param h index into h_buffer of a halfedge outgoing from the target vertex
+	 * @return
+	 */
 	int vertex_crease_valence(const halfedge_buffer& h_buffer, const crease_buffer& c_buffer, int h) const ;
 
 	// ----------- Accessors for halfedge and crease values from the base mesh buffers -----------
@@ -270,7 +339,6 @@ private:
 	virtual int PrevC(int c) const final ;
 
 	// ----------- Functions for loading and exporting from/to OBJ files. -----------
-private:
 	void read_from_obj(const std::string& filename) ;
 	static void read_obj_mesh_size(std::ifstream& open_file, int& h_count, int& v_count, int& f_count) ;
 	crease_buffer read_obj_data(std::ifstream& open_file) ;

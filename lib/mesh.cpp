@@ -169,7 +169,7 @@ Mesh::is_border_halfedge(const halfedge_buffer& buffer, int h) const
 bool
 Mesh::is_crease_edge(const crease_buffer& buffer, int crease_id) const
 {
-	return Sharpness(buffer,crease_id) > 1e-6 ;
+	return Sharpness(buffer,crease_id) > _epsilon_ ;
 }
 
 int
@@ -317,7 +317,7 @@ Mesh::vertex_sharpness_or_border(const halfedge_buffer& h_buffer, const crease_b
 		const int hh_twin = Twin(h_buffer, hh) ;
 		const bool is_border = hh_twin < 0 ;
 		if (is_border)
-			return -1. ;
+			return -1.0f ;
 
 		hh = Next(hh_twin) ;
 	}
@@ -359,7 +359,7 @@ Mesh::vertex_sharpness(const halfedge_buffer& h_buffer, const crease_buffer& c_b
 bool
 Mesh::is_crease_halfedge(const halfedge_buffer& h_buffer, const crease_buffer& c_buffer, int h) const
 {
-	return Sharpness(c_buffer,Edge(h_buffer,h)) > 1e-6 ;
+	return Sharpness(c_buffer,Edge(h_buffer,h)) > _epsilon_ ;
 }
 
 int
@@ -811,7 +811,7 @@ Mesh::find_second_crease(int h) const
 	{
 		c_second = Edge(h_vx_it) ;
 		const int sharpness_second = creases[c_second].Sharpness ;
-		if (sharpness_second > 1e-6)
+		if (sharpness_second > _epsilon_)
 			return c_second ;
 	}
 
@@ -830,7 +830,7 @@ Mesh::compute_and_set_crease_neighbors()
 		int h_vx_it ;
 
 		// only treat creases through their biggest halfedge_id
-		if (h < Twin(h) || sharpness < 1e-6)
+		if (h < Twin(h) || sharpness < _epsilon_)
 			continue ;
 
 		// Compute prev
@@ -841,7 +841,7 @@ Mesh::compute_and_set_crease_neighbors()
 		     h_vx_it = Next_safe(Twin(h_vx_it)))
 		{
 			float c_prev_sharpness = Cr[Edge(h_vx_it)].Sharpness ;
-			if (c_prev_sharpness > 1e-06)
+			if (c_prev_sharpness > _epsilon_)
 			{
 				++prev_creases ;
 				c_prev = Edge(h_vx_it) ;
@@ -858,7 +858,7 @@ Mesh::compute_and_set_crease_neighbors()
 
 				int c_id = Edge(h_vx_it) ;
 				float c_prev_sharpness = Cr[c_id].Sharpness ;
-				if (c_prev_sharpness > 1e-06)
+				if (c_prev_sharpness > _epsilon_)
 				{
 					++prev_creases ;
 					c_prev = c_id ;
@@ -885,7 +885,7 @@ Mesh::compute_and_set_crease_neighbors()
 		{
 			int c_id = Edge(h_vx_it) ;
 			float c_next_sharpness = Cr[c_id].Sharpness ;
-			if (c_next_sharpness > 1e-06)
+			if (c_next_sharpness > _epsilon_)
 			{
 				++next_creases ;
 				c_next = c_id ;
@@ -904,7 +904,7 @@ Mesh::compute_and_set_crease_neighbors()
 
 					int c_id = Edge(h_vx_it) ;
 					float c_next_sharpness = Cr[c_id].Sharpness ;
-					if (c_next_sharpness > 1e-06)
+					if (c_next_sharpness > _epsilon_)
 					{
 						++next_creases ;
 						c_next = c_id ;
