@@ -10,6 +10,7 @@ matrix:
           packages:
             - cmake
             - g++-4.8
+            - libomp-dev
             - libglu1-mesa-dev
             - libxxf86vm-dev
             - libxrandr-dev
