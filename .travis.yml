@@ -4,7 +4,7 @@ dist: xenial
 matrix:
   include:
     - os: linux
-      compiler: gcc-5.1
+      compiler: gcc-5.5
       addons:
         apt:
           packages:
