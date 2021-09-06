@@ -17,6 +17,7 @@ The `root` folder contains several usage examples that do the following:
 * `catmull-clark_gpu` Catmull-Clark subdivision using the GPU backend
 * `loop_cpu` Loop subdivision using the CPU backend
 * `loop_gpu` Loop subdivision using the GPU backend
+* `stats` provide statistics of a loaded Mesh.
 
 Notes:
 * The CPU backend relies on OpenMP for parallelization. By default, it uses as many threads as there are CPU cores available. This can be altered by setting the environment variable `OMP_NUM_THREADS` to another value. For example: `export OMP_NUM_THREADS=2`
