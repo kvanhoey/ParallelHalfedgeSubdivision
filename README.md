@@ -1,3 +1,6 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/github/kvanhoey/parallelhalfedgesubdivision?svg=true)](https://ci.appveyor.com/project/kvanhoey/parallelhalfedgesubdivision)
+
+
 This repository provides a library for fast subdivision of polygonal surfaces.
 Currently it supports Catmull-Clark and Loop subdivision, and has both CPU and GPU backends with parallel implementations.
 For most use cases, subdivision is real-time.
