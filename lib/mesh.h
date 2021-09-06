@@ -19,56 +19,195 @@
 #include <chrono>
 #include <algorithm>
 
+/**
+ * @brief The Mesh class represents a mesh.
+ *
+ * It stores:
+ * - the mesh topology as a buffer of HalfEdge (and HalfEdge_cage)
+ * - the mesh geometry as a buffer of vec3 coordinates
+ * - the mesh creases as a buffer of Crease
+ */
 class Mesh
 {
 protected:
-	typedef std::vector<HalfEdge_cage> halfedge_buffer_cage ;
-	typedef std::vector<HalfEdge> halfedge_buffer ;
-	typedef std::vector<vec3> vertex_buffer ;
-	typedef std::vector<Crease> crease_buffer ;
+	typedef std::vector<HalfEdge_cage> halfedge_buffer_cage ;	/*!< defines type for a buffer of HalfEdge_cage */
+	typedef std::vector<HalfEdge> halfedge_buffer ;				/*!< defines type for a buffer of HalfEdge */
+	typedef std::vector<vec3> vertex_buffer ;					/*!< defines type for a buffer of vec3 */
+	typedef std::vector<Crease> crease_buffer ;					/*!< defines type for a buffer of Crease */
 
-	int H_count, V_count, E_count, F_count, C_count ;
+	int H_count ; /*!< halfedge counter represents the number of halfedges of the Mesh */
+	int V_count ; /*!< vertex counter represents the number of vertices of the Mesh */
+	int E_count ; /*!< edge counter represents the number of edges of the Mesh */
+	int F_count ; /*!< face counter represents the number of faces of the Mesh */
+	int C_count ; /*!< crease counter represents the number of creases of the Mesh */
 
-	halfedge_buffer_cage halfedges_cage ;
-	halfedge_buffer halfedges ;
-	vertex_buffer vertices ;
-	crease_buffer creases ;
+	halfedge_buffer_cage halfedges_cage ; /*!< HalfEdge_cage buffer */
+	halfedge_buffer halfedges ; /*!< HalfEdge buffer */
+	vertex_buffer vertices ; /*!< vec3 buffer */
+	crease_buffer creases ; /*!< Crease buffer */
 
 public:
 	// ----------- Constructor/destructor -----------
+	/**
+	 * @brief Mesh constructor from OBJ file
+	 * @param filename path to an OBJ file
+	 */
 	Mesh(const std::string& filename) ;
 	virtual ~Mesh() = default ;
 
 	// ----------- Accessors -----------
+	/**
+	 * @brief H counts the number of halfedges at a given subdivision depth.
+	 * @param depth subdivision depth.
+	 * @pre depth should be <= 0 when called on base Mesh class.
+	 * @return the number of halfedges if the mesh gets subdivided to depth.
+	 */
 	virtual int H(int depth = -1) const ;
+
+	/**
+	 * @brief V counts the number of vertices at a given subdivision depth.
+	 * @param depth subdivision depth.
+	 * @pre depth should be <= 0 when called on base Mesh class.
+	 * @return the number of vertices if the mesh gets subdivided to depth.
+	 */
 	virtual int V(int depth = -1) const ;
+
+	/**
+	 * @brief F counts the number of faces at a given subdivision depth.
+	 * @param depth subdivision depth.
+	 * @pre depth should be <= 0 when called on base Mesh class.
+	 * @return the number of faces if the mesh gets subdivided to depth.
+	 */
 	virtual int F(int depth = -1) const ;
+
+	/**
+	 * @brief E counts the number of edges at a given subdivision depth.
+	 * @param depth subdivision depth.
+	 * @pre depth should be <= 0 when called on base Mesh class.
+	 * @return the number of edges if the mesh gets subdivided to depth.
+	 */
 	virtual int E(int depth = -1) const ;
+
+	/**
+	 * @brief C counts the number of creases at a given subdivision depth.
+	 * @param depth subdivision depth.
+	 * @pre depth should be <= 0 when called on base Mesh class.
+	 * @return the number of creases if the mesh gets subdivided to depth.
+	 */
 	virtual int C(int depth = -1) const ;
 
 	// ----------- Public member functions for mesh inspection -----------
+	/**
+	 * @brief check does a consistency check on the mesh.
+	 * @return true if consistent, false (with error notification) if not.
+	 */
 	bool check() const ;
+
+	/**
+	 * @brief count_border_edges counts the amount of border edges (thus halfedges) in the mesh.
+	 * @return the border edge counter.
+	 */
 	int count_border_edges() const ;
+
+	/**
+	 * @brief count_sharp_creases counts the amount of edges that are sharp creases.
+	 * An edge is a sharp crease if it is a crease (i.e., its index exists in the crease buffer)
+	 * and is sharp (i.e., its sharpness value is >0).
+	 * @return the sharp crease counter.
+	 */
 	int count_sharp_creases() const ;
+
+	/**
+	 * @brief is_tri_only verifies if all polygons are triangles
+	 * @return boolean
+	 */
 	bool is_tri_only() const ;
+
+	/**
+	 * @brief is_quad_only verifies if all polygons are quadrilaterals
+	 * @return boolean
+	 */
 	bool is_quad_only() const ;
+
+	/**
+	 * @brief export_to_obj writes the current mesh to an OBJ file
+	 * @param filename path to a file (that will be overwritten).
+	 * @post Only topology and geometry is written to file: creases are not!
+	 */
 	void export_to_obj(const std::string& filename) const ;
 
 	// ----------- Accessors for halfedge and crease values from specified buffers -----------
 protected:
+	/**
+	 * @brief Twin accessor for the twin attribute
+	 * @param buffer a vertex buffer
+	 * @param h index to access
+	 * @return index to the twin halfedge (which can be negative in case there is no Twin)
+	 */
 	virtual int Twin(const halfedge_buffer& buffer, int h) const final ;
+
+	/**
+	 * @brief Vert accessor for the vertex attribute of the vertex buffer
+	 * @param buffer a vertex buffer
+	 * @param h index to access
+	 * @return index to the vertex the halfedge departs from
+	 */
 	virtual int Vert(const halfedge_buffer& buffer, int h) const final ;
+
+	/**
+	 * @brief Edge accessor for the edge attribute
+	 * @param buffer a vertex buffer
+	 * @param h index to access
+	 * @return the index of the edge spanning the halfedge
+	 */
 	virtual int Edge(const halfedge_buffer& buffer, int h) const final ;
 
+	/**
+	 * @brief Prev accessor for the previous halfedge attribute
+	 * @param buffer a vertex buffer
+	 * @param h index to access
+	 * @return the index of the previous halfedge within the face
+	 */
 	virtual int Prev(const halfedge_buffer_cage& buffer, int h) const ;
+
+	/**
+	 * @brief Next accessor for the next halfedge attribute
+	 * @param buffer a vertex buffer
+	 * @param h index to access
+	 * @return the index of the next halfedge within the face
+	 */
 	virtual int Next(const halfedge_buffer_cage& buffer, int h) const ;
+
+	/**
+	 * @brief Face accessor for the face index of the halfedge
+	 * @param buffer a vertex buffer
+	 * @param h index to access
+	 * @return the index of the face the halfedge lives in
+	 */
 	virtual int Face(const halfedge_buffer_cage& buffer, int h) const ;
 
-	virtual int Next_safe(const halfedge_buffer_cage& buffer, int h) const final ;
-	virtual int Next_safe(int h) const final ;
-
+	/**
+	 * @brief Sharpness accessor for the sharpness value of a crease
+	 * @param buffer a crease buffer
+	 * @param c index into the crease buffer (or higher)
+	 * @return the sharpness value, or 0 if index c is not a crease.
+	 */
 	virtual float Sharpness(const crease_buffer& buffer, int c) const final ;
+
+	/**
+	 * @brief NextC accessor for a crease's next crease.
+	 * @param buffer a crease buffer
+	 * @param c index into the crease buffer (or higher)
+	 * @return the next crease index
+	 */
 	virtual int NextC(const crease_buffer& buffer, int c) const final ;
+
+	/**
+	 * @brief PrevC accessor for a crease's previous crease.
+	 * @param buffer a crease buffer
+	 * @param c index into the crease buffer (or higher)
+	 * @return the previous crease index
+	 */
 	virtual int PrevC(const crease_buffer& buffer, int c) const final ;
 
 	// ----------- utility functions for evaluating local configurations -----------
@@ -116,6 +255,14 @@ private:
 
 	virtual int Prev(int h) const ;
 	virtual int Next(int h) const ;
+	/**
+	 * @brief Next_safe accessor for the next halfedge attribute supporting invalid indices.
+	 * Note: this accesses the current Mesh halfedge_buffer by default.
+	 * @param h index to access
+	 * @return the next halfedge index within the face, or a negative number.
+	 */
+	virtual int Next_safe(int h) const final ;
+
 	virtual int Face(int h) const ;
 
 	virtual float Sharpness(int c) const final ;

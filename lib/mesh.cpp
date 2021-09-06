@@ -62,18 +62,6 @@ Mesh::Next(const halfedge_buffer_cage& buffer, int idx) const
 }
 
 int
-Mesh::Next_safe(const halfedge_buffer_cage& buffer, int idx) const
-{
-	return idx < 0 ? idx : Next(buffer,idx) ;
-}
-
-int
-Mesh::Next_safe(int idx) const
-{
-	return idx < 0 ? idx : Next(idx) ;
-}
-
-int
 Mesh::Vert(const halfedge_buffer& buffer, int idx) const
 {
 	return buffer[idx].Vert ;
@@ -163,6 +151,13 @@ Mesh::PrevC(int idx) const
 {
 	return PrevC(creases, idx) ;
 }
+
+int
+Mesh::Next_safe(int idx) const
+{
+	return idx < 0 ? idx : Next(idx) ;
+}
+
 
 // ----------- utility functions for evaluating local configurations -----------
 bool
@@ -442,9 +437,9 @@ int
 Mesh::count_sharp_creases() const
 {
 	int counter = 0 ;
-	for (int c = 0; c < E_count ; ++c)
+	for (int c = 0; c < C_count ; ++c)
 	{
-		if (Sharpness(c) > 1e-6)
+		if (Sharpness(c) > _epsilon_)
 			counter ++ ;
 	}
 

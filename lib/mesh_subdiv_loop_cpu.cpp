@@ -27,6 +27,7 @@ Mesh_Subdiv_Loop_CPU::refine_halfedges()
 		{
 			const int twin_id = Twin(H_old,h_id) ;
 			const int edge_id = Edge(H_old,h_id) ;
+			const int next_id_safe = twin_id < 0 ? twin_id : Next(twin_id) ;
 
 			const int prev_id = Prev(h_id) ;
 			const int prev_twin_id = Twin(H_old,prev_id) ;
@@ -40,7 +41,7 @@ Mesh_Subdiv_Loop_CPU::refine_halfedges()
 			HalfEdge& h2 = H_new[_3h + 2] ;
 			HalfEdge& h3 = H_new[_3Hd + h_id] ;
 
-			h0.Twin = 3 * Next_safe(twin_id) + 2 ;
+			h0.Twin = 3 * next_id_safe + 2 ;
 			h1.Twin = _3Hd + h_id ;
 			h2.Twin = 3 * prev_twin_id ;
 			h3.Twin = _3h_p_1 ;

@@ -38,7 +38,7 @@
 #		define _BARRIER
 # endif
 
-
+#define _epsilon_ 1e-9
 #define _5_o_8 0.625f
 #define _8_o_5 1.6f
 #define _3_o_8 0.375f

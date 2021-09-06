@@ -32,12 +32,14 @@ Mesh_Subdiv_CatmullClark_CPU::refine_halfedges()
 
 			const int twin_id = Twin(H_old,h_id) ;
 			const int edge_id = Edge(H_old,h_id) ;
+			const int next_id_safe = twin_id < 0 ? twin_id : Next(twin_id) ;
 
 			const int prev_id = Prev(h_id) ;
 			const int prev_twin_id = Twin(H_old,prev_id) ;
 			const int prev_edge_id = Edge(H_old,prev_id) ;
 
-			h0.Twin = 4 * Next_safe(twin_id) + 3 ;
+
+			h0.Twin = 4 * next_id_safe + 3 ;
 			h1.Twin = 4 * Next(h_id) + 2 ;
 			h2.Twin = 4 * prev_id + 1 ;
 			h3.Twin = 4 * prev_twin_id + 0 ;
