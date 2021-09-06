@@ -21,7 +21,7 @@ The `root` folder contains several usage examples that do the following:
 
 Notes:
 * The CPU backend relies on OpenMP for parallelization. By default, it uses as many threads as there are CPU cores available. This can be altered by setting the environment variable `OMP_NUM_THREADS` to another value. For example: `export OMP_NUM_THREADS=2`
-* The GPU backend relies on OpenGL (library provided under [`lib/gpu_dependencies`](lib/gpu_dependencies). Shader files are loaded using relative paths, so the executable has to be launched from a subfolder of the root folder, e.g., `build/`.
+* The GPU backend relies on OpenGL (library provided under [`lib/gpu_dependencies`](lib/gpu_dependencies)). Shader files are loaded using relative paths, so the executable has to be launched from a subfolder of the root folder, e.g., `build/`.
 * All executables take for input an OBJ file (note: for Loop subdivision, the mesh should be triangle-only) and a subdivision depth.
 * The resulting subdivision is written to disk as an OBJ file. It is triangular for Loop subdivision, and quad-only for Catmull-Clark subdivision.
 
