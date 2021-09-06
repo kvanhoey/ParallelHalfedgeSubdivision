@@ -1,4 +1,4 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/github/kvanhoey/parallelhalfedgesubdivision?svg=true)](https://ci.appveyor.com/project/kvanhoey/parallelhalfedgesubdivision)
+[![Build status](https://ci.appveyor.com/api/projects/status/irhuj5vnb9s8k0db?svg=true)](https://ci.appveyor.com/project/kvanhoey/parallelhalfedgesubdivision)
 
 
 This repository provides a library for fast subdivision of polygonal surfaces.
