@@ -1,4 +1,4 @@
-language: c
+language: c++
 sudo: false
 dist: trusty
 branches:
@@ -21,7 +21,6 @@ matrix:
             - libxi-dev
             - libx11-dev
       script:
-        - cmake --version
         - mkdir build
         - cd build
         - cmake ..
