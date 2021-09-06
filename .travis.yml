@@ -4,12 +4,11 @@ dist: xenial
 matrix:
   include:
     - os: linux
-      compiler: gcc-7.1
+      compiler: g++-5.1
       addons:
         apt:
           packages:
             - cmake
-            - g++-4.8
             - libomp-dev
             - libglu1-mesa-dev
             - libxxf86vm-dev
