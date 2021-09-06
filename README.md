@@ -38,7 +38,7 @@ The `doc` folder contains a doxygen file to generate documentation.
 ###### Compile one or all of the executables
 `make [<name_of_executable>]`
 ###### Compile documentation
-By default, documentation is not compiled. Please set the CMake variable `BUILD_DOC` to `ON` using `ccmake` or by directly editing `CMakeLists.txt` before hitting `cmake` and `Make doc`.
+By default, documentation is not compiled. Please set the CMake variable `BUILD_DOC` to `ON` using `ccmake` or by directly editing `CMakeLists.txt` before hitting `cmake` and `Make doc`, which will generate the `html/index.html` file.
 	
 Tested on Linux Ubuntu 20.04 LTS and on Windows 10 using Visual Studio.
 
