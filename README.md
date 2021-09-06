@@ -1,9 +1,12 @@
 This repository provides a library for fast subdivision of polygonal surfaces.
 Currently it supports Catmull-Clark and Loop subdivision, and has both CPU and GPU backends with parallel implementations.
 For most use cases, subdivision is real-time.
-It is the implementation of the following two papers:
+It is the implementation of the paper
+* A Halfedge Refinement Rule for Parallel Loop Subdivision (under review), and  
+
+and an unofficial alternate implementation (for the reference, see: [here](https://github.com/jdupuy/HalfedgeCatmullClark)) of
 * [A Halfedge Refinement Rule for Parallel Catmull-Clark Subdivision](http://kenneth.vanhoey.free.fr/index.php?page=research&lang=en#DV21), HPG 2021, by [Jonathan Dupuy](http://onrendering.com) and [Kenneth Vanhoey](http://kvanhoey.eu/)
-* A Halfedge Refinement Rule for Parallel Loop Subdivision (under review)
+
 
 <img src="img/loop_subdiv.jpg" alt="Example of Loop subdivision" width="500"/>
 
