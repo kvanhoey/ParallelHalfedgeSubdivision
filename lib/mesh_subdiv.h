@@ -4,7 +4,7 @@
 #include "mesh.h"
 
 /**
- * @brief The Mesh_Subdiv class is pure virtual (i.e., abstract). It defines useful fields and mandatory methods for any specialized class that implements subdivision.
+ * @brief The Mesh_Subdiv (pure virtual) class defines useful fields and mandatory methods for any specialized class that implements subdivision.
  */
 class Mesh_Subdiv: public Mesh
 {
@@ -46,7 +46,7 @@ protected:
 
 	// ----------- Mandatory overrides for derived classes -----------
 	/**
-	 * @brief allocate_subdiv_buffers (pure virtual) should allocate the buffers in which subdivision will be computed. It is called at the start of call to subdivision.
+	 * @brief allocate_subdiv_buffers (pure virtual) should allocate and initialize the buffers in which subdivision will be computed. It is called at the start of call to subdivision.
 	 */
 	virtual void allocate_subdiv_buffers() = 0 ;
 

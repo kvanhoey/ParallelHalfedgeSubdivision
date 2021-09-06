@@ -181,7 +181,7 @@ protected:
 	/**
 	 * @brief Face accessor for the face index of the halfedge
 	 * @param buffer a vertex buffer
-	 * @param h index to access
+	 * @param h index of a halfedge to access
 	 * @return the index of the face the halfedge lives in
 	 */
 	virtual int Face(const halfedge_buffer_cage& buffer, int h) const ;
@@ -266,10 +266,11 @@ protected:
 	 * @brief vertex_sharpness_or_border is similar to #vertex_sharpness but returns a negative number instead of the vertex sharpness if the vertex is at the mesh border.
 	 * @note vertex_sharpness_or_border is cheaper to compute than vertex_sharpness
 	 * @param h_buffer a halfedge buffer
+	 * @param c_buffer a crease buffer
 	 * @param h index into h_buffer of a halfedge outgoing from the target vertex
 	 * @return a scalar that represents the vertex sharpness, or -1 if the vertex lies at a mesh border.
 	 */
-	float vertex_sharpness_or_border(const halfedge_buffer& h_buffer, const crease_buffer&, int h) const ;
+	float vertex_sharpness_or_border(const halfedge_buffer& h_buffer, const crease_buffer& c_buffer, int h) const ;
 
 	/**
 	 * @brief vertex_edge_valence_or_border returns the valence of Vert(h), or -1 if Vert(h) is a border vertex.
