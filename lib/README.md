@@ -1,7 +1,7 @@
 # ParallelHalfedgeSubdivision library
 The main part of the library is implemented in the C++ Mesh<...> classes that follow the following inheritence rules.
 
-<img src="../img/class_hierarchy.png" alt="Library class hierarchy" width="500"/>
+<img src="../img/class_hierarchy.png" alt="Library class hierarchy" width="800"/>
 
 # Class hierarchy
 In the graph above, the root node (i.e., Mesh) and leave nodes can be instanciated, while the intermediate levels are pure virtual (or abstract) classes.
