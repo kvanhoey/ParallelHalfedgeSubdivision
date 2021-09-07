@@ -4,13 +4,13 @@ dist: bionic
 matrix:
   include:
     - os: linux
-      compiler: g++
+      compiler: g++-6
       addons:
         apt:
           packages:
             - cmake
-            - gcc
-            - g++
+            - gcc-6
+            - g++-6
             - libomp-dev
             - libglu1-mesa-dev
             - libxxf86vm-dev
