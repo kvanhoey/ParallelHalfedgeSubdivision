@@ -1,0 +1,12 @@
+Credit for the 3D models we used:
+
+In folder data_benching/
+- Ray Raitt for the Bigguy and Monsterfrog models.
+- Dmitry Parkin for the Imrod model.
+- Olivier Roos from Studio Manette for the T-Rex model.
+- The ArmorGuy model is courtesy of ©2014 DigitalFish, Inc.
+- The Knight model is from Quake II.
+- OpenSubdiv for the Rook and Car assets.
+
+In folder data_testing/
+- OpenSubdiv for the loop_cubes_semisharp, pyramid* and cube_creased models
