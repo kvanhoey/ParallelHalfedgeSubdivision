@@ -1,10 +1,10 @@
 language: cpp
 sudo: false
-dist: xenial
+dist: bionic
 matrix:
   include:
     - os: linux
-      compiler: g++-6.1
+      compiler: g++
       addons:
         apt:
           packages:
