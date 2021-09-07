@@ -4,13 +4,13 @@ dist: xenial
 matrix:
   include:
     - os: linux
-      compiler: g++-6
+      compiler: g++
       addons:
         apt:
           packages:
             - cmake
-            - gcc-6
-            - g++-6
+            - gcc
+            - g++
             - libomp-dev
             - libglu1-mesa-dev
             - libxxf86vm-dev
