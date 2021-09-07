@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/kvanhoey/ParallelHalfedgeSubdivision.svg?branch=master)](https://travis-ci.com/kvanhoey/ParallelHalfedgeSubdivision)
+[![Build Status](https://app.travis-ci.com/kvanhoey/ParallelHalfedgeSubdivision.svg?token=Hduw3SXVyXsHpjsbgt9p&branch=main)](https://app.travis-ci.com/kvanhoey/ParallelHalfedgeSubdivision)
 [![Build status](https://ci.appveyor.com/api/projects/status/irhuj5vnb9s8k0db?svg=true)](https://ci.appveyor.com/project/kvanhoey/parallelhalfedgesubdivision)
 
 
