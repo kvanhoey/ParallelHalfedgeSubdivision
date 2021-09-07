@@ -21,7 +21,6 @@ matrix:
             - libx11-dev
       script:
         - mkdir build
-        - apt-cache search gcc-
         - cd build
         - cmake ..
         - make -j
