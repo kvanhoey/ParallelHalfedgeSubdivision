@@ -22,6 +22,8 @@ public:
 	 */
 	virtual void subdivide() final ;
 
+	virtual void subdivide_and_time(int n_repetitions) final ;
+
 	// ----------- Internal state of subdivision -----------
 protected:
 	const uint d_max ; /*!< the target (maximal) subdivision depth */
@@ -59,6 +61,9 @@ protected:
 	 * @brief refine_halfedges (pure virtual) should operate the halfedge refinement in the halfedge subdivision buffers.
 	 */
 	virtual void refine_halfedges() = 0 ;
+
+	virtual void refine_halfedges_and_time(int n_repetitions) = 0 ;
+
 
 	/**
 	 * @brief refine_creases (pure virtual) should operate crease refinement in the crease subdivision buffers.

@@ -81,6 +81,19 @@ Mesh_Subdiv_CPU::refine_creases()
 }
 
 void
+Mesh_Subdiv_CPU::refine_halfedges_and_time(int n_repetitions)
+{
+	for (int i = 0 ; i < n_repetitions ; ++i)
+	{
+		auto start = timer::now() ;	// start timer
+		refine_halfedges() ;
+		auto stop = timer::now() ;			// stop timer
+		duration elapsed = stop - start;	// make stats
+		std::cout << elapsed.count() << std::endl ;
+	}
+}
+
+void
 Mesh_Subdiv_CPU::apply_atomic_vec3_increment(vec3& v, const vec3& v_increm)
 {
 	for (int c=0; c < 3; ++c)

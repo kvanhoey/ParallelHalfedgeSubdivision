@@ -17,6 +17,9 @@ public:
 	Mesh_Subdiv_CPU(const std::string& filename, uint max_depth) ;
 
 protected:
+	typedef std::chrono::high_resolution_clock timer;
+	typedef std::chrono::duration<double, std::milli> duration;
+
 	// ----------- Subdivision buffers on the CPU -----------
 	std::vector<halfedge_buffer> halfedge_subdiv_buffers ; /*!< @brief halfedge_subdiv_buffers CPU halfedge subdivision buffers */
 	std::vector<crease_buffer> crease_subdiv_buffers ; /*!< @brief crease_subdiv_buffers CPU crease subdivision buffers */
@@ -34,7 +37,9 @@ protected:
 	/**
 	 * @brief refine_creases operates crease refinement in the CPU crease subdivision buffers.
 	 */
-	void refine_creases() ;
+	void refine_creases() final ;
+
+	void refine_halfedges_and_time(int n_repetitions) final;
 
 	// ----------- Utility function for OpenMP atomic adds -----------
 	/**

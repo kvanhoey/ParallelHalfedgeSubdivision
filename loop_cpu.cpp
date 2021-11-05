@@ -11,12 +11,13 @@ int main(int argc, char* argv[])
 {
 	if (argc < 3)
 	{
-		std::cout << "Usage: " << argv[0] << " <filename>.obj <depth>" << std::endl ;
+		std::cout << "Usage: " << argv[0] << " <filename>.obj <depth> [timing=1/0 (default 0)]" << std::endl ;
 		return 0 ;
 	}
 
 	const std::string f_name(argv[1]) ;
 	const uint D = atoi(argv[2]) ;
+	const bool timing = (argc < 4) ? false : bool(atoi(argv[3])) ;
 
 	std::stringstream fname_out_ss ;
 	fname_out_ss << "S" << D << "_loop_cpu.obj" ;
@@ -45,7 +46,10 @@ int main(int argc, char* argv[])
 
 	// subdiv down to depth D
 	std::cout << "Processing subdivision ... " << std::flush ;
-	M.subdivide() ;
+	if (timing)
+		M.subdivide_and_time(5) ;
+	else
+		M.subdivide() ;
 	std::cout << "[OK]" << std::endl ;
 
 	// Check & export output

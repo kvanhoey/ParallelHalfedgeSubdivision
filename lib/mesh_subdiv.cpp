@@ -29,6 +29,24 @@ Mesh_Subdiv::subdivide()
 }
 
 void
+Mesh_Subdiv::subdivide_and_time(int n_repetitions)
+{
+	if (finalized)
+		return ;
+
+	allocate_subdiv_buffers() ;
+
+	refine_halfedges_and_time(n_repetitions) ;
+	refine_creases() ;
+	refine_vertices() ;
+	set_current_depth(d_max) ;
+
+	readback_from_subdiv_buffers() ;
+
+	finalize_subdivision() ;
+}
+
+void
 Mesh_Subdiv::set_current_depth(int depth)
 {
 	d_cur = depth ;

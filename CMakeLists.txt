@@ -34,16 +34,16 @@ add_executable(loop_cpu loop_cpu.cpp lib/mesh.cpp lib/mesh_subdiv_cpu.cpp lib/me
 add_executable(catmull-clark_cpu catmull-clark_cpu.cpp lib/mesh.cpp lib/mesh_subdiv_cpu.cpp lib/mesh_subdiv.cpp lib/mesh_subdiv_catmull-clark.cpp lib/mesh_subdiv_catmull-clark_cpu.cpp)
 add_executable(stats stats.cpp lib/mesh.cpp)
 
-file(GLOB lib_gpu lib/gpu_dependencies/*.cpp lib/gpu_dependencies/glad/glad.c)
-file(GLOB loop_shaders shaders/*loop*.glsl shaders/*crease*.glsl)
-file(GLOB catmull-clark_shaders shaders/*catmull*.glsl shaders/*crease*.glsl)
-include_directories(lib/gpu_dependencies/)
+#file(GLOB lib_gpu lib/gpu_dependencies/*.cpp lib/gpu_dependencies/glad/glad.c)
+#file(GLOB loop_shaders shaders/*loop*.glsl shaders/*crease*.glsl)
+#file(GLOB catmull-clark_shaders shaders/*catmull*.glsl shaders/*crease*.glsl)
+#include_directories(lib/gpu_dependencies/)
 
-add_executable(loop_gpu loop_gpu.cpp lib/mesh.cpp lib/mesh_subdiv.cpp lib/mesh_subdiv_loop.cpp lib/mesh_subdiv_gpu.cpp lib/mesh_subdiv_loop_gpu.cpp ${lib_gpu} ${loop_shaders})
-target_link_libraries(loop_gpu glfw)
+#add_executable(loop_gpu loop_gpu.cpp lib/mesh.cpp lib/mesh_subdiv.cpp lib/mesh_subdiv_loop.cpp lib/mesh_subdiv_gpu.cpp lib/mesh_subdiv_loop_gpu.cpp ${lib_gpu} ${loop_shaders})
+#target_link_libraries(loop_gpu glfw)
 
-add_executable(catmull-clark_gpu catmull-clark_gpu.cpp lib/mesh.cpp lib/mesh_subdiv.cpp lib/mesh_subdiv_gpu.cpp lib/mesh_subdiv_catmull-clark.cpp lib/mesh_subdiv_catmull-clark_gpu.cpp ${lib_gpu} ${catmull-clark_shaders})
-target_link_libraries(catmull-clark_gpu glfw)
+#add_executable(catmull-clark_gpu catmull-clark_gpu.cpp lib/mesh.cpp lib/mesh_subdiv.cpp lib/mesh_subdiv_gpu.cpp lib/mesh_subdiv_catmull-clark.cpp lib/mesh_subdiv_catmull-clark_gpu.cpp ${lib_gpu} ${catmull-clark_shaders})
+#target_link_libraries(catmull-clark_gpu glfw)
 
 # check if Doxygen is installed
 find_package(Doxygen)
