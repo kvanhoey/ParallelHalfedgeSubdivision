@@ -11,12 +11,13 @@ int main(int argc, char* argv[])
 {
 	if (argc < 3)
 	{
-		std::cout << "Usage: " << argv[0] << " <filename>.obj <depth>" << std::endl ;
+		std::cout << "Usage: " << argv[0] << " <filename>.obj <depth> [timing=nb_repetitions (default 0)]" << std::endl ;
 		return 0 ;
 	}
 
 	const std::string f_name(argv[1]) ;
 	const uint D = atoi(argv[2]) ;
+	const uint timing_reps = (argc < 4) ? 0 : atoi(argv[3]) ;
 
 	std::stringstream fname_out_ss ;
 	fname_out_ss << "S" << D << "_loop_gpu.obj" ;
@@ -69,16 +70,24 @@ int main(int argc, char* argv[])
 		M.export_to_obj("S0_input.obj") ;
 		std::cout << "[OK]" << std::endl ;
 
-		// subdiv down to depth D
-		std::cout << "Processing subdivision ... " << std::flush ;
-		M.subdivide() ;
-		std::cout << "[OK]" << std::endl ;
+		if (timing_reps)
+		{
+			Timing_stats stats_he, stats_cr, stats_cl, stats_vx ;
+			M.subdivide_and_time(timing_reps, stats_he, stats_cr, stats_cl, stats_vx) ;
+			std::cout << stats_he << std::endl ;
+		}
+		else // subdiv down to depth D
+		{
+			std::cout << "Processing subdivision ... " << std::flush ;
+			M.subdivide() ;
+			std::cout << "\t\t[OK]" << std::endl ;
+		}
 
 		// Check & export output
 		M.check() ;
 		std::cout << "Exporting output " << fname_out << " ... " << std::flush ;
 		M.export_to_obj(fname_out) ;
-		std::cout << "[OK]" << std::endl ;
+		std::cout << "\t[OK]" << std::endl ;
 	}
 
 	return 0 ;

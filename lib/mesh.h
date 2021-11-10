@@ -12,12 +12,10 @@
 #include "vec3.h"
 #include "halfedge.h"
 #include "crease.h"
-#include "timings.h"
 #include "utils.h"
 #include <array>
 #include <cmath>
 #include <chrono>
-#include <algorithm>
 
 /**
  * @brief The Mesh class represents a mesh.

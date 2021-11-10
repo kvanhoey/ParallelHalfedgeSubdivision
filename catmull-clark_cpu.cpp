@@ -11,13 +11,13 @@ int main(int argc, char* argv[])
 {
 	if (argc < 3)
 	{
-		std::cout << "Usage: " << argv[0] << " <filename>.obj <depth> [timing=1/0 (default 0)]" << std::endl ;
+		std::cout << "Usage: " << argv[0] << " <filename>.obj <depth> [timing=nb_repetitions (default 0)]" << std::endl ;
 		return 0 ;
 	}
 
 	const std::string f_name(argv[1]) ;
 	const uint D = atoi(argv[2]) ;
-	const bool timing = (argc < 4) ? false : bool(atoi(argv[3])) ;
+	const uint timing_reps = (argc < 4) ? 0 : atoi(argv[3]) ;
 
 	std::stringstream fname_out_ss ;
 	fname_out_ss << "S" << D << "_catmull-clark_cpu.obj" ;
@@ -44,19 +44,24 @@ int main(int argc, char* argv[])
 	M.export_to_obj("S0_input.obj") ;
 	std::cout << "[OK]" << std::endl ;
 
-	// subdiv down to depth D
-	std::cout << "Processing subdivision ... " << std::flush ;
-	if (timing)
-		M.subdivide_and_time(5) ;
-	else
+	if (timing_reps)
+	{
+		Timing_stats stats_he, stats_cr, stats_cl, stats_vx ;
+		M.subdivide_and_time(timing_reps, stats_he, stats_cr, stats_cl, stats_vx) ;
+		std::cout << stats_he << std::endl ;
+	}
+	else // subdiv down to depth D
+	{
+		std::cout << "Processing subdivision ... " << std::flush ;
 		M.subdivide() ;
-	std::cout << "[OK]" << std::endl ;
+		std::cout << "\t\t[OK]" << std::endl ;
+	}
 
 	// Check & export output
 	M.check() ;
 	std::cout << "Exporting output " << fname_out << " ... " << std::flush ;
 	M.export_to_obj(fname_out) ;
-	std::cout << "[OK]" << std::endl ;
+	std::cout << "\t[OK]" << std::endl ;
 
 	return 0 ;
 }

@@ -40,15 +40,19 @@ protected:
 	/**
 	 * @brief refine_creases operates crease refinement in the GPU crease subdivision buffers.
 	 */
-	void refine_creases() ;
+	void refine_creases() final;
 	/**
 	 * @brief refine_halfedges operates halfedge refinement in the GPU halfedge subdivision buffers.
 	 */
-	void refine_halfedges() ;
+	void refine_halfedges() final;
 	/**
 	 * @brief refine_vertices operates vertex refinement in the GPU vertex subdivision buffers.
 	 */
-	void refine_vertices() ;
+	void refine_vertices() final;
+
+//	void refine_halfedges_and_time(int n_repetitions) final;
+	// ----------- Utility function for timing -----------
+	virtual std::vector<double> measure_time(void (Mesh_Subdiv::*fptr)(), Mesh_Subdiv& c, int n_repetitions) final ;
 
 	// ----------- Utility functions -----------
 	/**

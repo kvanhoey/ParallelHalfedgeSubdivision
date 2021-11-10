@@ -2,6 +2,7 @@
 #define __MESH_SUBDIV_H__
 
 #include "mesh.h"
+#include "timings.h"
 
 /**
  * @brief The Mesh_Subdiv (pure virtual) class defines useful fields and mandatory methods for any specialized class that implements subdivision.
@@ -22,10 +23,13 @@ public:
 	 */
 	virtual void subdivide() final ;
 
-	virtual void subdivide_and_time(int n_repetitions) final ;
+	virtual void subdivide_and_time(int n_repetitions, Timing_stats& stats_he, Timing_stats& stats_cr, Timing_stats& stats_cl, Timing_stats& stats_vx) ;
 
 	// ----------- Internal state of subdivision -----------
 protected:
+	typedef std::chrono::high_resolution_clock timer;
+	typedef std::chrono::duration<double, std::milli> duration;
+
 	const uint d_max ; /*!< the target (maximal) subdivision depth */
 	uint d_cur ; /*!< the current subdivision depth */
 	bool subdivided ; /*!< true if subdivision has started (i.e., at least achieved one level of subdivision) */
@@ -62,9 +66,6 @@ protected:
 	 */
 	virtual void refine_halfedges() = 0 ;
 
-	virtual void refine_halfedges_and_time(int n_repetitions) = 0 ;
-
-
 	/**
 	 * @brief refine_creases (pure virtual) should operate crease refinement in the crease subdivision buffers.
 	 */
@@ -78,6 +79,10 @@ protected:
 	// ----------- Finalize and lock the class -----------
 private:
 	void finalize_subdivision() ;
+
+	virtual std::vector<double> measure_time(void (Mesh_Subdiv::*fptr)(), Mesh_Subdiv& c, int n_repetitions) = 0 ;
+
+	Timing_stats compute_stats(std::vector<double>& times) const ;
 };
 
 #endif

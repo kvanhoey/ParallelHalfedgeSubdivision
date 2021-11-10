@@ -80,17 +80,24 @@ Mesh_Subdiv_CPU::refine_creases()
 	}
 }
 
-void
-Mesh_Subdiv_CPU::refine_halfedges_and_time(int n_repetitions)
+std::vector<double>
+Mesh_Subdiv_CPU::measure_time(void (Mesh_Subdiv::*fptr)(), Mesh_Subdiv& c, int n_repetitions)
 {
+	std::vector<double> times ;
+	times.resize(n_repetitions) ;
+
 	for (int i = 0 ; i < n_repetitions ; ++i)
 	{
 		auto start = timer::now() ;	// start timer
-		refine_halfedges() ;
+
+		(c.*fptr)() ;
+
 		auto stop = timer::now() ;			// stop timer
 		duration elapsed = stop - start;	// make stats
-		std::cout << elapsed.count() << std::endl ;
+		times[i] = elapsed.count() ;
 	}
+
+	return times ;
 }
 
 void

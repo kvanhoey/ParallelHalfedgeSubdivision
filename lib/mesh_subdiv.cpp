@@ -29,21 +29,25 @@ Mesh_Subdiv::subdivide()
 }
 
 void
-Mesh_Subdiv::subdivide_and_time(int n_repetitions)
+Mesh_Subdiv::subdivide_and_time(int n_repetitions, Timing_stats& stats_he, Timing_stats& stats_cr, Timing_stats& stats_cl, Timing_stats& stats_vx)
 {
 	if (finalized)
 		return ;
 
 	allocate_subdiv_buffers() ;
 
-	refine_halfedges_and_time(n_repetitions) ;
-	refine_creases() ;
-	refine_vertices() ;
+	std::vector<double> t_he = measure_time(&Mesh_Subdiv::refine_halfedges, *this, n_repetitions) ;
+	std::vector<double> t_cr = measure_time(&Mesh_Subdiv::refine_creases, *this, n_repetitions) ;
+	std::vector<double> t_vx = measure_time(&Mesh_Subdiv::refine_vertices, *this, n_repetitions) ;
 	set_current_depth(d_max) ;
 
 	readback_from_subdiv_buffers() ;
 
 	finalize_subdivision() ;
+
+	Timing_stats::compute_stats(t_he, stats_he) ;
+	Timing_stats::compute_stats(t_cr, stats_cr) ;
+	Timing_stats::compute_stats(t_vx, stats_vx) ;
 }
 
 void
@@ -76,4 +80,3 @@ Mesh_Subdiv::finalize_subdivision()
 
 	finalized = true ;
 }
-

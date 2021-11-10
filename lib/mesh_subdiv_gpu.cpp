@@ -117,6 +117,35 @@ Mesh_Subdiv_GPU::refine_vertices()
 	}
 }
 
+// ----------- Member functions that do the actual subdivision (with timings) -----------
+
+std::vector<double>
+Mesh_Subdiv_GPU::measure_time(void (Mesh_Subdiv::*fptr)(), Mesh_Subdiv& c, int n_repetitions)
+{
+	std::vector<double> times ;
+	times.resize(n_repetitions) ;
+
+	djg_clock *clock = djgc_create() ;
+	for (int i = 0 ; i < n_repetitions ; ++i)
+	{
+		double gpuTime = 0.0 ;
+
+		glFinish() ;
+		djgc_start(clock) ;
+
+		(c.*fptr)() ;
+
+		djgc_stop(clock);
+		glFinish();
+		djgc_ticks(clock, nullptr, &gpuTime);
+
+		times[i] = gpuTime * 1e3 ;
+	}
+	djgc_release(clock) ;
+
+	return times ;
+}
+
 // ----------- Buffer management -----------
 Mesh_Subdiv_GPU::~Mesh_Subdiv_GPU()
 {

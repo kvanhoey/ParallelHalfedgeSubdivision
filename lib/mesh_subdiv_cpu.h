@@ -17,8 +17,6 @@ public:
 	Mesh_Subdiv_CPU(const std::string& filename, uint max_depth) ;
 
 protected:
-	typedef std::chrono::high_resolution_clock timer;
-	typedef std::chrono::duration<double, std::milli> duration;
 
 	// ----------- Subdivision buffers on the CPU -----------
 	std::vector<halfedge_buffer> halfedge_subdiv_buffers ; /*!< @brief halfedge_subdiv_buffers CPU halfedge subdivision buffers */
@@ -39,7 +37,7 @@ protected:
 	 */
 	void refine_creases() final ;
 
-	void refine_halfedges_and_time(int n_repetitions) final;
+//	void refine_halfedges_and_time(int n_repetitions) final;
 
 	// ----------- Utility function for OpenMP atomic adds -----------
 	/**
@@ -49,6 +47,8 @@ protected:
 	 */
 	static void apply_atomic_vec3_increment(vec3& v, const vec3& v_increm) ;
 
+	// ----------- Utility function for timing -----------
+	virtual std::vector<double> measure_time(void (Mesh_Subdiv::*fptr)(), Mesh_Subdiv& c, int n_repetitions) final ;
 };
 
 #endif
