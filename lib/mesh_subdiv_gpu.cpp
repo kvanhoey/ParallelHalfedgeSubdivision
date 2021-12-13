@@ -180,7 +180,6 @@ Mesh_Subdiv_GPU::allocate_subdiv_buffers()
 	for (d = 1 ; d <= d_max ; ++d)
 	{
 		bool enable_readback = d == d_max ;
-
 		halfedge_subdiv_buffers[d]	= create_buffer(BUFFER_HALFEDGES_IN	, H(d) * sizeof(HalfEdge)	, nullptr,	false,	enable_readback) ;
 		crease_subdiv_buffers[d]	= create_buffer(BUFFER_CREASES_IN	, C(d) * sizeof(Crease)		, nullptr,	false,	enable_readback) ;
 		vertex_subdiv_buffers[d]	= create_buffer(BUFFER_VERTICES_IN	, V(d) * sizeof(vec3)		, nullptr,	true,	enable_readback) ;
@@ -197,8 +196,8 @@ Mesh_Subdiv_GPU::readback_from_subdiv_buffers()
 	// halfedges
 	{
 		HalfEdge* data = (HalfEdge*) glMapNamedBuffer(halfedge_subdiv_buffers[d_max], GL_READ_ONLY) ;
-
 		halfedges.resize(Hd) ;
+		std::cout << Hd * sizeof(HalfEdge) << std::endl ;
 		memcpy(&(halfedges[0]), data, Hd * sizeof(HalfEdge)) ;
 
 		glUnmapNamedBuffer(halfedge_subdiv_buffers[d_max]) ;
@@ -251,7 +250,7 @@ Mesh_Subdiv_GPU::create_program(const std::string &shader_file, GLuint in_buffer
 }
 
 GLuint
-Mesh_Subdiv_GPU::create_buffer(GLuint buffer_bind_id, uint size, void *data, bool clear_buffer, bool enable_readback)
+Mesh_Subdiv_GPU::create_buffer(GLuint buffer_bind_id, size_t size, void *data, bool clear_buffer, bool enable_readback)
 {
 	GLuint new_buffer ;
 

@@ -252,23 +252,23 @@ protected:
 	bool is_crease_halfedge(const halfedge_buffer& h_buffer, const crease_buffer& c_buffer, int h) const ;
 
 	/**
-	 * @brief vertex_sharpness computes the average sharpness of the edges around vertex Vert(h)
+	 * @brief vertex_sharpness_sum computes the sum of sharpnesses of the edges around vertex Vert(h)
 	 * @param h_buffer a halfedge buffer
 	 * @param c_buffer a crease buffer
 	 * @param h index into h_buffer of a halfedge outgoing from the target vertex
-	 * @return a scalar that represents the vertex sharpness
+	 * @return a scalar that represents the sum of sharpnesses of the edges adjacent to the current vertex
 	 */
-	float vertex_sharpness(const halfedge_buffer& h_buffer, const crease_buffer& c_buffer, int h) const ;
+	float vertex_sharpness_sum(const halfedge_buffer& h_buffer, const crease_buffer& c_buffer, int h) const ;
 
 	/**
-	 * @brief vertex_sharpness_or_border is similar to #vertex_sharpness but returns a negative number instead of the vertex sharpness if the vertex is at the mesh border.
-	 * @note vertex_sharpness_or_border is cheaper to compute than vertex_sharpness
+	 * @brief vertex_sharpnesssum_or_border is similar to #vertex_sharpness_sum but returns a negative number instead of the vertex sharpness if the vertex is at the mesh border.
+	 * @note vertex_sharpnesssum_or_border is cheaper to compute than vertex_sharpness
 	 * @param h_buffer a halfedge buffer
 	 * @param c_buffer a crease buffer
 	 * @param h index into h_buffer of a halfedge outgoing from the target vertex
-	 * @return a scalar that represents the vertex sharpness, or -1 if the vertex lies at a mesh border.
+	 * @return a scalar that represents the sum of sharpnesses of edges adjacent to the current vertex, or -1 if the vertex lies at a mesh border.
 	 */
-	float vertex_sharpness_or_border(const halfedge_buffer& h_buffer, const crease_buffer& c_buffer, int h) const ;
+	float vertex_sharpnesssum_or_border(const halfedge_buffer& h_buffer, const crease_buffer& c_buffer, int h) const ;
 
 	/**
 	 * @brief vertex_edge_valence_or_border returns the valence of Vert(h), or -1 if Vert(h) is a border vertex.

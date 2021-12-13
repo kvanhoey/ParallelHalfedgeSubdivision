@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_FLAGS "-Os -march=native")
 add_definitions(-DNDEBUG)
 # Debugging on
-# set(CMAKE_CXX_FLAGS "-g") # Debug
+#set(CMAKE_CXX_FLAGS "-g") # Debug
 
 option(BUILD_DOC "Build documentation" OFF)
 

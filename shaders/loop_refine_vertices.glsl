@@ -162,7 +162,7 @@ void loop_around_vertex(int h, out int edge_valence, out int halfedge_valence, o
 	}
 
 	edge_valence = halfedge_valence + int(border_encountered) ;
-	vx_sharpness /= float(edge_valence) ;
+	vx_sharpness *= 0.5f ;
 }
 
 float compute_beta(float one_over_n)
@@ -222,9 +222,9 @@ void main()
 		float vx_sharpness ;
 		loop_around_vertex(h, vx_edge_valence, vx_halfedge_valence, vx_crease_valence, vx_sharpness) ;
 		if (vx_crease_valence < 2) // vx_crease_valence < 2 ==> dart vertex ==> smooth
-			vx_sharpness = 0.0 ;
+			vx_sharpness = 0.0f ;
 
-		const float lerp_alpha = clamp(vx_sharpness,0.0,1.0) ;
+		const float lerp_alpha = clamp(vx_sharpness,0.0f,1.0f) ;
 
 		// border correction
 		float increm_corner_factr = 0.5f ;

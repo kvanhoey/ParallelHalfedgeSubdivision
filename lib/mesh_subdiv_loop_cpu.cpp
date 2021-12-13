@@ -111,7 +111,8 @@ Mesh_Subdiv_Loop_CPU::refine_vertices()
 			const int vertex_he_valence = vertex_halfedge_valence(H_old,h_id) ;
 
 			const float edge_sharpness = Sharpness(C_old,c_id) ;
-			const float vx_sharpness = n_creases < 2 ? 0.0f : vertex_sharpness(H_old, C_old, h_id) ; // n_creases < 0 ==> dart vertex ==> smooth
+			const float vx_sharpness = n_creases < 2 ? 0.0f :  // n_creases < 0 ==> dart vertex ==> smooth
+													   0.5f * vertex_sharpness_sum(H_old, C_old, h_id) ; // only used iff exactly 2 adjacent crease edges
 
 			const float lerp_alpha = std::clamp(vx_sharpness,0.0f,1.0f) ;
 

@@ -303,7 +303,7 @@ Mesh::vertex_crease_valence_or_border(const halfedge_buffer& h_buffer, const cre
 }
 
 float
-Mesh::vertex_sharpness_or_border(const halfedge_buffer& h_buffer, const crease_buffer& c_buffer, int h) const
+Mesh::vertex_sharpnesssum_or_border(const halfedge_buffer& h_buffer, const crease_buffer& c_buffer, int h) const
 {
 	float edge_valence = 0.0 ;
 	float sharpness = 0 ;
@@ -323,11 +323,11 @@ Mesh::vertex_sharpness_or_border(const halfedge_buffer& h_buffer, const crease_b
 	}
 	while(hh != h);
 
-	return sharpness / edge_valence ;
+	return sharpness ;
 }
 
 float
-Mesh::vertex_sharpness(const halfedge_buffer& h_buffer, const crease_buffer& c_buffer, int h) const
+Mesh::vertex_sharpness_sum(const halfedge_buffer& h_buffer, const crease_buffer& c_buffer, int h) const
 {
 	float edge_valence = 1.0 ;
 	float sharpness = Sharpness(c_buffer, Edge(h_buffer, h)) ;
@@ -353,7 +353,7 @@ Mesh::vertex_sharpness(const halfedge_buffer& h_buffer, const crease_buffer& c_b
 		}
 	}
 
-	return sharpness / edge_valence ;
+	return sharpness ;
 }
 
 bool

@@ -48,7 +48,10 @@ int main(int argc, char* argv[])
 	{
 		Timing_stats stats_he, stats_cr, stats_cl, stats_vx ;
 		M.subdivide_and_time(timing_reps, stats_he, stats_cr, stats_cl, stats_vx) ;
-		std::cout << stats_he << std::endl ;
+		std::cout << "- Halfedges:\t"	<< stats_he << std::endl ;
+		std::cout << "- Creases:\t"		<< stats_cr << std::endl ;
+		std::cout << "- Clear:\t"		<< stats_cl << std::endl ;
+		std::cout << "- Vertices:\t"	<< stats_vx << std::endl ;
 	}
 	else // subdiv down to depth D
 	{

@@ -298,7 +298,7 @@ void main()
 				vx_n_creases += sgn(s) ;
 			}
 		}
-		vx_sharpness /= float(vx_edge_valence) ;
+		vx_sharpness *= 0.5f ; // used only iff 2 adjacent crease edges
 
 		bool vx_is_border = h_id_it < 0 ;
 		const int vx_halfedge_valence = vx_edge_valence + (vx_is_border ? -1 : 0) ;

@@ -6,7 +6,7 @@
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 #include <cstring>
-
+#include <limits.h>
 /**
  * @brief The Mesh_Subdiv_GPU (pure virtual) class specializes memory operations for the CPU, and implements OpenGL calls to the refinement routines that are defined in external GLSL shaders.
  */
@@ -74,7 +74,7 @@ protected:
 	 * @param enable_readback true if and only if a readback to CPU should be available for this buffer
 	 * @return the buffer identifier.
 	 */
-	static GLuint create_buffer(GLuint buffer_bind_id, uint size, void* data, bool clear_buffer = false, bool enable_readback = true) ;
+	static GLuint create_buffer(GLuint buffer_bind_id, size_t size, void* data, bool clear_buffer = false, bool enable_readback = true) ;
 
 	/**
 	 * @brief release_buffer is a static utility function to release SSBO memory
