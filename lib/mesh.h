@@ -101,6 +101,8 @@ public:
 	 */
 	bool check() const ;
 
+  std::string export_to_tikz(int depth, float alpha) const;
+
 	/**
 	 * @brief count_border_edges counts the amount of border edges (thus halfedges) in the mesh.
 	 * @return the border edge counter.
