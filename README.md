@@ -31,7 +31,8 @@ git submodule update --init --recursive
 ```
 
 ### Compilation
-This is a CMake project. The root folder contains the main CMakeLists.txt file.
+This is a CMake project. The root folder contains the main CMakeLists.txt file. Tested on Window 10 and Linux Ubuntu.
+
 To compile manually:
 ```sh
 mkdir build/  # create compilation folder
