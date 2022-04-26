@@ -33,7 +33,6 @@ include_directories(lib/)
 add_executable(loop_cpu loop_cpu.cpp lib/mesh.cpp lib/mesh_subdiv_cpu.cpp lib/mesh_subdiv.cpp lib/mesh_subdiv_loop.cpp lib/mesh_subdiv_loop_cpu.cpp)
 add_executable(catmull-clark_cpu catmull-clark_cpu.cpp lib/mesh.cpp lib/mesh_subdiv_cpu.cpp lib/mesh_subdiv.cpp lib/mesh_subdiv_catmull-clark.cpp lib/mesh_subdiv_catmull-clark_cpu.cpp)
 add_executable(stats stats.cpp lib/mesh.cpp)
-add_executable(make_tikz_figure tikz.cpp lib/mesh.cpp lib/mesh_subdiv_cpu.cpp lib/mesh_subdiv.cpp lib/mesh_subdiv_loop.cpp lib/mesh_subdiv_loop_cpu.cpp)
 
 file(GLOB lib_gpu lib/gpu_dependencies/*.cpp lib/gpu_dependencies/glad/glad.c)
 file(GLOB loop_shaders shaders/*loop*.glsl shaders/*crease*.glsl)
