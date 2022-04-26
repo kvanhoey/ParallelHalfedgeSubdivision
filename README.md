@@ -16,7 +16,21 @@ and an alternate implementation (for the official reference see [here](https://g
 
 ## Setup
 ### License
-Apart from the submodules folder, the code from this repository is released with the CC-BY licence.
+Apart from the submodules folder, the code from this repository is released with the [CC-BY licence](https://creativecommons.org/licenses/by/2.0/).
+If you use this work, please cite:
+```sh
+@inproceedings {10.2312:egs.20221028,
+  booktitle = {Eurographics 2022 - Short Papers},
+  editor = {Pelechano, Nuria and Vanderhaeghe, David},
+  title = {{A Halfedge Refinement Rule for Parallel Loop Subdivision}},
+  author = {Vanhoey, Kenneth and Dupuy, Jonathan},
+  year = {2022},
+  publisher = {The Eurographics Association},
+  ISSN = {1017-4656},
+  ISBN = {978-3-03868-169-4},
+  DOI = {10.2312/egs.20221028}
+}
+```
 
 ### Cloning
 
@@ -31,7 +45,7 @@ git submodule update --init --recursive
 ```
 
 ### Compilation
-This is a CMake project. The root folder contains the main CMakeLists.txt file. Tested on Window 10 and Linux Ubuntu.
+This is a CMake project. The root folder contains the main CMakeLists.txt file. Tested on Window 10 (Visual Studio 2019) and Linux Ubuntu 18.04 (see [config file](https://github.com/kvanhoey/ParallelHalfedgeSubdivision/blob/78c0b919cc1b55865e4b88e2c3c31bcce69e9619/.travis.yml) for dependencies).
 
 To compile manually:
 ```sh
